@@ -1,4 +1,5 @@
-import React from "react";
+
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,8 +7,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { supabase } from "@/integrations/supabase/client";
 
-interface StockDetails {
+export interface StockDetails {
   symbol: string;
   title: string;
   logoUrl: string;
