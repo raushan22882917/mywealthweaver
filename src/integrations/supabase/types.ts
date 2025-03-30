@@ -387,27 +387,6 @@ export type Database = {
         }
         Relationships: []
       }
-      similar_companies: {
-        Row: {
-          created_at: string | null
-          id: string
-          similar_symbols: string[]
-          symbol: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          similar_symbols: string[]
-          symbol: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          similar_symbols?: string[]
-          symbol?: string
-        }
-        Relationships: []
-      }
       stock_financial_details: {
         Row: {
           adjusted_dividend_yield: number | null
