@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
@@ -159,12 +158,14 @@ const Reporting: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left side - Calendar (75%) */}
           <div className="lg:w-3/4">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Dividend Calendar</CardTitle>
-                <CardDescription>View upcoming dividend events with company logos</CardDescription>
+            <Card className="h-full bg-gray-950 border-gray-800">
+              <CardHeader className="border-b border-gray-800">
+                <CardTitle className="text-xl text-white">Dividend Calendar</CardTitle>
+                <CardDescription className="text-gray-400">
+                  View upcoming dividend events with company logos
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <DividendCalendar />
               </CardContent>
             </Card>
