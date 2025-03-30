@@ -19,6 +19,8 @@ import { Search, BarChart3, DollarSign, Calendar, ArrowUpDown, Filter } from "lu
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { format } from "date-fns";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import DividendCalendar from "@/components/DividendCalendar";
 
 interface DividendReport {
   id: string;
@@ -42,6 +44,7 @@ const Reporting: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<keyof DividendReport>("symbol");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     fetchDividendReports();
@@ -128,14 +131,14 @@ const Reporting: React.FC = () => {
   };
 
   // Prepare data for charts
-  const earningsChartData = reports.map(report => ({
+  const earningsChartData = reports.slice(0, 10).map(report => ({
     symbol: report.symbol,
     "Highest Estimate": report.earnings_high,
     "Average": report.earnings_average,
     "Lowest Estimate": report.earnings_low,
   }));
 
-  const revenueChartData = reports.map(report => ({
+  const revenueChartData = reports.slice(0, 10).map(report => ({
     symbol: report.symbol,
     "Highest Estimate": report.revenue_high / 1000000000,
     "Average": report.revenue_average / 1000000000,
@@ -153,168 +156,220 @@ const Reporting: React.FC = () => {
           </p>
         </div>
 
-        {/* Search and Filter Controls */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
-          <div className="relative w-full md:w-64">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Search by symbol..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Left side - Calendar (75%) */}
+          <div className="lg:w-3/4">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Dividend Calendar</CardTitle>
+                <CardDescription>View upcoming dividend events with company logos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <DividendCalendar />
+              </CardContent>
+            </Card>
           </div>
-          
-          <Select
-            value={sortField as string}
-            onValueChange={(value) => setSortField(value as keyof DividendReport)}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="symbol">Symbol</SelectItem>
-              <SelectItem value="dividend_date">Dividend Date</SelectItem>
-              <SelectItem value="ex_dividend_date">Ex-Dividend Date</SelectItem>
-              <SelectItem value="earnings_date">Earnings Date</SelectItem>
-              <SelectItem value="earnings_average">Earnings Average</SelectItem>
-              <SelectItem value="revenue_average">Revenue Average</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button 
-            variant="outline" 
-            onClick={() => setSortDirection(current => current === 'asc' ? 'desc' : 'asc')}
-            className="flex items-center gap-2"
-          >
-            <ArrowUpDown className="h-4 w-4" />
-            {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
-          </Button>
+
+          {/* Right side - Analysis (25%) */}
+          <div className="lg:w-1/4">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
+              <TabsList className="grid grid-cols-3 mb-4">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="stats">Stats</TabsTrigger>
+                <TabsTrigger value="search">Search</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="overview" className="space-y-4">
+                {/* Dashboard Metrics */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Upcoming Dividends</CardTitle>
+                    <CardDescription>Next 30 days</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-5 w-5 text-blue-500" />
+                        <span className="text-2xl font-bold">
+                          {reports.filter(r => {
+                            const divDate = r.dividend_date ? new Date(r.dividend_date) : null;
+                            const today = new Date();
+                            const thirtyDaysLater = new Date();
+                            thirtyDaysLater.setDate(today.getDate() + 30);
+                            return divDate && divDate > today && divDate < thirtyDaysLater;
+                          }).length}
+                        </span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">Companies</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Average EPS</CardTitle>
+                    <CardDescription>Across portfolio</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-green-500" />
+                        <span className="text-2xl font-bold">
+                          {reports.length > 0 
+                            ? formatNumber(reports.reduce((sum, r) => sum + r.earnings_average, 0) / reports.length)
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">Per share</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg font-medium">Total Revenue</CardTitle>
+                    <CardDescription>All companies</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <BarChart3 className="h-5 w-5 text-purple-500" />
+                        <span className="text-xl font-bold">
+                          {reports.length > 0 
+                            ? formatCurrency(reports.reduce((sum, r) => sum + r.revenue_average, 0))
+                            : "N/A"}
+                        </span>
+                      </div>
+                      <span className="text-sm text-muted-foreground">Combined</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="stats" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Earnings Distribution</CardTitle>
+                    <CardDescription>Top 5 companies by EPS</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={earningsChartData.slice(0, 5)}>
+                        <XAxis dataKey="symbol" />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value) => [`$${value}`, 'EPS']}
+                          labelFormatter={(label) => `Symbol: ${label}`}
+                        />
+                        <Bar dataKey="Average" fill="#0ea5e9" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Revenue Summary</CardTitle>
+                    <CardDescription>Billion USD</CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={revenueChartData.slice(0, 5)}>
+                        <XAxis dataKey="symbol" />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value) => [`$${value}B`, 'Revenue']}
+                          labelFormatter={(label) => `Symbol: ${label}`}
+                        />
+                        <Bar dataKey="Average" fill="#14b8a6" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="search" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Find Report</CardTitle>
+                    <CardDescription>Search for a specific company</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                      <Input
+                        placeholder="Search by symbol..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    
+                    <div className="mt-4 max-h-[400px] overflow-y-auto">
+                      {filteredReports.length === 0 ? (
+                        <p className="text-center py-4 text-muted-foreground">No matching companies found</p>
+                      ) : (
+                        filteredReports.slice(0, 10).map(report => (
+                          <div key={report.id} className="flex items-center py-2 border-b">
+                            <div className="font-medium">{report.symbol}</div>
+                            <div className="ml-auto text-sm text-muted-foreground">
+                              {formatDate(report.dividend_date)}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
 
-        {/* Dashboard Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">Upcoming Dividends</CardTitle>
-              <CardDescription>Next 30 days</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-500" />
-                  <span className="text-2xl font-bold">
-                    {reports.filter(r => {
-                      const divDate = r.dividend_date ? new Date(r.dividend_date) : null;
-                      const today = new Date();
-                      const thirtyDaysLater = new Date();
-                      thirtyDaysLater.setDate(today.getDate() + 30);
-                      return divDate && divDate > today && divDate < thirtyDaysLater;
-                    }).length}
-                  </span>
-                </div>
-                <span className="text-sm text-muted-foreground">Companies</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">Average EPS</CardTitle>
-              <CardDescription>Across portfolio</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-green-500" />
-                  <span className="text-2xl font-bold">
-                    {reports.length > 0 
-                      ? formatNumber(reports.reduce((sum, r) => sum + r.earnings_average, 0) / reports.length)
-                      : "N/A"}
-                  </span>
-                </div>
-                <span className="text-sm text-muted-foreground">Per share</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg font-medium">Total Revenue</CardTitle>
-              <CardDescription>All companies</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-purple-500" />
-                  <span className="text-2xl font-bold">
-                    {reports.length > 0 
-                      ? formatCurrency(reports.reduce((sum, r) => sum + r.revenue_average, 0))
-                      : "N/A"}
-                  </span>
-                </div>
-                <span className="text-sm text-muted-foreground">Combined</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Earnings Per Share Analysis</CardTitle>
-              <CardDescription>Highest, average, and lowest earnings estimates</CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={earningsChartData}>
-                  <XAxis dataKey="symbol" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value) => [`$${value}`, 'EPS']}
-                    labelFormatter={(label) => `Symbol: ${label}`}
-                  />
-                  <Legend />
-                  <Bar dataKey="Highest Estimate" fill="#4f46e5" />
-                  <Bar dataKey="Average" fill="#0ea5e9" />
-                  <Bar dataKey="Lowest Estimate" fill="#6366f1" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue Projections (Billions)</CardTitle>
-              <CardDescription>Highest, average, and lowest revenue estimates</CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={revenueChartData}>
-                  <XAxis dataKey="symbol" />
-                  <YAxis />
-                  <Tooltip 
-                    formatter={(value) => [`$${value}B`, 'Revenue']}
-                    labelFormatter={(label) => `Symbol: ${label}`}
-                  />
-                  <Legend />
-                  <Bar dataKey="Highest Estimate" fill="#10b981" />
-                  <Bar dataKey="Average" fill="#14b8a6" />
-                  <Bar dataKey="Lowest Estimate" fill="#34d399" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Report Table */}
-        <Card>
+        {/* Report Table - Full width below the split layout */}
+        <Card className="mt-8">
           <CardHeader>
             <CardTitle>Dividend & Earnings Reports</CardTitle>
             <CardDescription>
               {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''} found
             </CardDescription>
+            <div className="flex flex-col md:flex-row gap-4 mt-4">
+              <div className="relative w-full md:w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search by symbol..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select
+                value={sortField as string}
+                onValueChange={(value) => setSortField(value as keyof DividendReport)}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="symbol">Symbol</SelectItem>
+                  <SelectItem value="dividend_date">Dividend Date</SelectItem>
+                  <SelectItem value="ex_dividend_date">Ex-Dividend Date</SelectItem>
+                  <SelectItem value="earnings_date">Earnings Date</SelectItem>
+                  <SelectItem value="earnings_average">Earnings Average</SelectItem>
+                  <SelectItem value="revenue_average">Revenue Average</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button 
+                variant="outline" 
+                onClick={() => setSortDirection(current => current === 'asc' ? 'desc' : 'asc')}
+                className="flex items-center gap-2"
+              >
+                <ArrowUpDown className="h-4 w-4" />
+                {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
