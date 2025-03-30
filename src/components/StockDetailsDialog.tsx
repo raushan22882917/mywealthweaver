@@ -44,24 +44,76 @@ interface StockDetailsDialogProps {
 
 interface CompanyProfile {
   symbol: string;
+  phone: string;
   website: string;
   industry: string;
   sector: string;
   longBusinessSummary: string;
   fullTimeEmployees: string;
+  auditRisk: number;
+  boardRisk: number;
+  compensationRisk: number;
+  shareHolderRightsRisk: number;
+  overallRisk: number;
   dividendRate: string;
   dividendYield: string;
   exDividendDate: string;
   payoutRatio: string;
-  previousClose: string;
-  open: string;
-  dayLow: string;
-  dayHigh: string;
-  volume: string;
-  marketCap: string;
-  trailingPE: string;
-  forwardPE: string;
-  beta: string;
+  fiveYearAvgDividendYield: number;
+  beta: number;
+  trailingPE: number;
+  forwardPE: number;
+  priceToSalesTrailing12Months: number;
+  fiftyDayAverage: number;
+  twoHundredDayAverage: number;
+  trailingAnnualDividendRate: number;
+  trailingAnnualDividendYield: number;
+  profitMargins: number;
+  heldPercentInsiders: number;
+  heldPercentInstitutions: number;
+  bookValue: number;
+  priceToBook: number;
+  lastFiscalYearEnd: string;
+  earningsQuarterlyGrowth: number;
+  netIncomeToCommon: number;
+  trailingEps: number;
+  forwardEps: number;
+  enterpriseToRevenue: number;
+  enterpriseToEbitda: number;
+  weekChange52: number;
+  sandP52WeekChange: number;
+  lastDividendValue: number;
+  lastDividendDate: string;
+  exchange: string;
+  quoteType: string;
+  shortName: string;
+  targetHighPrice: number;
+  targetLowPrice: number;
+  targetMeanPrice: number;
+  targetMedianPrice: number;
+  recommendationMean: number;
+  recommendationKey: string;
+  numberOfAnalystOpinions: number;
+  totalCash: number;
+  totalCashPerShare: number;
+  ebitda: number;
+  totalDebt: number;
+  quickRatio: number;
+  currentRatio: number;
+  totalRevenue: number;
+  debtToEquity: number;
+  revenuePerShare: number;
+  returnOnAssets: number;
+  returnOnEquity: number;
+  grossProfits: number;
+  freeCashflow: number;
+  operatingCashflow: number;
+  earningsGrowth: number;
+  revenueGrowth: number;
+  grossMargins: number;
+  ebitdaMargins: number;
+  operatingMargins: number;
+  trailingPegRatio: number;
   address: string;
 }
 
@@ -154,20 +206,17 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
   useEffect(() => {
     const fetchDates = async () => {
       try {
-        const response = await fetch('/dividends.csv');
-        const csvText = await response.text();
-        const lines = csvText.split('\n');
-        
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split('|');
-          if (values[0] === symbol) {
-            setDates({
-              buyDate: values[13],    // buy_date is the 14th column (index 13)
-              payoutDate: values[12]  // payout_date is the 15th column (index 14)
-            });
-            break;
-          }
-        }
+        const { data, error } = await supabase
+          .from('dividend_dates')
+          .select('*')
+          .eq('symbol', symbol)
+          .single();
+
+        if (error) throw error;
+        setDates({
+          buyDate: data.buy_date,
+          payoutDate: data.payout_date
+        });
       } catch (error) {
         console.error('Error fetching dates:', error);
       }
@@ -314,197 +363,98 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchCompanyProfile = async () => {
       if (!stock?.Symbol) return;
-
+      
       try {
-        const response = await fetch('/profile/company_profile.csv');
-        const text = await response.text();
-        const lines = text.split('\n');
-        const headers = lines[0].split('|');
-        
-        for (let i = 1; i < lines.length; i++) {
-          const values = lines[i].split('|');
-          if (values[headers.indexOf('symbol')] === stock.Symbol) {
-            const profile: CompanyProfile = {
-              symbol: values[headers.indexOf('symbol')] || '',
-              website: values[headers.indexOf('website')] || '',
-              industry: values[headers.indexOf('industry')] || '',
-              sector: values[headers.indexOf('sector')] || '',
-              longBusinessSummary: values[headers.indexOf('longBusinessSummary')] || '',
-              fullTimeEmployees: values[headers.indexOf('fullTimeEmployees')] || '',
-              dividendRate: values[headers.indexOf('dividendRate')] || '',
-              dividendYield: values[headers.indexOf('dividendYield')] || '',
-              exDividendDate: values[headers.indexOf('exDividendDate')] || '',
-              payoutRatio: values[headers.indexOf('payoutRatio')] || '',
-              previousClose: values[headers.indexOf('previousClose')] || '',
-              open: values[headers.indexOf('open')] || '',
-              dayLow: values[headers.indexOf('dayLow')] || '',
-              dayHigh: values[headers.indexOf('dayHigh')] || '',
-              volume: values[headers.indexOf('volume')] || '',
-              marketCap: values[headers.indexOf('marketCap')] || '',
-              trailingPE: values[headers.indexOf('trailingPE')] || '',
-              forwardPE: values[headers.indexOf('forwardPE')] || '',
-              beta: values[headers.indexOf('beta')] || '',
-              address: values[headers.indexOf('address')] || '',
-            };
-            setCompanyProfile(profile);
-            break;
-          }
-        }
+        const { data, error } = await supabase
+          .from('company_profiles')
+          .select('*')
+          .eq('symbol', stock.Symbol)
+          .single();
+
+        if (error) throw error;
+        setCompanyProfile(data);
       } catch (error) {
         console.error('Error fetching company profile:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load company profile data",
-          variant: "destructive",
-        });
       }
     };
 
     fetchCompanyProfile();
-  }, [stock?.Symbol, toast]);
-
-  useEffect(() => {
-    const fetchDividendData = async () => {
-      if (stock?.Symbol) {
-        try {
-          // Fetch both dividend files
-          const [annualResponse, quarterlyResponse] = await Promise.all([
-            fetch('/Annual_dividend/annual_dividend.csv'),
-            fetch('/quatarly_dividend/quater_dividend.csv')
-          ]);
-
-          const [annualText, quarterlyText] = await Promise.all([
-            annualResponse.text(),
-            quarterlyResponse.text()
-          ]);
-
-          // Parse annual data
-          Papa.parse<DividendData>(annualText, {
-            header: true,
-            delimiter: '|',
-            complete: (results) => {
-              const stockDividends = results.data
-                .filter(item => 
-                  item.symbol === stock.Symbol &&
-                  item.date && item.dividends
-                )
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-              if (stockDividends.length > 0) {
-                setLatestDividends(prev => ({
-                  ...prev,
-                  annual: stockDividends[0].dividends,
-                  annualDate: stockDividends[0].date
-                }));
-              }
-            }
-          });
-
-          // Parse quarterly data
-          Papa.parse<DividendData>(quarterlyText, {
-            header: true,
-            delimiter: '|',
-            complete: (results) => {
-              const stockDividends = results.data
-                .filter(item => 
-                  item.symbol === stock.Symbol &&
-                  item.date && item.dividends
-                )
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-              if (stockDividends.length > 0) {
-                setLatestDividends(prev => ({
-                  ...prev,
-                  quarterly: stockDividends[0].dividends,
-                  quarterlyDate: stockDividends[0].date
-                }));
-              }
-            }
-          });
-
-        } catch (error) {
-          console.error('Error fetching dividend data:', error);
-        }
-      }
-    };
-
-    fetchDividendData();
-  }, [stock?.Symbol]);
-
-  useEffect(() => {
-    const fetchPayoutData = async () => {
-      try {
-        const response = await fetch(`/payout/${stock.Symbol}.csv`);
-        const csvText = await response.text();
-        const rows = csvText.split('\n').slice(1); // Skip header
-        const data = rows.map(row => {
-          const [dividends, date, quarterlyEPS, _, quarter_year, payout] = row.split(',');
-          return {
-            quarter: quarter_year,
-            value: parseFloat(payout),
-            dividends: parseFloat(dividends),
-            eps: parseFloat(quarterlyEPS)
-          };
-        }).filter(item => !isNaN(item.value));
-        setPayoutData(data.reverse()); // Most recent first
-      } catch (error) {
-        console.error('Error loading payout data:', error);
-      }
-    };
-
-    if (stock?.Symbol) {
-      fetchPayoutData();
-    }
   }, [stock?.Symbol]);
 
   useEffect(() => {
     const fetchDividendHistory = async () => {
-      if (stock?.Symbol) {
-        try {
-          const response = await fetch(`/dividend/${stock.Symbol}.csv`);
-          const csvText = await response.text();
-          const rows = csvText.split('\n').slice(1); // Skip header
-          const data = rows.map(row => {
-            const [date, dividend] = row.split(',');
-            return {
-              date,
-              dividend: parseFloat(dividend)
-            };
-          }).filter(item => !isNaN(item.dividend));
-          setDividendHistory(data);
-        } catch (error) {
-          console.error('Error loading dividend history:', error);
-        }
+      if (!stock?.Symbol) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from(activeDividendTab === 'annual' ? 'annual_dividends' : 'quarterly_dividends')
+          .select('*')
+          .eq('symbol', stock.Symbol)
+          .order('date', { ascending: false });
+
+        if (error) throw error;
+        setDividendHistory(data);
+      } catch (error) {
+        console.error('Error fetching dividend history:', error);
       }
     };
 
     fetchDividendHistory();
+  }, [stock?.Symbol, activeDividendTab]);
+
+  useEffect(() => {
+    const fetchRankingData = async () => {
+      if (!stock?.Symbol) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('stock_rankings')
+          .select('*')
+          .eq('symbol', stock.Symbol)
+          .single();
+
+        if (error) throw error;
+        setRankingCSVData({
+          rank: data.rank,
+          score: data.score,
+          sector: data.sector,
+          industry: data.industry
+        });
+      } catch (error) {
+        console.error('Error fetching ranking data:', error);
+      }
+    };
+
+    fetchRankingData();
   }, [stock?.Symbol]);
 
   useEffect(() => {
     const fetchSimilarCompanies = async () => {
-      if (stock?.Symbol) {
-        try {
-          const response = await fetch('/profile/similarcompany.csv');
-          const text = await response.text();
-          const lines = text.split('\n');
-          const companies = lines
-            .slice(1) // Skip header
-            .map(line => {
-              const [symbol, similars] = line.split('|');
-              return { symbol, similarcompanies: similars };
-            })
-            .find(company => company.symbol === stock.Symbol);
-          
-          if (companies) {
-            setSimilarCompanies(companies.similarcompanies.split(','));
-          } else {
-            setSimilarCompanies([]);
-          }
-        } catch (error) {
-          console.error('Error loading similar companies:', error);
-          setSimilarCompanies([]);
-        }
+      if (!stock?.Symbol) return;
+      
+      try {
+        const { data: similarData, error: similarError } = await supabase
+          .from('similar_companies')
+          .select('*')
+          .eq('symbol', stock.Symbol);
+
+        if (similarError) throw similarError;
+
+        const { data: logoData, error: logoError } = await supabase
+          .from('company_logos')
+          .select('*')
+          .in('symbol', similarData.map(company => company.symbol));
+
+        if (logoError) throw logoError;
+
+        const combinedData = similarData.map(company => ({
+          ...company,
+          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.logo_url
+        }));
+
+        setSimilarCompanies(combinedData);
+      } catch (error) {
+        console.error('Error fetching similar companies:', error);
       }
     };
 
@@ -512,89 +462,39 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   }, [stock?.Symbol]);
 
   useEffect(() => {
-    const fetchRanking = async () => {
-      if (stock?.Symbol) {
-        try {
-          const response = await fetch('/ranking/ranking.csv');
-          const csvText = await response.text();
-          
-          Papa.parse<RankingData>(csvText, {
-            header: true,
-            delimiter: '|',
-            complete: (results) => {
-              const allStocks = results.data.filter(item => 
-                item.Symbol && item.Rank && item.industry
-              );
-              
-              const stockData = allStocks.find(item => 
-                item.Symbol === stock.Symbol
-              );
-              
-              if (stockData) {
-                const industryStocks = allStocks.filter(item => 
-                  item.industry === stockData.industry
-                );
-                
-                const industryRank = industryStocks
-                  .sort((a, b) => Number(a.Rank) - Number(b.Rank))
-                  .findIndex(item => item.Symbol === stock.Symbol) + 1;
+    const fetchPayoutHistory = async () => {
+      if (!stock?.Symbol) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('payout_history')
+          .select('*')
+          .eq('symbol', stock.Symbol)
+          .order('date', { ascending: false });
 
-                setRankingCSVData({
-                  rank: stockData.Rank,
-                  score: stockData.Score,
-                  industryRank: industryRank.toString(),
-                  totalStocks: allStocks.length.toString(),
-                  totalIndustryStocks: industryStocks.length.toString(),
-                  industry: stockData.industry,
-                  sector: stockData.sector
-                });
-              }
-            }
-          });
-        } catch (error) {
-          console.error('Error fetching ranking:', error);
-          toast({
-            title: "Error",
-            description: "Failed to load ranking data",
-            variant: "destructive",
-          });
-        }
+        if (error) throw error;
+        setPayoutData(data);
+      } catch (error) {
+        console.error('Error fetching payout history:', error);
       }
     };
-    
-    fetchRanking();
-  }, [stock?.Symbol, toast]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentDateTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
+    fetchPayoutHistory();
+  }, [stock?.Symbol]);
 
   useEffect(() => {
     const fetchDividendHistoryData = async () => {
       if (!stock?.Symbol) return;
       
       try {
-        const response = await fetch(`/History/${activeDividendTab === 'annual' ? 'annual' : 'quater'}_dividend.csv`);
-        const csvText = await response.text();
-        
-        const results = Papa.parse(csvText, {
-          header: true,
-          delimiter: '|',
-          dynamicTyping: true,
-        });
+        const { data, error } = await supabase
+          .from(activeDividendTab === 'annual' ? 'annual_dividend_history' : 'quarterly_dividend_history')
+          .select('*')
+          .eq('symbol', stock.Symbol)
+          .order('date', { ascending: true });
 
-        const filteredData = (results.data as any[])
-          .filter(row => row.symbol === stock.Symbol)
-          .map(row => ({
-            date: new Date(row.date).getFullYear().toString(),
-            dividends: row.dividends
-          }))
-          .sort((a, b) => a.date.localeCompare(b.date));
-
-        setDividendHistoryData(filteredData);
+        if (error) throw error;
+        setDividendHistoryData(data);
       } catch (error) {
         console.error('Error fetching dividend history data:', error);
       }
@@ -607,31 +507,16 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     const fetchLogo = async () => {
       if (stock?.Symbol) {
         try {
-          const response = await fetch('/sp500_company_logos.csv');
-          const csvText = await response.text();
-          
-          Papa.parse<LogoData>(csvText, {
-            header: true,
-            delimiter: ',', // Adjust delimiter if needed
-            complete: (results) => {
-              const logoData = results.data.find(item => 
-                item.Symbol?.trim() === stock.Symbol?.trim()
-              );
-              
-              if (logoData?.LogoURL) {
-                setLogoURL(logoData.LogoURL);
-              } else {
-                setLogoURL('stock.avif'); // fallback image
-              }
-            },
-            error: (error) => {
-              console.error('Error parsing logo CSV:', error);
-              setLogoURL('stock.avif'); // fallback image on error
-            }
-          });
+          const { data, error } = await supabase
+            .from('company_logos')
+            .select('*')
+            .eq('symbol', stock.Symbol)
+            .single();
+
+          if (error) throw error;
+          setLogoURL(data.logo_url);
         } catch (error) {
           console.error('Error fetching logo:', error);
-          setLogoURL('stock.avif'); // fallback image on error
         }
       }
     };
@@ -643,51 +528,26 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     const fetchSimilarStocks = async () => {
       if (stock?.Symbol) {
         try {
-          // Fetch both CSV files
-          const [similarResponse, logoResponse] = await Promise.all([
-            fetch('/similar_stock.csv'),
-            fetch('/sp500_company_logos.csv')
-          ]);
+          const { data: similarData, error: similarError } = await supabase
+            .from('similar_companies')
+            .select('*')
+            .eq('symbol', stock.Symbol);
 
-          const [similarText, logoText] = await Promise.all([
-            similarResponse.text(),
-            logoResponse.text()
-          ]);
+          if (similarError) throw similarError;
 
-          // Parse similar stocks CSV
-          Papa.parse<SimilarStockData>(similarText, {
-            header: true,
-            delimiter: '|',
-            complete: async (similarResults) => {
-              // Get similar stocks for current stock
-              const matchingStocks = similarResults.data.filter(
-                item => item.stock === stock.Symbol
-              );
+          const { data: logoData, error: logoError } = await supabase
+            .from('company_logos')
+            .select('*')
+            .in('symbol', similarData.map(company => company.similar_symbol));
 
-              // Parse logo CSV
-              Papa.parse<LogoData>(logoText, {
-                header: true,
-                delimiter: ',',
-                complete: (logoResults) => {
-                  const stocksWithLogos = matchingStocks.map(similarStock => {
-                    const logoData = logoResults.data.find(
-                      logo => logo.Symbol === similarStock.similarStock
-                    );
-                    
-                    return {
-                      symbol: similarStock.similarStock,
-                      company: similarStock.Company.trim(),
-                      description: similarStock.Description.trim(),
-                      logoUrl: logoData?.LogoURL || 'stock.avif'
-                    };
-                  });
+          if (logoError) throw logoError;
 
-                  setSimilarStocks(stocksWithLogos);
-                }
-              });
-            }
-          });
+          const combinedData = similarData.map(company => ({
+            ...company,
+            logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.logo_url
+          }));
 
+          setSimilarStocks(combinedData);
         } catch (error) {
           console.error('Error fetching similar stocks:', error);
         }
@@ -1301,18 +1161,16 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
       case 'Analyst Ratings':
         return (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Analyst Ratings</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <UpDown />
-                </div>
-              </div>
-            </div>
-          </div>
+          <div className="flex flex-col gap-4 w-full">
+  <div className="flex flex-col gap-2 w-full">
+    <div className="flex items-center justify-between w-full">
+      <div className="flex items-center gap-2 w-full">
+        <UpDown />
+      </div>
+    </div>
+  </div>
+</div>
+
         );
 
       default:

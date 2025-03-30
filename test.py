@@ -1,33 +1,19 @@
 import pandas as pd
-import os
 
-# Path to the original large CSV file
-input_file = "C:/Users/raush/Desktop/mywealthweaver/public/ud/upgrades_downgrades_info.csv"
-output_folder = os.path.dirname(input_file)  # Save in the same folder
-
-# Define the starting row (after row 21,269)
-start_row = 1  # 0-based index means we start reading from row 21,269
-
-def split_csv_into_4_parts(input_file, start_row, output_folder):
-    # Read the CSV file starting from the specified row
-    df = pd.read_csv(input_file, skiprows=range(1, start_row))
-    total_rows = len(df)
+def remove_duplicates(csv_file):
+    # Read the CSV file
+    df = pd.read_csv(csv_file)
     
-    if total_rows < 4:
-        print("Not enough rows to split into 4 files.")
-        return
+    # Count duplicates before removal
+    duplicate_count = df.duplicated(subset=['symbol', 'date']).sum()
     
-    chunk_size = total_rows // 4  # Divide data into 4 equal parts
-    remainder = total_rows % 4
+    # Drop duplicate rows based on 'symbol' and 'date' columns, keeping the first occurrence
+    df_unique = df.drop_duplicates(subset=['symbol', 'date'], keep='first')
     
-    start_idx = 0
-    for i in range(4):
-        end_idx = start_idx + chunk_size + (1 if i < remainder else 0)  # Distribute remainder evenly
-        part_df = df.iloc[start_idx:end_idx]
-        output_file = os.path.join(output_folder, f"part{i+1}.csv")
-        part_df.to_csv(output_file, index=False)
-        print(f"Saved {output_file} with {len(part_df)} rows.")
-        start_idx = end_idx  # Move to next chunk
+    # Save the cleaned data back to the same file
+    df_unique.to_csv(csv_file, index=False)
+    
+    print(f"Removed {duplicate_count} duplicate rows based on 'symbol' and 'date'. Cleaned file saved as: {csv_file}")
 
-# Run the function
-split_csv_into_4_parts(input_file, start_row, output_folder)
+# Example usage
+remove_duplicates('C:/Users/raush/Desktop/mywealthweaver/public/quatarly_dividend/quater_dividend.csv')
