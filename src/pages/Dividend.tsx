@@ -553,7 +553,7 @@ const Dividend: React.FC = () => {
                   {/* Date with Icon */}
                   <div className="flex items-center justify-center mb-4 text-gray-900 dark:text-gray-100">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2V9a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <h3 className="text-xl font-bold">{dateString}</h3>
                   </div>
@@ -805,7 +805,7 @@ const Dividend: React.FC = () => {
           }}
         >
           <div 
-            className="absolute -top-1 -right-1 text-red-500 dark:text-red-400"
+            className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700"
           />
           {hoveredStockDetails.stock?.insight && (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-b-lg border border-blue-200 dark:border-blue-800">
@@ -905,11 +905,7 @@ const Dividend: React.FC = () => {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-300">Yield:</span>
-              <span className="font-medium">
-                {hoveredStockDetails.stock?.dividendYield 
-                  ? (parseFloat(hoveredStockDetails.stock.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2) 
-                  : 'N/A'}
-              </span>
+              <span className="font-medium">{(hoveredStockDetails.stock?.dividendYield ? (Number(hoveredStockDetails.stock.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2) : 'N/A')}</span>
             </div>
           </div>
           <button
@@ -1135,12 +1131,8 @@ const Dividend: React.FC = () => {
                       const rect = e.currentTarget.getBoundingClientRect();
                       setHoveredStockDetails({
                         stock,
-                        exDividendDate: stock.ExDividendDate,
-                        dividendDate: stock.DividendDate,
-                        position: {
-                          x: rect.left,
-                          y: rect.top
-                        }
+                        x: rect.left,
+                        y: rect.top
                       });
                       e.stopPropagation();
                     }}
