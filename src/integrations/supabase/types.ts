@@ -9,6 +9,33 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      company_logos: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          domain: string | null
+          id: number
+          logo_url: string
+          symbol: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          domain?: string | null
+          id?: number
+          logo_url: string
+          symbol: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          domain?: string | null
+          id?: number
+          logo_url?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
       dividend_payout: {
         Row: {
           created_at: string
@@ -45,27 +72,78 @@ export type Database = {
         }
         Relationships: []
       }
-      dividend_safety: {
+      dividend_reports: {
         Row: {
-          debt_to_equity: number | null
-          fcf_coverage: number | null
-          payout_ratio: number | null
-          status: string | null
-          symbol: string | null
+          created_at: string | null
+          dividend_date: string | null
+          earnings_average: number | null
+          earnings_date: string | null
+          earnings_high: number | null
+          earnings_low: number | null
+          ex_dividend_date: string | null
+          id: string
+          revenue_average: number | null
+          revenue_high: number | null
+          revenue_low: number | null
+          symbol: string
         }
         Insert: {
-          debt_to_equity?: number | null
-          fcf_coverage?: number | null
-          payout_ratio?: number | null
-          status?: string | null
-          symbol?: string | null
+          created_at?: string | null
+          dividend_date?: string | null
+          earnings_average?: number | null
+          earnings_date?: string | null
+          earnings_high?: number | null
+          earnings_low?: number | null
+          ex_dividend_date?: string | null
+          id?: string
+          revenue_average?: number | null
+          revenue_high?: number | null
+          revenue_low?: number | null
+          symbol: string
         }
         Update: {
+          created_at?: string | null
+          dividend_date?: string | null
+          earnings_average?: number | null
+          earnings_date?: string | null
+          earnings_high?: number | null
+          earnings_low?: number | null
+          ex_dividend_date?: string | null
+          id?: string
+          revenue_average?: number | null
+          revenue_high?: number | null
+          revenue_low?: number | null
+          symbol?: string
+        }
+        Relationships: []
+      }
+      dividend_safety: {
+        Row: {
+          created_at: string
+          debt_to_equity: number | null
+          fcf_coverage: number | null
+          id: number
+          payout_ratio: number | null
+          status: string | null
+          symbol: string
+        }
+        Insert: {
+          created_at?: string
           debt_to_equity?: number | null
           fcf_coverage?: number | null
+          id?: number
           payout_ratio?: number | null
           status?: string | null
-          symbol?: string | null
+          symbol: string
+        }
+        Update: {
+          created_at?: string
+          debt_to_equity?: number | null
+          fcf_coverage?: number | null
+          id?: number
+          payout_ratio?: number | null
+          status?: string | null
+          symbol?: string
         }
         Relationships: []
       }
@@ -104,73 +182,76 @@ export type Database = {
       }
       dividends: {
         Row: {
-          annualrate: number | null
+          annual_rate: number | null
           buy_date: string | null
-          currentprice: number | null
-          dividenddate: string | null
-          dividendrate: number | null
-          dividendyield: number | null
-          earningsdate: string | null
-          exdividenddate: string | null
+          created_at: string
+          current_price: number | null
+          dividend_date: string | null
+          dividend_rate: number | null
+          dividend_yield: number | null
+          earnings_date: string | null
+          ex_dividend_date: string | null
           hist: string | null
           id: number
-          insight_data: string | null
-          lastdividendvalue: number | null
+          insight: string | null
+          last_dividend_value: number | null
           message: string | null
-          payoutdate: string | null
-          payoutratio: number | null
-          previousclose: number | null
-          quotetype: string | null
-          shortname: string | null
-          symbol: string | null
-          trailingannualdividendrate: number | null
-          trailingannualdividendyield: number | null
+          payout_date: string | null
+          payout_ratio: number | null
+          previous_close: number | null
+          quote_type: string | null
+          short_name: string | null
+          symbol: string
+          trailing_annual_dividend_rate: number | null
+          trailing_annual_dividend_yield: number | null
         }
         Insert: {
-          annualrate?: number | null
+          annual_rate?: number | null
           buy_date?: string | null
-          currentprice?: number | null
-          dividenddate?: string | null
-          dividendrate?: number | null
-          dividendyield?: number | null
-          earningsdate?: string | null
-          exdividenddate?: string | null
+          created_at?: string
+          current_price?: number | null
+          dividend_date?: string | null
+          dividend_rate?: number | null
+          dividend_yield?: number | null
+          earnings_date?: string | null
+          ex_dividend_date?: string | null
           hist?: string | null
-          id?: never
-          insight_data?: string | null
-          lastdividendvalue?: number | null
+          id?: number
+          insight?: string | null
+          last_dividend_value?: number | null
           message?: string | null
-          payoutdate?: string | null
-          payoutratio?: number | null
-          previousclose?: number | null
-          quotetype?: string | null
-          shortname?: string | null
-          symbol?: string | null
-          trailingannualdividendrate?: number | null
-          trailingannualdividendyield?: number | null
+          payout_date?: string | null
+          payout_ratio?: number | null
+          previous_close?: number | null
+          quote_type?: string | null
+          short_name?: string | null
+          symbol: string
+          trailing_annual_dividend_rate?: number | null
+          trailing_annual_dividend_yield?: number | null
         }
         Update: {
-          annualrate?: number | null
+          annual_rate?: number | null
           buy_date?: string | null
-          currentprice?: number | null
-          dividenddate?: string | null
-          dividendrate?: number | null
-          dividendyield?: number | null
-          earningsdate?: string | null
-          exdividenddate?: string | null
+          created_at?: string
+          current_price?: number | null
+          dividend_date?: string | null
+          dividend_rate?: number | null
+          dividend_yield?: number | null
+          earnings_date?: string | null
+          ex_dividend_date?: string | null
           hist?: string | null
-          id?: never
-          insight_data?: string | null
-          lastdividendvalue?: number | null
+          id?: number
+          insight?: string | null
+          last_dividend_value?: number | null
           message?: string | null
-          payoutdate?: string | null
-          payoutratio?: number | null
-          previousclose?: number | null
-          quotetype?: string | null
-          shortname?: string | null
-          symbol?: string | null
-          trailingannualdividendrate?: number | null
-          trailingannualdividendyield?: number | null
+          payout_date?: string | null
+          payout_ratio?: number | null
+          previous_close?: number | null
+          quote_type?: string | null
+          short_name?: string | null
+          symbol?: string
+          trailing_annual_dividend_rate?: number | null
+          trailing_annual_dividend_yield?: number | null
         }
         Relationships: []
       }
@@ -207,27 +288,6 @@ export type Database = {
           reported_eps?: number | null
           stock_symbol?: string
           surprise_percent?: number | null
-        }
-        Relationships: []
-      }
-      logo: {
-        Row: {
-          company_name: string
-          domain: string
-          logo_urls: string
-          symbol: string
-        }
-        Insert: {
-          company_name: string
-          domain: string
-          logo_urls: string
-          symbol: string
-        }
-        Update: {
-          company_name?: string
-          domain?: string
-          logo_urls?: string
-          symbol?: string
         }
         Relationships: []
       }
@@ -324,6 +384,72 @@ export type Database = {
           price?: number | null
           symbol?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      stock_financial_details: {
+        Row: {
+          adjusted_dividend_yield: number | null
+          created_at: string | null
+          debt_levels: number | null
+          dividend_history: string | null
+          dividend_yield: number | null
+          earnings_per_share: number | null
+          exchange: string | null
+          financial_health_score: number | null
+          five_year_dividend_yield: number | null
+          id: string
+          location: string | null
+          net_income: number | null
+          payout_ratio: number | null
+          payout_ratio_penalty: number | null
+          revenue: number | null
+          revenue_growth: number | null
+          sector: string | null
+          sub_sector: string | null
+          symbol: string
+        }
+        Insert: {
+          adjusted_dividend_yield?: number | null
+          created_at?: string | null
+          debt_levels?: number | null
+          dividend_history?: string | null
+          dividend_yield?: number | null
+          earnings_per_share?: number | null
+          exchange?: string | null
+          financial_health_score?: number | null
+          five_year_dividend_yield?: number | null
+          id?: string
+          location?: string | null
+          net_income?: number | null
+          payout_ratio?: number | null
+          payout_ratio_penalty?: number | null
+          revenue?: number | null
+          revenue_growth?: number | null
+          sector?: string | null
+          sub_sector?: string | null
+          symbol: string
+        }
+        Update: {
+          adjusted_dividend_yield?: number | null
+          created_at?: string | null
+          debt_levels?: number | null
+          dividend_history?: string | null
+          dividend_yield?: number | null
+          earnings_per_share?: number | null
+          exchange?: string | null
+          financial_health_score?: number | null
+          five_year_dividend_yield?: number | null
+          id?: string
+          location?: string | null
+          net_income?: number | null
+          payout_ratio?: number | null
+          payout_ratio_penalty?: number | null
+          revenue?: number | null
+          revenue_growth?: number | null
+          sector?: string | null
+          sub_sector?: string | null
+          symbol?: string
         }
         Relationships: []
       }
