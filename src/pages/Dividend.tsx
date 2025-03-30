@@ -6,9 +6,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
+import { supabase } from "@/integrations/supabase/client";
+
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Papa from "papaparse";
 
 interface Stock {
   cik_str: string;
@@ -47,6 +48,11 @@ interface DividendData {
   volume: string;
   yieldRange: string;
   status?: string;
+  payout_ratio?: string;
+  fcf_coverage?: string;
+  debt_to_equity?: string;
+  company_name?: string;
+  domain?: string;
 }
 
 const monthOptions = [
@@ -146,50 +152,63 @@ const Dividend: React.FC = () => {
     const fetchDividendData = async () => {
       try {
         setIsLoading(true);
-        const [dividendsResponse, safetyResponse] = await Promise.all([
-          fetch('/dividends.csv'),
-          fetch('/safety/div_safety.csv'),
-          fetch('sp500_company_logos.csv')
+        
+        // Fetch data from all three tables in parallel
+        const [
+          { data: dividendData, error: dividendError },
+          { data: safetyData, error: safetyError },
+          { data: logoData, error: logoError }
+        ] = await Promise.all([
+          supabase.from('dividend').select('*'),
+          supabase.from('dividend_safety').select('*'),
+          supabase.from('company_logos').select('*')
         ]);
 
-        if (!dividendsResponse.ok || !safetyResponse.ok) {
-          throw new Error(`HTTP error! status: ${dividendsResponse.status} ${safetyResponse.status}`);
-        }
+        if (dividendError) throw new Error(`Dividend data error: ${dividendError.message}`);
+        if (safetyError) throw new Error(`Safety data error: ${safetyError.message}`);
+        if (logoError) throw new Error(`Logo data error: ${logoError.message}`);
 
-        const [dividendsCsv, safetyCsv] = await Promise.all([
-          dividendsResponse.text(),
-          safetyResponse.text()
-        ]);
+        // Create lookup maps for safety and logo data
+        const safetyMap = new Map(safetyData?.map(item => [item.symbol, item]) || []);
+        const logoMap = new Map(logoData?.map(item => [item.Symbol, item]) || []);
 
-        // Parse safety data
-        const safetyData: Record<string, string> = {};
-        Papa.parse(safetyCsv, {
-          header: true,
-          complete: (results) => {
-            results.data.forEach((row: any) => {
-              if (row.symbol && row.status) {
-                safetyData[row.symbol] = row.status;
-              }
-            });
-          }
+        // Transform and combine the data
+        const transformedData = (dividendData || []).map((stock: any) => {
+          const safetyInfo = safetyMap.get(stock.symbol);
+          const logoInfo = logoMap.get(stock.symbol);
+
+          return {
+            Symbol: stock.symbol,
+            title: stock.shortname,
+            dividendRate: stock.dividendrate?.toString() || '0',
+            previousClose: stock.previousclose?.toString() || '0',
+            currentPrice: stock.currentprice?.toString() || '0',
+            dividendYield: stock.dividendyield?.toString() || '0',
+            payoutRatio: stock.payoutratio?.toString() || '0',
+            AnnualRate: stock.annualrate?.toString() || '0',
+            message: stock.message || '',
+            ExDividendDate: stock.exdividenddate || '',
+            DividendDate: stock.dividenddate || '',
+            EarningsDate: stock.earningsdate || '',
+            payoutdate: stock.payoutdate || '',
+            buy_date: stock.buy_date || '',
+            hist: stock.hist || '',
+            insight: stock.insight || '',
+            // Add safety metrics
+            status: safetyInfo?.status || 'Status not available',
+            payout_ratio: safetyInfo?.payout_ratio,
+            fcf_coverage: safetyInfo?.fcf_coverage,
+            debt_to_equity: safetyInfo?.debt_to_equity,
+            // Add logo and company info
+            LogoURL: logoInfo?.LogoURL || '',
+            company_name: logoInfo?.company_name || stock.shortname,
+            domain: logoInfo?.domain || ''
+          };
         });
 
-        // Parse dividend data and merge with safety data
-        Papa.parse(dividendsCsv, {
-          header: true,
-          complete: (results) => {
-            const mergedData = (results.data as DividendData[]).map(stock => ({
-              ...stock,
-              status: safetyData[stock.Symbol] || 'Status not available'
-            }));
-            setDividendData(mergedData);
-          },
-          error: (error) => {
-            console.error("Error parsing CSV:", error);
-          },
-        });
+        setDividendData(transformedData);
       } catch (error) {
-        console.error("Error fetching CSV:", error);
+        console.error("Error fetching data:", error);
         setError('Failed to load dividend data');
       } finally {
         setIsLoading(false);
