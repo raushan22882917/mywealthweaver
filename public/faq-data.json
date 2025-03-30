@@ -1,0 +1,90 @@
+
+{
+  "categories": [
+    {
+      "id": "web-order-shipping",
+      "title": "WEB ORDER SHIPPING",
+      "questions": [
+        {
+          "id": "shipping-service",
+          "question": "WHAT SHIPPING SERVICE DO YOU USE?",
+          "answer": "We use a variety of reliable shipping carriers including UPS, FedEx, and USPS to ensure your order reaches you safely and on time."
+        },
+        {
+          "id": "order-arrival",
+          "question": "WHEN WILL MY ORDER ARRIVE?",
+          "answer": "Most orders are processed within 1-2 business days and typically arrive within 3-5 business days after shipping."
+        },
+        {
+          "id": "local-collection",
+          "question": "DO YOU OFFER LOCAL COLLECTION?",
+          "answer": "Yes, we offer local collection at our designated pickup points. You can select this option during checkout."
+        },
+        {
+          "id": "click-collect",
+          "question": "WHEN CAN I PICK UP MY CLICK AND COLLECT ORDER?",
+          "answer": "Click and Collect orders are usually available for pickup within 24 hours of order confirmation."
+        },
+        {
+          "id": "shipping-cost",
+          "question": "HOW MUCH IS SHIPPING?",
+          "answer": "Shipping costs vary based on location and order size. Free shipping is available for orders over $50 within the continental US."
+        },
+        {
+          "id": "track-delivery",
+          "question": "HOW CAN I TRACK MY DELIVERY?",
+          "answer": "Once your order ships, you'll receive a tracking number via email to monitor your delivery status."
+        },
+        {
+          "id": "overseas-delivery",
+          "question": "DO YOU DELIVER OVERSEAS?",
+          "answer": "Yes, we offer international shipping to select countries. Shipping rates and delivery times vary by location."
+        }
+      ]
+    },
+    {
+      "id": "general-queries",
+      "title": "GENERAL ORDER QUERIES",
+      "questions": [
+        {
+          "id": "order-status",
+          "question": "HOW DO I CHECK MY ORDER STATUS?",
+          "answer": "You can check your order status by logging into your account or using the order tracking number provided in your confirmation email."
+        }
+      ]
+    },
+    {
+      "id": "payment",
+      "title": "PAYMENT",
+      "questions": [
+        {
+          "id": "payment-methods",
+          "question": "WHAT PAYMENT METHODS DO YOU ACCEPT?",
+          "answer": "We accept all major credit cards, PayPal, and Apple Pay for secure online payments."
+        }
+      ]
+    },
+    {
+      "id": "order-problems",
+      "title": "PROBLEMS WITH MY ORDER",
+      "questions": [
+        {
+          "id": "missing-items",
+          "question": "WHAT IF ITEMS ARE MISSING FROM MY ORDER?",
+          "answer": "Please contact our customer service team immediately with your order number, and we'll resolve the issue promptly."
+        }
+      ]
+    },
+    {
+      "id": "product-info",
+      "title": "PRODUCT INFORMATION",
+      "questions": [
+        {
+          "id": "product-specs",
+          "question": "WHERE CAN I FIND DETAILED PRODUCT SPECIFICATIONS?",
+          "answer": "Detailed product specifications can be found on each product's individual page under the 'Specifications' tab."
+        }
+      ]
+    }
+  ]
+}

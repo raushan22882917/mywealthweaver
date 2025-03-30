@@ -1,0 +1,17 @@
+{
+    "id": "1",
+    "title": "Investing Basics",
+    "subtopics": [
+      {
+        "id": "1",
+        "title": "What is Investing?",
+        "content": "Investing is the act of allocating resources, usually money, to a venture that will generate income or profit over time."
+      },
+      {
+        "id": "2",
+        "title": "Types of Investments",
+        "content": "Different types of investments include stocks, bonds, mutual funds, real estate, and more."
+      }
+    ]
+  }
+  

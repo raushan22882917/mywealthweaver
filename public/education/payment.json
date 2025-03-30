@@ -1,0 +1,17 @@
+
+{
+  "id": "payment",
+  "title": "PAYMENT",
+  "questions": [
+    {
+      "id": "payment-methods",
+      "question": "WHAT PAYMENT METHODS DO YOU ACCEPT?",
+      "answer": "We accept all major credit cards, PayPal, and Apple Pay for secure online payments."
+    },
+    {
+      "id": "payment-security",
+      "question": "IS MY PAYMENT INFORMATION SECURE?",
+      "answer": "Yes, we use industry-standard encryption and security measures to protect all payment information."
+    }
+  ]
+}

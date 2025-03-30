@@ -1,0 +1,51 @@
+
+{
+  "id": "dividend-investing",
+  "title": "What is Dividend Investing?",
+  "questions": [
+    {
+      "id": "what-is-dividend",
+      "question": "What is a dividend?",
+      "answer": "A dividend is a payment made by a corporation to its shareholders, typically in the form of cash or additional shares of stock. Companies usually pay dividends on a quarterly basis, though some may pay monthly or annually.",
+      "bulletPoints": [
+        "Cash dividends: Regular payments in cash",
+        "Stock dividends: Additional shares instead of cash",
+        "Special dividends: One-time payments",
+        "Preferred dividends: Fixed payments to preferred stockholders"
+      ]
+    },
+    {
+      "id": "dividend-yield",
+      "question": "What is dividend yield?",
+      "answer": "Dividend yield is a key metric calculated by dividing the annual dividend payment by the stock's current price. For example, if a stock pays $2 per share annually and its current price is $40, the dividend yield would be 5%.",
+      "bulletPoints": [
+        "Higher yield = Higher income potential",
+        "Lower yield = May indicate growth focus",
+        "Average yield varies by sector",
+        "Yields can change as stock prices change"
+      ]
+    },
+    {
+      "id": "dividend-growth",
+      "question": "What is dividend growth?",
+      "answer": "Dividend growth refers to companies that not only pay dividends but also consistently raise them over time. This is especially attractive to long-term investors because growing dividends can provide increasing passive income.",
+      "bulletPoints": [
+        "Dividend aristocrats: 25+ years of increases",
+        "Compound growth potential",
+        "Sign of financial strength",
+        "Protection against inflation"
+      ]
+    },
+    {
+      "id": "dividend-reinvestment",
+      "question": "What is dividend reinvestment (DRIP)?",
+      "answer": "Dividend reinvestment, or DRIP, is when investors automatically use their dividend payments to purchase more shares of the stock. This strategy allows investors to compound their returns by earning dividends on an increasing number of shares.",
+      "bulletPoints": [
+        "Automatic reinvestment of dividends",
+        "No commission fees typically",
+        "Dollar-cost averaging benefits",
+        "Long-term compound growth potential"
+      ]
+    }
+  ]
+}

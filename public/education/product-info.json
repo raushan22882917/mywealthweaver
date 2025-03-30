@@ -1,0 +1,17 @@
+
+{
+  "id": "product-info",
+  "title": "PRODUCT INFORMATION",
+  "questions": [
+    {
+      "id": "product-specs",
+      "question": "WHERE CAN I FIND DETAILED PRODUCT SPECIFICATIONS?",
+      "answer": "Detailed product specifications can be found on each product's individual page under the 'Specifications' tab."
+    },
+    {
+      "id": "product-availability",
+      "question": "HOW DO I CHECK PRODUCT AVAILABILITY?",
+      "answer": "Product availability is shown in real-time on each product page. You can also set alerts for out-of-stock items."
+    }
+  ]
+}

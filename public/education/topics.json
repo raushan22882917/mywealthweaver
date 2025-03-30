@@ -1,0 +1,565 @@
+[
+  {
+    "title": "Dividend Investing: A Comprehensive Guide",
+    "sections": [
+      {
+        "title": "What is Dividend Investing?",
+        "content": "Dividend investing is a strategy where investors focus on building a portfolio of stocks that regularly pay dividends. Instead of solely relying on capital gains (the increase in stock prices) for profits, dividend investors seek out companies that distribute a portion of their earnings to shareholders in the form of dividends."
+      },
+      {
+        "title": "Key Concepts in Dividend Investing",
+        "subtopics": [
+          {
+            "title": "Dividend",
+            "content": "A dividend is a payment made by a corporation to its shareholders, typically in the form of cash or additional shares of stock. Companies usually pay dividends on a quarterly basis, but some may pay monthly or annually."
+          },
+          {
+            "title": "Dividend Yield",
+            "content": "This is a key metric for dividend investors. It's calculated by dividing the annual dividend payment by the stock's current price.",
+            "formula": "Dividend Yield = Annual Dividend Payment / Stock Price",
+            "example": "If a stock pays $2 per share annually, and its current price is $40, the dividend yield would be 5% ($2 ÷ $40 = 0.05 or 5%)."
+          },
+          {
+            "title": "Dividend Payout Ratio",
+            "content": "This ratio measures how much of a company's earnings are being paid out as dividends. It is calculated by dividing the annual dividend payment by the company's net income. A high payout ratio might suggest that a company is paying out a large portion of its earnings as dividends, which could be risky if the company doesn't generate enough profit in the future."
+          },
+          {
+            "title": "Dividend Growth",
+            "content": "Some companies not only pay dividends but also consistently raise them over time. This is especially attractive to long-term investors because growing dividends can provide increasing passive income."
+          },
+          {
+            "title": "Dividend Reinvestment Plan (DRIP)",
+            "content": "Many dividend investors choose to reinvest their dividends automatically to purchase more shares of the stock. This strategy allows investors to compound their returns over time, as they are earning dividends on an increasing number of shares."
+          }
+        ]
+      },
+      {
+        "title": "Benefits of Dividend Investing",
+        "subtopics": [
+          {
+            "title": "Steady Income",
+            "content": "Dividend investing is popular among income-focused investors, especially those in or nearing retirement, as it provides a regular stream of income."
+          },
+          {
+            "title": "Lower Risk",
+            "content": "Dividend-paying stocks are often more stable, as companies that can consistently pay dividends tend to be well-established with solid financials. This can make dividend stocks less volatile than non-dividend-paying growth stocks."
+          },
+          {
+            "title": "Compounding",
+            "content": "By reinvesting dividends, investors can take advantage of the power of compound growth. Over time, the reinvested dividends generate more dividends, creating a snowball effect."
+          },
+          {
+            "title": "Inflation Hedge",
+            "content": "As companies raise their dividends over time, they can help investors keep up with inflation, providing a growing income stream."
+          },
+          {
+            "title": "Tax Benefits",
+            "content": "In some countries, dividends are taxed at a lower rate than regular income, making dividend-paying stocks a tax-efficient investment."
+          }
+        ]
+      },
+      {
+        "title": "Risks of Dividend Investing",
+        "subtopics": [
+          {
+            "title": "Dividend Cuts",
+            "content": "Companies can reduce or even eliminate their dividends if they face financial difficulties, which could impact your income and the value of your investment."
+          },
+          {
+            "title": "Yield Traps",
+            "content": "A high dividend yield can be tempting, but sometimes it signals a company is struggling, and the dividend may not be sustainable. It's essential to analyze a company's financial health before investing based solely on yield."
+          },
+          {
+            "title": "Missed Growth",
+            "content": "Dividend-paying companies may reinvest less in growth opportunities than non-dividend-paying companies. This can limit their stock price appreciation potential over time."
+          }
+        ]
+      },
+      {
+        "title": "Ideal Stocks for Dividend Investing",
+        "subtopics": [
+          {
+            "title": "Blue-Chip Stocks",
+            "content": "Large, established companies with a track record of paying reliable and growing dividends (e.g., Coca-Cola, Johnson & Johnson, Procter & Gamble)."
+          },
+          {
+            "title": "Dividend Aristocrats",
+            "content": "A group of companies in the S&P 500 index that have consistently raised their dividends for 25+ years."
+          },
+          {
+            "title": "Dividend Kings",
+            "content": "Even more exclusive, these are companies that have increased their dividends for 50+ years."
+          },
+          {
+            "title": "REITs (Real Estate Investment Trusts)",
+            "content": "These companies are legally required to pay out a large portion of their earnings as dividends, making them a popular choice for dividend investors."
+          }
+        ]
+      },
+      {
+        "title": "How to Get Started with Dividend Investing",
+        "subtopics": [
+          {
+            "title": "Research",
+            "content": "Start by identifying dividend-paying stocks that align with your investment goals, risk tolerance, and time horizon. Look for a balance of good yield, consistent growth, and strong financial health."
+          },
+          {
+            "title": "Diversify",
+            "content": "Don't put all your money in a single stock. Diversifying across different sectors (e.g., utilities, consumer goods, healthcare) can reduce risk."
+          },
+          {
+            "title": "Reinvest",
+            "content": "Consider enrolling in a Dividend Reinvestment Plan (DRIP) to automatically reinvest dividends and compound your returns."
+          },
+          {
+            "title": "Monitor",
+            "content": "Regularly track the performance of your dividend stocks and ensure they maintain or grow their dividends. Be prepared to make adjustments to your portfolio as needed."
+          }
+        ]
+      },
+      {
+        "title": "Conclusion",
+        "content": "Dividend investing is about building a portfolio of stocks that provide a reliable and growing source of income over time. It's a strategy that suits investors who prefer stability and are looking to generate passive income. By carefully selecting strong dividend-paying stocks, diversifying, and reinvesting dividends, investors can benefit from steady income, compounding growth, and financial security."
+      }
+    ]
+  },
+  
+  
+  {
+    "title": "Dividend Safety Metrics",
+    "sections": [
+      {
+        "title": "What is Dividend Safety?",
+        "content": "Dividend safety refers to the ability of a company to sustain its dividend payments over time. A safe dividend is backed by strong financials, stable earnings, and adequate free cash flow. Investors analyze various financial ratios and company fundamentals to assess the risk of dividend cuts."
+      },
+      {
+        "title": "Key Metrics for Dividend Safety",
+        "subtopics": [
+          {
+            "title": "Dividend Payout Ratio (DPR)",
+            "content": "This ratio shows what portion of earnings is being paid out as dividends. A lower dividend payout ratio (e.g., 30%-50%) generally indicates a safer dividend, as it suggests the company retains enough earnings to cover its operations and reinvest for growth.",
+            "formula": "Payout Ratio = (Dividend Per Share / Earnings Per Share) × 100",
+            "interpretation": "Below 60% is considered safe, while above 70-80% could indicate risk if earnings fall."
+          },
+          {
+            "title": "Free Cash Flow (FCF) Coverage",
+            "content": "This ratio looks at the company's ability to pay dividends based on the free cash flow available after capital expenditures. A company with sufficient FCF is better equipped to continue paying dividends.",
+            "formula": "FCF Dividend Coverage = Free Cash Flow / Dividends Paid",
+            "interpretation": "A ratio greater than 1 means the company generates enough cash to cover its dividend payments, while a ratio below 1 may indicate risk."
+          },
+          {
+            "title": "Debt-to-Equity Ratio",
+            "content": "Companies with high levels of debt are more at risk of reducing or cutting their dividends if cash flow drops or interest rates rise. The debt-to-equity ratio indicates how leveraged a company is.",
+            "formula": "Debt-to-Equity = Total Debt / Shareholders' Equity",
+            "interpretation": "A ratio below 1 is generally safer, while a higher ratio could indicate dividend risk."
+          },
+          {
+            "title": "Earnings Stability",
+            "content": "Companies that show consistent earnings growth over time are less likely to cut their dividend. Analyzing earnings per share (EPS) trends helps investors evaluate stability."
+          },
+          {
+            "title": "Dividend Growth Rate",
+            "content": "Companies that consistently grow their dividend payouts (e.g., for 5+ years) are usually financially stable and committed to returning value to shareholders."
+          }
+        ]
+      },
+      {
+        "title": "Interpreting Dividend Safety Metrics",
+        "subtopics": [
+          {
+            "title": "Payout Ratio",
+            "content": "A lower payout ratio (like 30-40%) is a good sign, as it indicates that the company is not overly reliant on its earnings to fund dividends."
+          },
+          {
+            "title": "Free Cash Flow to Dividend Coverage",
+            "content": "A ratio of 1 or more means the company generates enough free cash flow to cover dividends, which is positive."
+          },
+          {
+            "title": "Debt-to-Equity Ratio",
+            "content": "A ratio greater than 1 indicates a company is highly leveraged, and a lower ratio is better. Companies with lower debt are typically safer for long-term dividend sustainability."
+          }
+        ]
+      },
+      {
+        "title": "Additional Considerations",
+        "subtopics": [
+          {
+            "title": "Dividend History",
+            "content": "Check if the company has a long history of paying and increasing dividends."
+          },
+          {
+            "title": "Earnings Growth",
+            "content": "Stable or growing earnings suggest that the company is less likely to cut dividends."
+          },
+          {
+            "title": "Industry Factors",
+            "content": "Certain industries (like utilities or consumer staples) tend to have more reliable dividends compared to others (like technology or biotech)."
+          }
+        ]
+      },
+      {
+        "title": "Dividend Safety Categories",
+        "subtopics": [
+          {
+            "title": "Fortress Secure",
+            "content": "Companies with strong financials, low payout ratios, and consistent dividend growth.",
+            "icon": "🛡️"
+          },
+          {
+            "title": "Guardian Shield",
+            "content": "Companies with good financial health but moderate payout ratios.",
+            "icon": "🛡️"
+          },
+          {
+            "title": "Balanced Zone",
+            "content": "Companies with an average risk-reward balance in dividend safety.",
+            "icon": "⚖️"
+          },
+          {
+            "title": "Caution Territory",
+            "content": "Companies with high payout ratios or financial instability, making dividends uncertain.",
+            "icon": "⚠️"
+          },
+          {
+            "title": "Danger Zone",
+            "content": "Companies at high risk of dividend cuts or elimination due to weak financials.",
+            "icon": "⚡"
+          }
+        ]
+      },
+      {
+        "title": "Conclusion",
+        "content": "Assessing dividend safety is crucial for income investors. By analyzing key metrics such as the payout ratio, free cash flow coverage, and debt levels, investors can make informed decisions to build a reliable dividend portfolio."
+      }
+    ]
+  },
+  
+  
+  
+
+  {
+    "title": "Dividend Investor Website Structure",
+    "sections": [
+      {
+        "title": "Homepage (Overview & Quick Access)",
+        "content": "The homepage should immediately communicate the website's value, with a strong proposition like 'Track Your Dividend Income' or 'Maximize Your Dividend Portfolio.' It should feature engaging visuals, such as dividend growth charts or sample portfolios, along with a clear call-to-action (CTA) like 'Start Tracking Your Dividends.'"
+      },
+      {
+        "title": "Educational Content (For New Investors)",
+        "subtopics": [
+          {
+            "title": "Explanation of Dividends",
+            "content": "A simple explanation of dividends and their importance in investing. Topics include types of dividends (quarterly, annual, special), why dividend investing is beneficial, and key concepts like dividend yield and payout ratios."
+          },
+          {
+            "title": "Tax Implications",
+            "content": "An overview of tax considerations related to dividends, helping investors understand how taxes impact their returns."
+          },
+          {
+            "title": "Actionable Guides",
+            "content": "Step-by-step instructions on how to start investing in dividends, build a portfolio, and take advantage of Dividend Reinvestment Plans (DRIPs)."
+          }
+        ]
+      },
+      {
+        "title": "Dividend Tracker or Dashboard (For Active Investors)",
+        "subtopics": [
+          {
+            "title": "Interactive Tools",
+            "content": "A set of tools including a dividend calendar to track payment dates, a dividend calculator to estimate income, and a portfolio tracker for monitoring multiple stocks."
+          },
+          {
+            "title": "Key Metrics",
+            "content": "Displays important financial metrics such as dividend yield, historical growth rates, and upcoming payouts to help investors manage cash flow."
+          }
+        ]
+      },
+      {
+        "title": "Dividend Stock Picks or Recommendations",
+        "subtopics": [
+          {
+            "title": "Stock Analysis",
+            "content": "Regularly updated analysis of top dividend stocks, including sector breakdowns and recent dividend increases."
+          },
+          {
+            "title": "Screening Tools",
+            "content": "A dividend stock screener that allows users to filter stocks based on criteria like yield, payout ratio, and 5-year dividend growth trends."
+          }
+        ]
+      },
+      {
+        "title": "Advanced Insights (For Experienced Investors)",
+        "subtopics": [
+          {
+            "title": "Dividend Strategies",
+            "content": "Information on advanced investment strategies such as Dividend Growth Investing and High-Yield Dividend Investing."
+          },
+          {
+            "title": "Risk Management",
+            "content": "Guidelines on how to avoid common mistakes, like prioritizing high yields over stock health, and strategies for mitigating investment risks."
+          }
+        ]
+      },
+      {
+        "title": "Community & Engagement",
+        "subtopics": [
+          {
+            "title": "Forum/Community",
+            "content": "A space for investors to share experiences, ask questions, and seek advice from peers."
+          },
+          {
+            "title": "Blogs/News",
+            "content": "A regularly updated section featuring changes in dividend policies, tax laws, and new trends in dividend investing."
+          }
+        ]
+      },
+      {
+        "title": "Mobile-Friendly & Easy Navigation",
+        "content": "Ensuring the website is optimized for mobile users with intuitive menus and responsive design, allowing investors to check their portfolios on the go."
+      },
+      {
+        "title": "Key Design Principles",
+        "subtopics": [
+          {
+            "title": "Simplicity",
+            "content": "Avoid overwhelming users with too much information. Break content into digestible sections."
+          },
+          {
+            "title": "Clarity",
+            "content": "Use simple language, especially for beginners, and explain financial jargon clearly."
+          },
+          {
+            "title": "Visuals",
+            "content": "Leverage charts, graphs, and infographics to enhance user engagement and comprehension."
+          },
+          {
+            "title": "CTAs (Call-to-Actions)",
+            "content": "Guide users towards actions like signing up, reading more, or trying out interactive tools through well-placed CTAs."
+          }
+        ]
+      },
+      {
+        "title": "Conclusion",
+        "content": "By structuring the website to cater to both beginner and experienced investors, users stay engaged and receive valuable insights at every stage of their investment journey."
+      }
+    ]
+  },
+  {
+    "title": "Stock Ranking",
+    "sections": [
+      {
+        "title": "Key Metrics for Ranking Dividend Stocks",
+        "content": [
+          {
+            "metric": "Dividend Yield",
+            "definition": "Dividend yield is a financial ratio that shows how much income an investor can expect to receive in the form of dividends relative to the stock price.",
+            "formula": "Dividend Yield = Annual Dividends per Share / Share Price",
+            "interpretation": "Higher dividend yields are attractive to income-focused investors. However, an abnormally high dividend yield could indicate a potential risk, as it may not be sustainable."
+          },
+          {
+            "metric": "Dividend Growth Rate",
+            "definition": "The dividend growth rate measures how much a company's dividend payments have increased over a specific period.",
+            "interpretation": "Companies with consistent and increasing dividend growth are highly desirable, as they show a commitment to returning value to shareholders and financial strength."
+          },
+          {
+            "metric": "Dividend Payout Ratio",
+            "definition": "The payout ratio shows the proportion of earnings paid out as dividends.",
+            "formula": "Payout Ratio = Dividends per Share / Earnings per Share (EPS)",
+            "interpretation": "A lower payout ratio suggests the company retains enough earnings to fund future growth, which is important for long-term dividend sustainability. A high payout ratio could signal that the company may struggle to maintain dividends in tough times."
+          },
+          {
+            "metric": "Dividend Safety",
+            "definition": "Dividend safety can be measured by looking at the company’s cash flow, earnings stability, and historical dividend consistency.",
+            "interpretation": "Companies with a track record of reliable dividend payments and a strong financial position are generally safer dividend investments."
+          }
+        ]
+      },
+      {
+        "title": "Dividend Analysis Program",
+        "content": "This Python program helps analyze dividend stocks using key metrics.",
+        "python_program": {
+          "libraries": ["yfinance", "pandas"],
+          "install_command": "pip install yfinance pandas",
+          "code": "import yfinance as yf\nimport pandas as pd\n\nsymbols = ['AAPL', 'MSFT', 'KO', 'T', 'PEP', 'JNJ', 'VZ', 'IBM', 'MCD']\n\ndef get_dividend_data(symbol):\n    stock = yf.Ticker(symbol)\n    info = stock.info\n    return {\n        'Symbol': symbol,\n        'Dividend Yield': info.get('dividendYield', None),\n        'Dividend Growth': info.get('dividendGrowth', None),\n        'Payout Ratio': info.get('payoutRatio', None)\n    }\n\nstock_data = [get_dividend_data(symbol) for symbol in symbols]\ndf = pd.DataFrame(stock_data)\n\ndf['Dividend Yield Normalized'] = df['Dividend Yield'] / df['Dividend Yield'].max()\ndf['Dividend Growth Normalized'] = df['Dividend Growth'] / df['Dividend Growth'].max()\ndf['Payout Ratio Normalized'] = df['Payout Ratio'] / df['Payout Ratio'].max()\n\nweights = {'Dividend Yield': 0.4, 'Dividend Growth': 0.4, 'Payout Ratio': 0.2}\n\ndf['Score'] = (\n    df['Dividend Yield Normalized'] * weights['Dividend Yield'] +\n    df['Dividend Growth Normalized'] * weights['Dividend Growth'] +\n    (1 - df['Payout Ratio Normalized']) * weights['Payout Ratio']\n)\n\ndf['Rank'] = df['Score'].rank(ascending=False)\ndf_sorted = df.sort_values('Rank')\nprint(df_sorted[['Symbol', 'Score', 'Rank']])",
+          "explanation": {
+            "data_extraction": "yfinance is used to fetch key dividend metrics such as Dividend Yield, Dividend Growth, and Payout Ratio.",
+            "normalization": "All metrics are normalized to a scale of 0 to 1 for fair comparison.",
+            "weighting": "Weights are assigned to each metric based on their importance to the ranking system.",
+            "scoring": "Each stock receives a final score based on weighted metrics, and stocks are ranked accordingly.",
+            "ranking": "The stocks are sorted in descending order based on their score to determine the best dividend stocks.",
+            "example_output": [
+              {"Symbol": "KO", "Score": 0.840, "Rank": 1},
+              {"Symbol": "MSFT", "Score": 0.750, "Rank": 2},
+              {"Symbol": "JNJ", "Score": 0.710, "Rank": 3},
+              {"Symbol": "PEP", "Score": 0.680, "Rank": 4},
+              {"Symbol": "T", "Score": 0.620, "Rank": 5},
+              {"Symbol": "VZ", "Score": 0.590, "Rank": 6},
+              {"Symbol": "AAPL", "Score": 0.530, "Rank": 7},
+              {"Symbol": "IBM", "Score": 0.450, "Rank": 8},
+              {"Symbol": "MCD", "Score": 0.420, "Rank": 9}
+            ]
+          }
+        }
+      },
+      {
+        "title": "Notes and Considerations",
+        "content": [
+          {
+            "note": "Weights",
+            "explanation": "The weights used for each metric (Dividend Yield, Dividend Growth, Payout Ratio) can be customized based on your investment philosophy. For example, income-focused investors might prefer higher dividend yields, while growth-oriented investors may prioritize dividend growth."
+          },
+          {
+            "note": "Data Availability",
+            "explanation": "Some stocks may not have complete data for all the metrics. Ensure that you handle missing values properly (e.g., using NaN or skipping the stock if the data is incomplete)."
+          },
+          {
+            "note": "Dividend Safety",
+            "explanation": "For more advanced analysis, you can include checks for dividend sustainability by looking at the company’s financial health, earnings stability, and payout ratio history."
+          }
+        ]
+      },
+      {
+        "title": "Conclusion",
+        "content": "This method allows you to rank dividend stocks based on multiple key factors. By adjusting the weights and adding more criteria, you can tailor the ranking system to your specific dividend investing strategy."
+      }
+    ]
+  },
+  {
+    "title": "Building a Business for Dividend Investors",
+    "sections": [
+      {
+        "title": "Introduction",
+        "content": "Creating a business that provides valuable information for dividend investors can be highly impactful. With more people looking to grow their wealth passively, offering tools, education, and insights into dividend investing presents a great opportunity."
+      },
+      {
+        "title": "Business Ideas",
+        "subtopics": [
+          {
+            "title": "1. Educational Content & Resources",
+            "content": [
+              {
+                "type": "Blog or Articles",
+                "explanation": "Regularly post articles explaining dividend concepts, investment strategies, and tax tips related to dividends."
+              },
+              {
+                "type": "Online Courses",
+                "explanation": "Offer video or written courses covering the basics of dividend investing, portfolio building, and advanced strategies."
+              },
+              {
+                "type": "Ebooks or Guides",
+                "explanation": "Create downloadable guides for investors, including step-by-step investment plans and sector-specific dividend recommendations."
+              }
+            ]
+          },
+          {
+            "title": "2. Dividend Tracking Tools",
+            "content": [
+              {
+                "type": "Interactive Calculators",
+                "explanation": "Develop a tool for investors to input stock holdings and see projections for dividend income, growth, and reinvestment."
+              },
+              {
+                "type": "Portfolio Tracker",
+                "explanation": "Allow users to track their dividend stocks and get real-time updates on payouts, yield, and upcoming dividends."
+              },
+              {
+                "type": "Mobile App",
+                "explanation": "Create an app that sends push notifications when dividends are paid or adjusted."
+              }
+            ]
+          },
+          {
+            "title": "3. Dividend Stock Research and Recommendations",
+            "content": [
+              {
+                "type": "Stock Analysis",
+                "explanation": "Provide in-depth research on high-performing dividend stocks, including historical yield growth and financial metrics."
+              },
+              {
+                "type": "Investment Newsletter",
+                "explanation": "Offer a paid subscription newsletter with expert advice on top dividend stocks and updates on dividend changes."
+              },
+              {
+                "type": "Screening Tool",
+                "explanation": "Develop a stock screener that allows investors to filter stocks based on dividend yield, payout ratio, and growth history."
+              }
+            ]
+          },
+          {
+            "title": "4. Community & Membership Platform",
+            "content": [
+              {
+                "type": "Forum/Discussion Groups",
+                "explanation": "Build a community where dividend investors can share strategies, ask questions, and discuss investment opportunities."
+              },
+              {
+                "type": "Exclusive Member Content",
+                "explanation": "Offer paid memberships that provide access to premium analysis, early stock picks, and exclusive market insights."
+              }
+            ]
+          },
+          {
+            "title": "5. Affiliate Partnerships",
+            "content": "Partner with brokers and financial platforms related to dividend investing and generate revenue through affiliate marketing."
+          },
+          {
+            "title": "6. Webinars and Events",
+            "content": "Host webinars or live Q&A sessions to discuss dividend trends, stock analysis, and answer audience questions."
+          },
+          {
+            "title": "7. Personalized Consulting",
+            "content": "Offer one-on-one consulting to investors seeking personalized guidance on building and managing a dividend portfolio."
+          }
+        ]
+      },
+      {
+        "title": "Business Model Ideas",
+        "subtopics": [
+          {
+            "title": "Freemium Model",
+            "content": "Offer free basic content and tools, while charging for premium content, advanced tools, or exclusive newsletters."
+          },
+          {
+            "title": "Subscription Model",
+            "content": "Charge a monthly or yearly fee for access to premium resources and investment insights."
+          },
+          {
+            "title": "Affiliate Revenue",
+            "content": "Earn commissions by recommending dividend-related platforms and tools."
+          }
+        ]
+      },
+      {
+        "title": "Key Steps for Starting",
+        "content": [
+          {
+            "step": "Market Research",
+            "explanation": "Identify your target audience—beginner investors, experienced investors, or both—and determine their specific needs."
+          },
+          {
+            "step": "Create a Business Plan",
+            "explanation": "Define your business model, revenue streams, and the necessary resources for content, tools, and platform development."
+          },
+          {
+            "step": "Content Creation",
+            "explanation": "Develop high-quality articles, videos, and guides that provide value to dividend investors."
+          },
+          {
+            "step": "Website Development",
+            "explanation": "Build a professional, user-friendly website with features like blogs, investment tools, and premium content sections."
+          },
+          {
+            "step": "Marketing",
+            "explanation": "Leverage social media, SEO, and partnerships to attract and engage your target audience."
+          }
+        ]
+      },
+      {
+        "title": "Conclusion",
+        "content": "With the right approach, this business can provide immense value to dividend investors while generating sustainable revenue. If you need help refining your ideas, I’m here to assist!"
+      }
+    ]
+  }
+  
+  
+]

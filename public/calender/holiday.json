@@ -1,0 +1,54 @@
+{
+  "holidays": [
+    {
+      "date": "2025-01-01",
+      "name": "New Year's Day",
+      "description": "🎉 The first day of the year in the modern Gregorian calendar."
+    },
+    {
+      "date": "2025-01-15",
+      "name": "Martin Luther King Jr. Day",
+      "description": "✊ A day to honor the civil rights leader's life and legacy."
+    },
+    {
+      "date": "2025-02-17",
+      "name": "Presidents' Day",
+      "description": "🇺🇸 A federal holiday honoring George Washington and all U.S. presidents."
+    },
+    {
+      "date": "2025-03-29",
+      "name": "Good Friday",
+      "description": "✝️ A market holiday commemorating the crucifixion of Jesus Christ."
+    },
+    {
+      "date": "2025-05-27",
+      "name": "Memorial Day",
+      "description": "🎖️ A day to honor and mourn military personnel who died in service."
+    },
+    {
+      "date": "2025-06-19",
+      "name": "Juneteenth",
+      "description": "🕊️ Commemorating the emancipation of enslaved African Americans."
+    },
+    {
+      "date": "2025-07-04",
+      "name": "Independence Day",
+      "description": "🎆 Celebrating the adoption of the Declaration of Independence."
+    },
+    {
+      "date": "2025-09-02",
+      "name": "Labor Day",
+      "description": "🛠️ Honoring the American labor movement and workers' contributions."
+    },
+    {
+      "date": "2025-11-28",
+      "name": "Thanksgiving Day",
+      "description": "🦃 A national holiday of gratitude and harvest celebration."
+    },
+    {
+      "date": "2025-12-25",
+      "name": "Christmas Day",
+      "description": "🎄 Celebrating the birth of Jesus Christ and the holiday season."
+    }
+  ]
+}

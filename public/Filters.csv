@@ -1,0 +1,999 @@
+symbol|Location|Exchange|Sector|Sub-Sector|Revenue Growth|Net Income|Debt Levels|Payout Ratio|Dividend Yield|5-Year Dividend Yield|Dividend History|Financial Health Score|Revenue|Earnings_per_share|Adjusted Dividend Yield|Payout Ratio Penalty
+BLBLF|Shanghai, China|PNK|Communication Services|Electronic Gaming & Multimedia|21.8|-1346800000|4835988992|0.0|0.0|0.0|0.0|3219828993.0|26831525888|-0.44|0.0|0.5
+RGLD|Denver, United States|NMS|Basic Materials|Gold|5.9|274043008|6688000|32.74|1.22|1.15|1.8|335539612.0|645169024|5.04|-0.5|0.0
+WCC|Pittsburgh, United States|NYQ|Industrials|Industrial Distribution|0.5|660200000|5849299968|12.64|1.07|0.0|1.82|6641539970.0|21818800128|12.59|-0.4|0.3
+ITCI|Bedminster, United States|NMS|Healthcare|Drug Manufacturers - Specialty & Generic|50.8|-74676000|16981000|0.0|0.0|0.0|0.0|-72630199.0|680851968|-0.72|0.0|0.5
+INGR|Westchester, United States|NYQ|Consumer Defensive|Packaged Foods|-6.3|647000000|2035000064|32.54|2.45|2.81|3.2|2811400067.0|7430000128|9.6|-1.1|0.0
+IHICY|Tokyo, Japan|PNK|Industrials|Specialty Industrial Machinery|-1.0|118174998528|660685979648|12.12|1.11|0.0|0.16|802495977882.0|1605917999104|1.57|-0.5|0.3
+CRS|Philadelphia, United States|NYQ|Industrials|Metal Fabrication|8.4|268500000|702300032|15.09|0.39|1.98|0.8|1024500033.0|2878099968|5.19|-0.1|0.3
+WMS|Hilliard, United States|NYQ|Industrials|Building Products & Equipment|4.3|467836992|1409620992|10.37|0.59|0.46|0.64|1971025383.0|2942323968|5.96|-0.2|0.3
+REXR|Los Angeles, United States|NYQ|Real Estate|REIT - Industrial|15.4|262864992|3355673088|139.17|4.19|2.3|1.72|3671111080.0|936406976|1.18|-2.0|0.9
+UUGRY|Warrington, United Kingdom|PNK|Utilities|Utilities - Regulated Water|10.9|113200000|10697900032|300.08|5.17|4.5|1.26|10833740033.0|2056099968|0.42|-2.5|2.6
+DBX|San Francisco, United States|NMS|Technology|Software - Infrastructure|1.4|452300000|2996600064|0.0|0.0|0.0|0.0|3539360064.0|2548199936|1.42|0.0|0.5
+STN|Edmonton, Canada|NYQ|Industrials|Engineering & Construction|19.0|361500000|2042800000|26.5|0.76|1.04|0.63|2476600001.0|5866599936|2.14|-0.3|0.2
+BRKR|Billerica, United States|NMS|Healthcare|Medical Devices|14.6|113100000|2094300032|26.32|0.43|0.29|0.2|2230020033.0|3366400000|0.76|-0.1|0.2
+BILL|San Jose, United States|NYQ|Technology|Software - Application|13.8|81864000|1775270016|0.0|0.0|0.0|0.0|1873506817.0|1387696000|0.38|0.0|0.5
+TTAN|Glendale, United States|NMS|Technology|Software - Application|24.5|-243654000|237152992|0.0|0.0|0.0|0.0|-55231807.0|724361024|-2.66|0.0|0.5
+GLBE|Petah Tikva, Israel|NMS|Consumer Cyclical|Internet Retail|41.8|-75548000|24857000|0.0|0.0|0.0|0.0|-65800599.0|752764032|-0.44|0.0|0.5
+WAL|Phoenix, United States|NYQ|Financial Services|Banks - Regional|15.7|774899968|6657999872|21.02|1.81|2.08|1.52|7587879835.0|3016199936|6.84|-0.8|0.2
+MLI|Collierville, United States|NYQ|Industrials|Metal Fabrication|26.1|604878976|33758000|15.07|1.26|1.22|1.0|759612773.0|3768765952|5.22|-0.5|0.3
+GAP|San Francisco, United States|NYQ|Consumer Cyclical|Apparel Retail|1.6|823000000|5465999872|27.78|3.09|4.21|0.66|6453599872.0|15235000320|2.03|-1.5|0.2
+IDKOY|Tokyo, Japan|PNK|Energy|Oil & Gas Refining & Marketing|-0.2|116887003136|1336527028224|37.18|3.3|0.0|0.45|1476791431986.0|9193400565760|1.26|-1.6|0.0
+MASI|Irvine, United States|NMS|Healthcare|Medical Devices|9.4|-304900000|846099968|0.0|0.0|0.0|0.0|480219969.0|2094400000|-5.5|0.0|0.5
+AA|Pittsburgh, United States|NYQ|Basic Materials|Aluminum|34.3|56000000|2856000000|153.85|1.28|0.0|0.4|2923200001.0|11895000064|0.26|-0.6|1.1
+CRRFY|Massy, France|PNK|Consumer Defensive|Grocery Stores|0.0|723000000|21532999680|81.21|9.29|3.41|0.24|22400599676.0|87269998592|0.23|-4.6|0.4
+WYNN|Las Vegas, United States|NMS|Consumer Cyclical|Resorts & Casinos|-0.1|501078016|12266451968|22.99|1.12|2.28|1.0|12867745588.0|7127961088|4.26|-0.5|0.2
+KAIKY|Tokyo, Japan|PNK|Industrials|Marine Shipping|4.1|315486994432|293331009536|20.38|4.11|0.0|0.65|671915402854.0|1051900968960|3.09|-2.0|0.2
+NIOIF|Shanghai, China|PNK|Consumer Cyclical|Auto Manufacturers|-2.1|-21118695424|33879549952|0.0|0.0|0.0|0.0|8537115444.0|63131308032|-1.49|0.0|0.5
+SLV|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|0.0|0.0|0.0|0.0|N/A|N/A|0.0|0.5
+EHC|Birmingham, United States|NYQ|Healthcare|Medical Care Facilities|12.7|455700000|2713799936|14.25|0.68|1.31|0.68|3260639937.0|5373199872|4.43|-0.3|0.3
+PRI|Duluth, United States|NYQ|Financial Services|Insurance - Life|11.2|718387008|2040595968|15.72|1.44|1.28|4.16|2902660383.0|3151794944|20.45|-0.6|0.3
+APPF|Santa Barbara, United States|NGM|Technology|Software - Application|18.5|204068000|41749000|0.0|0.0|0.0|0.0|286630601.0|794201984|5.68|0.0|0.5
+USO|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|0.0|0.0|0.0|0.0|N/A|N/A|0.0|0.5
+LAD|Medford, United States|NYQ|Consumer Cyclical|Auto & Truck Dealerships|19.5|802000000|13959799808|7.05|0.65|0.6|2.12|14922199811.0|36188200960|28.98|-0.2|0.4
+PEN|Alameda, United States|NYQ|Healthcare|Medical Devices|10.8|14012000|223388992|0.0|0.0|0.0|0.0|240203393.0|1194615040|0.37|0.0|0.5
+RDEIY|Alcobendas, Spain|PNK|Utilities|Utilities - Regulated Electric|0.0|506600000|0|99.09|5.57|6.17|0.49|607919998.0|1656999936|0.5|-2.7|0.5
+BLD|Daytona Beach, United States|NYQ|Industrials|Engineering & Construction|2.0|622601984|1578087040|0.0|0.0|0.0|0.0|2325209421.0|5329802752|20.22|0.0|0.5
+BIO|Hercules, United States|NYQ|Healthcare|Medical Devices|-2.0|-1844199936|1374700032|0.0|0.0|0.0|0.0|-838339891.0|2566500096|-63.85|0.0|0.5
+GL|McKinney, United States|NYQ|Financial Services|Insurance - Life|3.6|1070761984|3111652096|8.04|0.84|0.83|1.08|4396566478.0|5778068992|11.53|-0.3|0.4
+ALTR|Troy, United States|NMS|Technology|Software - Application|12.3|14175000|259123008|0.0|0.0|0.0|0.0|276133009.0|665788032|0.16|0.0|0.5
+LW|Eagle, United States|NYQ|Consumer Defensive|Packaged Foods|-7.6|367000000|4110099968|56.69|2.96|1.39|1.48|4550499968.0|6325199872|2.54|-1.4|0.0
+CACI|Reston, United States|NYQ|Technology|Information Technology Services|14.5|480121984|3438279936|0.0|0.0|0.0|0.0|4014426317.0|8132448768|22.84|0.0|0.5
+AYI|Atlanta, United States|NYQ|Industrials|Electrical Equipment & Parts|1.8|428700000|569600000|4.42|0.24|0.32|0.68|1084040001.0|3857900032|13.08|-0.0|0.4
+AIT|Cleveland, United States|NYQ|Industrials|Industrial Distribution|-0.4|386060992|572300032|14.98|0.77|1.24|1.84|1035573225.0|4479009792|9.45|-0.3|0.3
+FRT|North Bethesda, United States|NYQ|Real Estate|REIT - Retail|7.0|285892992|4561251840|128.07|4.17|4.26|4.4|4904323435.0|1205612032|3.34|-2.0|0.8
+WBS|Stamford, United States|NYQ|Financial Services|Banks - Regional|-0.2|752057024|3363461120|36.61|2.95|3.65|1.6|4265929549.0|2368285952|4.23|-1.4|0.0
+GNRC|Waukesha, United States|NYQ|Industrials|Specialty Industrial Machinery|16.1|325256000|1392711040|0.0|0.0|0.0|0.0|1783018241.0|4295834112|5.26|0.0|0.5
+ALSN|Indianapolis, United States|NYQ|Consumer Cyclical|Auto Parts|20.4|731000000|0|12.03|1.1|1.68|1.08|877200002.0|3224999936|8.13|-0.5|0.3
+CFLT|Mountain View, United States|NMS|Technology|Software - Infrastructure|22.5|-345064992|1109981056|0.0|0.0|0.0|0.0|695903066.0|963641984|-1.07|0.0|0.5
+GLOB|Luxembourg, Luxembourg|NYQ|Technology|Information Technology Services|10.6|165732000|410159008|0.0|0.0|0.0|0.0|609037409.0|2415688960|3.79|0.0|0.5
+AES|Arlington, United States|NYQ|Utilities|Utilities - Diversified|-0.2|1686000000|29934999552|29.11|6.23|3.26|0.7|31958199550.0|12277999616|2.29|-3.0|0.2
+LKQ|Antioch, United States|NMS|Consumer Cyclical|Auto Parts|-4.1|690000000|5608999936|45.63|2.86|0.0|1.2|6436999936.0|14355000320|2.63|-1.3|0.0
+DOX|Saint Louis, United States|NMS|Technology|Software - Infrastructure|-10.9|496364992|793790976|44.35|2.43|1.92|2.11|1389428968.0|4869844992|4.31|-1.1|0.0
+RBC|Oxford, United States|NYQ|Industrials|Tools & Accessories|5.5|217000000|1054800000|0.0|0.0|0.0|0.0|1315200000.0|1612300032|7.18|0.0|0.5
+CRL|Wilmington, United States|NYQ|Healthcare|Diagnostics & Research|-1.1|10297000|2781082112|0.0|0.0|0.0|0.0|2793438512.0|4049989120|0.2|0.0|0.5
+BPYPP|Hamilton, Bermuda|NMS|Real Estate|Real Estate Services|0.6|-610000000|55806001152|0.0|10.19|8.93|1.63|55074001149.0|10307000320|2.196|-5.0|0.5
+VNOM|Midland, United States|NMS|Energy|Oil & Gas Midstream|11.7|359244992|1082978944|62.83|5.49|6.9|2.49|1514072935.0|817200000|3.78|-2.7|0.2
+CUBE|Malvern, United States|NYQ|Real Estate|REIT - Industrial|0.7|391180000|3052214016|119.19|4.93|3.98|2.08|3521630017.0|1068729984|1.7|-2.4|0.7
+EDR|Beverly Hills, United States|NYQ|Communication Services|Entertainment|6.7|-99782000|6103419904|27.69|0.83|0.0|0.24|5983681504.0|7110982144|-1.22|-0.3|0.2
+SBS|São Paulo, Brazil|NYQ|Utilities|Utilities - Regulated Water|132.4|9330924544|23857231872|23.24|1.64|1.99|0.27|35054341327.0|35572486144|0.95|-0.7|0.2
+PNW|Phoenix, United States|NYQ|Utilities|Utilities - Regulated Electric|10.5|608806016|11048341504|67.46|3.8|4.39|3.58|11778908726.0|5124915200|5.1|-1.8|0.2
+GTLB|San Francisco, United States|NMS|Technology|Software - Infrastructure|29.1|-2434000|0|0.0|0.0|0.0|0.0|-2920799.0|759249024|-0.03|0.0|0.5
+U|San Francisco, United States|NYQ|Technology|Software - Application|-25.0|-664113984|2353718016|0.0|0.0|0.0|0.0|1556781235.0|1813255040|-1.75|0.0|0.5
+LCID|Newark, United States|NMS|Consumer Cyclical|Auto Manufacturers|49.2|-3061552128|2476882944|0.0|0.0|0.0|0.0|-1196979609.0|807832000|-1.24|0.0|0.5
+BRBR|Saint Louis, United States|NYQ|Consumer Defensive|Packaged Foods|23.8|279500000|837500032|0.0|0.0|0.0|0.0|1172900033.0|2098700032|2.11|0.0|0.5
+CCK|Yardley, United States|NYQ|Consumer Cyclical|Packaging & Containers|1.6|424000000|6204000256|28.17|1.18|6.39|1.04|6712800257.0|11800999936|3.46|-0.5|0.2
+HNGKY|Hamilton, Bermuda|PNK|Real Estate|Real Estate - Development|45.1|-1082300032|6425399808|244.72|4.88|5.34|1.1|5126639771.0|2146400000|-2.36|-2.4|2.0
+EXEL|Alameda, United States|NMS|Healthcare|Biotechnology|18.2|521267008|215834000|0.0|0.0|0.0|0.0|841354410.0|2168700928|1.75|0.0|0.5
+AAON|Tulsa, United States|NMS|Industrials|Building Products & Equipment|16.8|168559008|40000000|15.84|0.44|0.53|0.32|242270810.0|1200635008|2.07|-0.1|0.3
+DSGX|Waterloo, Canada|NMS|Technology|Software - Application|16.6|137742000|6942000|0.0|0.0|0.0|0.0|172232401.0|631755008|1.57|0.0|0.5
+AEG|The Hague, Netherlands|NYQ|Financial Services|Insurance - Diversified|-3.7|-158000000|4622000128|66.16|5.56|4.83|0.35|4432400126.0|12728000512|-0.07|-2.7|0.2
+ENPH|Fremont, United States|NGM|Technology|Solar|26.5|102658000|1331239040|0.0|0.0|0.0|0.0|1454428641.0|1330382976|0.82|0.0|0.5
+SSB|Winter Haven, United States|NYQ|Financial Services|Banks - Regional|8.3|534783008|1891837056|30.42|2.18|2.61|2.16|2533576668.0|1701741056|6.7|-1.0|0.0
+CHDN|Louisville, United States|NMS|Consumer Cyclical|Gambling|11.2|426800000|4973400064|7.2|0.36|0.32|0.41|5485560065.0|2734299904|5.56|-0.1|0.4
+FOUR|Center Valley, United States|NYQ|Technology|Software - Infrastructure|25.7|227200000|2881299968|0.0|0.0|0.0|0.0|3153939969.0|3330599936|2.95|0.0|0.5
+PSN|Chantilly, United States|NYQ|Technology|Information Technology Services|16.1|235052992|1424697984|0.0|0.0|0.0|0.0|1706761575.0|6750576128|2.2|0.0|0.5
+ARMK|Philadelphia, United States|NYQ|Industrials|Specialty Business Services|3.3|339604992|6220916224|30.71|1.17|1.29|0.42|6628442215.0|17545021440|1.26|-0.5|0.0
+TLN|Houston, United States|NMS|Utilities|Utilities - Independent Power Producers|13.2|998000000|3004000000|0.0|0.0|0.0|0.0|4201600001.0|2072999936|18.39|0.0|0.5
+WTRG|Bryn Mawr, United States|NYQ|Utilities|Utilities - Regulated Water|26.1|595313984|7780482048|58.3|3.33|2.61|1.3|8494858829.0|2086113024|2.15|-1.6|0.0
+AOS|Milwaukee, United States|NYQ|Industrials|Specialty Industrial Machinery|-7.7|533600000|228500000|35.81|2.05|1.72|1.36|868820001.0|3818099968|3.59|-0.9|0.0
+DSEEY|Tokyo, Japan|PNK|Financial Services|Capital Markets|-17.4|164008001536|23950931263488|44.39|4.74|4.74|0.35|24147740865329.0|786448973824|0.71|-2.3|0.0
+ULS|Northbrook, United States|NYQ|Industrials|Specialty Business Services|8.0|326000000|935000000|23.15|1.0|0.0|0.52|1326200001.0|2870000128|1.64|-0.4|0.2
+KNSL|Richmond, United States|NYQ|Financial Services|Insurance - Property & Casualty|17.4|414843008|184122000|3.37|0.16|0.18|0.68|681933611.0|1587524992|17.89|0.0|0.4
+BNT|Pembroke, Bermuda|NYQ|Financial Services|Insurance - Diversified|147.0|1214000000|7743000064|4.59|0.64|0.0|0.36|9199800067.0|14103000064|6.63|-0.2|0.4
+MTSI|Lowell, United States|NMS|Technology|Semiconductors|38.8|-103197000|539936000|0.0|0.0|0.0|0.0|416099601.0|790552000|-1.44|0.0|0.5
+APG|New Brighton, United States|NYQ|Industrials|Engineering & Construction|5.8|-224000000|3035000064|0.0|0.0|0.0|0.0|2766200064.0|7017999872|-0.83|0.0|0.5
+HTHT|Shanghai, China|NMS|Consumer Cyclical|Lodging|2.4|3742000128|36050001920|37.56|1.73|0.0|0.63|40540402074.0|23452000256|1.62|-0.8|0.0
+SNX|Fremont, United States|NYQ|Technology|Electronics & Computer Distribution|10.0|682987008|4401988096|20.13|1.3|1.05|1.76|5221572508.0|58452434944|7.79|-0.6|0.2
+QGEN|Venlo, Netherlands|NYQ|Healthcare|Diagnostics & Research|2.4|83591000|1391548032|0.0|0.0|0.0|0.0|1491857232.0|1978214016|0.38|0.0|0.5
+PAG|Bloomfield Hills, United States|NYQ|Consumer Cyclical|Auto & Truck Dealerships|6.2|918899968|8361999872|29.77|2.65|2.04|4.44|9464679838.0|30455199744|13.41|-1.2|0.2
+UWMC|Pontiac, United States|NYQ|Financial Services|Mortgage Finance|-51.7|14404000|12874425344|307.69|6.09|0.0|0.4|12891710143.0|2458690048|0.13|-3.0|2.6
+MGM|Las Vegas, United States|NYQ|Consumer Cyclical|Resorts & Casinos|-0.6|743651968|31853705216|0.0|0.0|0.81|0.0|32746087578.0|17240545280|2.36|0.0|0.5
+MUSA|El Dorado, United States|NYQ|Consumer Cyclical|Specialty Retail|-8.1|502500000|2368399872|7.42|0.42|0.0|1.96|2971399875.0|17909399552|24.44|-0.1|0.4
+SQM|Santiago, Chile|NYQ|Basic Materials|Specialty Chemicals|-41.5|-321312000|4888370176|2252.85|5.63|5.49|2.1|4502795793.0|4766643200|-1.16|-2.7|22.1
+DOCS|San Francisco, United States|NYQ|Healthcare|Health Information Services|24.6|201344992|12947000|0.0|0.0|0.0|0.0|254560991.0|550168000|0.99|0.0|0.5
+IONQ|College Park, United States|NYQ|Technology|Computer Hardware|91.8|-331647008|17725000|0.0|0.0|0.0|0.0|-380251408.0|43073000|-1.51|0.0|0.5
+EMN|Kingsport, United States|NYQ|Basic Materials|Specialty Chemicals|1.7|905000000|5219999744|42.5|3.51|3.25|3.32|6305999747.0|9381999616|7.56|-1.7|0.0
+ALSMY|Saint-Ouen, France|PNK|Industrials|Railroads|3.9|-253000000|3560000000|0.0|0.0|0.0|0.0|3256400000.0|17951000576|-0.07|0.0|0.5
+CNM|Saint Louis, United States|NYQ|Industrials|Industrial Distribution|11.5|410000000|2636999936|0.0|0.0|0.0|0.0|3128999937.0|7183000064|2.06|0.0|0.5
+ALB|Charlotte, United States|NYQ|Basic Materials|Specialty Chemicals|-47.7|-1316096000|3648304896|57.97|2.32|1.14|1.62|2068989696.0|5377525760|-11.55|-1.1|0.0
+ATR|Crystal Lake, United States|NYQ|Healthcare|Medical Instruments & Supplies|1.1|374540992|1093081984|31.1|1.23|1.23|1.8|1542531176.0|3582889984|5.5|-0.5|0.0
+WWD|Fort Collins, United States|NMS|Industrials|Aerospace & Defense|-1.8|370017984|925867008|16.75|0.61|0.65|1.12|1369888590.0|3310244096|5.78|-0.2|0.3
+BWXT|Lynchburg, United States|NYQ|Industrials|Aerospace & Defense|2.9|281940992|1076557056|31.27|0.99|1.3|1.0|1414886247.0|2703653888|3.06|-0.4|0.0
+EDU|Beijing, China|NYQ|Consumer Defensive|Education & Training Services|19.4|391500000|722833024|0.0|0.0|0.0|0.0|1192633025.0|4818016768|2.31|0.0|0.5
+ESTC|Amsterdam, Netherlands|NYQ|Technology|Software - Application|16.5|-132833000|587732992|0.0|0.0|0.0|0.0|428333393.0|1429863040|-1.32|0.0|0.5
+PTBRY|Jakarta Pusat, Indonesia|PNK|Financial Services|Banks - Regional|7.0|21463599939584|88807902806016|48.48|6.57|0.0|0.88|114564222733515.0|50279173062656|1.72|-3.2|0.0
+IPG|New York, United States|NYQ|Communication Services|Advertising Agencies|-5.8|689500032|4254599936|72.13|4.99|3.97|1.32|5081999974.0|9187600384|1.85|-2.4|0.3
+FND|Atlanta, United States|NYQ|Consumer Cyclical|Home Improvement Retail|5.7|205872000|1686557952|0.0|0.0|0.0|0.0|1933604352.0|4455770112|1.8|0.0|0.5
+RRX|Milwaukee, United States|NYQ|Industrials|Specialty Industrial Machinery|-9.1|196200000|5607399936|47.62|1.13|1.0|1.4|5842839937.0|6033800192|2.86|-0.5|0.0
+DTM|Detroit, United States|NYQ|Energy|Oil & Gas Midstream|2.0|354000000|3520999936|81.67|3.47|0.0|3.28|3945799939.0|981000000|3.55|-1.6|0.4
+SKX|Manhattan Beach, United States|NYQ|Consumer Cyclical|Footwear & Accessories|12.8|639470976|1929134976|0.0|0.0|0.0|0.0|2696500148.0|8969351168|4.11|0.0|0.5
+SEIC|Oaks, United States|NMS|Financial Services|Asset Management|14.9|581190976|32135000|21.54|1.24|1.33|0.98|729564172.0|2125150976|4.25|-0.5|0.2
+VFS|Hai phong, Vietnam|NMS|Consumer Cyclical|Auto Manufacturers|49.3|-3515751071744|76119118184448|0.0|0.0|0.0|0.0|71900216898356.0|37258254090240|-1.01|0.0|0.5
+EVR|New York, United States|NYQ|Financial Services|Capital Markets|24.4|378279008|923316992|34.8|1.37|2.28|3.2|1377251806.0|2980250880|8.54|-0.6|0.0
+LECO|Cleveland, United States|NMS|Industrials|Tools & Accessories|-3.4|466108000|1150551040|35.34|1.5|1.57|3.0|1709880643.0|4008669952|7.87|-0.7|0.0
+EXAS|Madison, United States|NCM|Healthcare|Diagnostics & Research|10.3|-1028857024|2775758080|0.0|0.0|0.0|0.0|1541129652.0|2758866944|-5.74|0.0|0.5
+PCVX|San Carlos, United States|NMS|Healthcare|Biotechnology|0.0|-463927008|71110000|0.0|0.0|0.0|0.0|-485602409.0|N/A|-3.7|0.0|0.5
+MEDP|Cincinnati, United States|NMS|Healthcare|Diagnostics & Research|7.7|404342016|149523008|0.0|0.0|0.0|0.0|634733428.0|2109053952|12.81|0.0|0.5
+VDMCY|Midrand, South Africa|PNK|Communication Services|Telecom Services|1.0|14750000128|74799996928|79.89|5.09|6.5|0.31|92499997080.0|151333994496|0.41|-2.5|0.3
+KIKOY|Noda, Japan|PNK|Consumer Defensive|Packaged Foods|4.5|62249000960|61078999040|125.39|1.7|0.76|0.31|135777800192.0|701474996224|0.26|-0.8|0.8
+BEN|San Mateo, United States|NYQ|Financial Services|Asset Management|13.1|338800000|3721999872|195.31|6.45|4.66|1.28|4128559872.0|8738499584|0.63|-3.1|1.5
+BIRK|London, United Kingdom|NYQ|Consumer Cyclical|Footwear & Accessories|19.4|218875008|1412893952|0.0|0.0|0.0|0.0|1675543962.0|1863485056|1.19|0.0|0.5
+NLY|New York, United States|NYQ|Real Estate|REIT - Mortgage|0.0|847355008|89693265920|160.49|12.01|13.68|2.6|90710091928.0|1247853056|1.6|-5.9|1.2
+OHI|Hunt Valley, United States|NYQ|Real Estate|REIT - Healthcare Facilities|16.7|406326016|4869741056|172.9|7.12|8.41|2.68|5357332276.0|1051390016|1.54|-3.5|1.3
+FHN|Memphis, United States|NYQ|Financial Services|Banks - Regional|-4.1|738000000|5599000064|44.12|2.87|3.94|0.6|6484600063.0|3040000000|1.3|-1.3|0.0
+PSO|London, United Kingdom|NYQ|Communication Services|Publishing|0.2|434000000|1530000000|36.17|1.71|2.59|0.29|2050800000.0|3552000000|0.83|-0.8|0.0
+BG|Chesterfield, United States|NYQ|Consumer Defensive|Farm Products|-9.3|1136999936|7119000064|33.82|3.79|2.82|2.72|8483399989.0|53107998720|7.97|-1.8|0.0
+TTEK|Pasadena, United States|NMS|Industrials|Engineering & Construction|17.9|259156992|1084392960|23.79|0.82|0.59|0.23|1395381351.0|4504023040|0.98|-0.3|0.2
+GGAL|Buenos Aires, Argentina|NCM|Financial Services|Banks - Regional|-25.1|800345882624|3327191154688|40.93|4.64|0.95|2.63|4287606213838.0|4300886769664|4.99|-2.2|0.0
+AR|Denver, United States|NYQ|Energy|Oil & Gas E&P|2.2|57226000|4033460992|0.0|0.0|0.0|0.0|4102132192.0|4297763840|0.18|0.0|0.5
+SNN|Watford, United Kingdom|NYQ|Healthcare|Medical Devices|6.0|412000000|3320999936|79.79|2.53|2.44|0.75|3815399936.0|5809999872|0.95|-1.2|0.3
+NICE|Ra'anana, Israel|NMS|Technology|Software - Application|15.8|442588000|563603008|0.0|0.0|0.0|0.0|1094708609.0|2735271936|6.95|0.0|0.5
+ALLY|Detroit, United States|NYQ|Financial Services|Credit Services|-0.8|559000000|19231000576|66.67|3.41|3.15|1.2|19901800576.0|6751000064|1.78|-1.6|0.2
+AIZ|Atlanta, United States|NYQ|Financial Services|Insurance - Property & Casualty|4.1|760200000|2145500032|20.47|1.52|1.82|3.2|3057740036.0|11877499904|14.2|-0.7|0.2
+EMRAF|Halifax, Canada|PNK|Utilities|Utilities - Regulated Electric|-10.6|493600000|19864000512|168.27|5.02|4.97|2.04|20456320513.0|7200000000|1.19|-2.4|1.2
+OVV|Denver, United States|NYQ|Energy|Oil & Gas E&P|-22.1|1124999936|6291999744|28.5|3.02|2.52|1.2|7641999667.0|8942999552|4.13|-1.4|0.2
+LBRDA|Englewood, United States|NMS|Communication Services|Telecom Services|5.2|869000000|4137999872|0.0|0.0|0.0|0.0|5180799872.0|1016000000|6.05|0.0|0.5
+ROKU|San Jose, United States|NMS|Communication Services|Entertainment|22.0|-129386000|591926976|0.0|0.0|0.0|0.0|436663777.0|4112898048|-0.89|0.0|0.5
+SF|Saint Louis, United States|NYQ|Financial Services|Capital Markets|20.1|694097984|2235038976|26.88|1.78|1.5|1.84|3067956559.0|4944918016|6.0|-0.8|0.2
+PCTY|Schaumburg, United States|NMS|Technology|Software - Application|28.2|221171008|67201000|0.0|0.0|0.0|0.0|332606210.0|1498503936|3.78|0.0|0.5
+WPP|London, United Kingdom|NYQ|Communication Services|Advertising Agencies|-1.4|542000000|6348000256|79.38|3.05|4.19|1.22|6998400256.0|14741000192|3.06|-1.4|0.3
+FUTU|Admiralty, Hong Kong|NGM|Financial Services|Capital Markets|28.0|4449614848|4384679936|0.0|0.0|0.0|0.0|9724217754.0|10155957248|4.26|0.0|0.5
+AAL|Fort Worth, United States|NMS|Industrials|Airlines|4.6|846000000|37544001536|0.0|0.0|1.27|0.0|38559201536.0|54210998272|1.19|0.0|0.5
+NCLH|Miami, United States|NYQ|Consumer Cyclical|Travel Services|6.2|910257024|13916472320|0.0|0.0|0.0|0.0|15008780749.0|9479651328|1.82|0.0|0.5
+CLS|Toronto, Canada|NYQ|Technology|Electronic Components|18.9|428000000|796700032|0.0|0.0|0.0|0.0|1310300033.0|9646000128|3.51|0.0|0.5
+GMED|Audubon, United States|NYQ|Healthcare|Medical Devices|6.6|102984000|537718976|0.0|0.0|0.0|0.0|661299776.0|2519354880|0.74|0.0|0.5
+BCH|Santiago, Chile|NYQ|Financial Services|Banks - Regional|-8.2|1207392010240|15011506290688|67.11|6.23|6.4|1.64|16460376702975.0|2658531016704|2.51|-3.0|0.2
+SCI|Houston, United States|NYQ|Consumer Cyclical|Personal Services|3.5|518648000|4918601216|33.99|1.6|1.55|1.28|5540978817.0|4186379008|3.49|-0.7|0.0
+YMM|Guiyang, China|NYQ|Technology|Software - Application|33.9|3095481088|74838000|36.7|1.25|0.0|0.14|3789415306.0|10472341504|0.39|-0.5|0.0
+XPNGF|N/A, N/A|PNK|N/A|N/A|0.0|0|0|0.0|0.0|0.0|0.0|0.0|N/A|N/A|0.0|0.5
+ALLE|Dublin, Ireland|NYQ|Industrials|Security & Protection Services|5.4|597500032|2150700032|28.15|1.61|1.33|2.04|2867700073.0|3772199936|6.67|-0.7|0.2
+AFG|Cincinnati, United States|NYQ|Financial Services|Insurance - Property & Casualty|4.7|887000000|1720999936|27.72|2.49|1.99|3.2|2785399939.0|8009999872|10.34|-1.2|0.2
+TFII|Saint-Laurent, Canada|NYQ|Industrials|Trucking|5.5|422484000|2983320064|33.27|2.09|1.25|1.8|3490300865.0|8396830208|4.71|-1.0|0.0
+TAP|Golden, United States|NYQ|Consumer Defensive|Beverages - Brewers|-2.0|1122400000|6354299904|32.9|3.07|2.65|1.88|7701179905.0|11626999808|5.2|-1.4|0.0
+PPC|Greeley, United States|NMS|Consumer Defensive|Packaged Foods|-3.5|1086438016|3466242048|0.0|0.0|1.22|0.0|4769967668.0|17878290432|4.49|0.0|0.5
+TKHVY|Istanbul, Turkey|PNK|Industrials|Airlines|32.9|113378000896|489939009536|0.0|0.0|0.0|0.0|625992610612.0|745429991424|22.48|0.0|0.5
+PCOR|Carpinteria, United States|NYQ|Technology|Software - Application|16.2|-105956000|80023000|0.0|0.0|0.0|0.0|-47124199.0|1151708032|-0.72|0.0|0.5
+DAY|Minneapolis, United States|NYQ|Technology|Software - Application|16.4|18100000|1232899968|0.0|0.0|0.0|0.0|1254619969.0|1760000000|0.11|0.0|0.5
+POAHY|Stuttgart, Germany|PNK|Consumer Cyclical|Auto Manufacturers|0.0|3801999872|7698999808|20.52|6.88|3.13|0.27|12261399652.0|N/A|1.3|-3.4|0.2
+CART|San Francisco, United States|NMS|Consumer Cyclical|Internet Retail|10.0|448000000|26000000|0.0|0.0|0.0|0.0|563600001.0|3377999872|1.56|0.0|0.5
+KVYO|Boston, United States|NYQ|Technology|Software - Infrastructure|34.0|-46142000|53438000|0.0|0.0|0.0|0.0|-1932399.0|937464000|-0.17|0.0|0.5
+ACI|Boise, United States|NYQ|Consumer Defensive|Grocery Stores|1.2|1037299968|14210199552|26.97|2.9|0.0|0.6|15454959513.0|79930900480|1.7|-1.4|0.2
+TKO|New York, United States|NYQ|Communication Services|Entertainment|4.6|9408000|3035376896|0.0|1.03|0.0|1.52|3046666498.0|2804340992|0.01|-0.4|0.5
+SSMXY|Kobe, Japan|PNK|Healthcare|Medical Devices|9.3|57790001152|60168998912|29.81|1.05|0.87|0.19|129517000294.0|501850996736|0.61|-0.4|0.2
+COKE|Charlotte, United States|NMS|Consumer Defensive|Beverages - Non-Alcoholic|7.1|633124992|1906998016|5.72|0.71|0.28|10.0|2666748020.0|6899716096|66.46|-0.3|0.4
+SOLV|Saint Paul, United States|NYQ|Healthcare|Health Information Services|1.9|479000000|8183000064|0.0|0.0|0.0|0.0|8757800064.0|8254000128|2.72|0.0|0.5
+NVT|London, United Kingdom|NYQ|Industrials|Electrical Equipment & Parts|8.9|240800000|2286099968|53.15|1.42|2.01|0.8|2575059969.0|3006099968|1.4|-0.6|0.0
+BJ|Marlborough, United States|NYQ|Consumer Defensive|Discount Stores|3.5|557627008|2831643904|0.0|0.0|0.0|0.0|3500796314.0|20580562944|4.24|0.0|0.5
+ESLT|Haifa, Israel|NMS|Industrials|Aerospace & Defense|14.4|261152992|1598830976|25.64|0.6|1.08|2.0|1912214569.0|6523448832|5.95|-0.2|0.2
+JPXGY|Tokyo, Japan|PNK|Financial Services|Financial Data & Stock Exchanges|4.0|61198000128|52485001216|75.58|2.83|2.78|0.3|125922601369.0|163124002816|0.4|-1.3|0.3
+ITT|Stamford, United States|NYQ|Industrials|Specialty Industrial Machinery|12.0|518400000|756499968|20.25|1.02|1.04|1.4|1378579970.0|3630700032|6.15|-0.4|0.2
+MTZ|Coral Gables, United States|NYQ|Industrials|Engineering & Construction|3.8|162788000|2631598080|0.0|0.0|0.0|0.0|2826943680.0|12303464448|1.99|0.0|0.5
+PAYC|Oklahoma City, United States|NYQ|Technology|Software - Application|13.6|502000000|83400000|16.82|0.68|0.0|1.5|685800002.0|1883200000|8.8|-0.3|0.3
+AUR|Pittsburgh, United States|NMS|Technology|Information Technology Services|0.0|-748000000|121000000|0.0|0.0|0.0|0.0|-776600000.0|N/A|-0.47|0.0|0.5
+NNGRY|The Hague, Netherlands|PNK|Financial Services|Insurance - Diversified|-96.8|1516999936|11528999936|57.44|7.23|6.96|1.84|13349399857.0|6899999744|3.09|-3.5|0.0
+TECH|Minneapolis, United States|NMS|Healthcare|Biotechnology|9.0|158104000|395127008|32.65|0.52|0.41|0.32|584851808.0|1196016000|0.96|-0.2|0.0
+MNDY|Tel Aviv, Israel|NMS|Technology|Software - Application|32.3|32372000|106036000|0.0|0.0|0.0|0.0|144882401.0|971995008|0.61|0.0|0.5
+THC|Dallas, United States|NYQ|Healthcare|Medical Care Facilities|-5.7|3200000000|14327000064|0.0|0.0|2.75|0.0|18167000064.0|20664999936|32.2|0.0|0.5
+UHS|King of Prussia, United States|NYQ|Healthcare|Medical Care Facilities|11.1|1142046976|4955428864|4.76|0.46|0.51|0.8|6325885237.0|15827935232|16.58|-0.1|0.4
+PRMB|Tampa, United States|NYQ|Consumer Defensive|Beverages - Non-Alcoholic|28.7|-12600000|5679200256|0.0|1.2|0.0|0.4|5664080257.0|5152500224|-0.05|-0.5|0.5
+RKUNY|Setagaya, Japan|PNK|Consumer Cyclical|Internet Retail|14.1|-162442002432|5461713092608|0.0|0.0|0.56|0.0|5266782689690.0|2279233028096|-0.49|0.0|0.5
+NDSN|Westlake, United States|NMS|Industrials|Specialty Industrial Machinery|-2.8|452364000|2295194112|37.15|1.51|0.96|3.12|2838030915.0|2672147968|7.86|-0.7|0.0
+MGA|Aurora, Canada|NYQ|Consumer Cyclical|Auto Parts|1.7|1009000000|7068000256|53.98|5.49|3.19|1.94|8278800256.0|42836000768|3.4|-2.7|0.0
+SJM|Orrville, United States|NYQ|Consumer Defensive|Packaged Foods|-1.9|-256700000|7948299776|86.06|3.85|3.12|4.32|7640259780.0|8787999744|-2.35|-1.8|0.4
+CRDO|Grand Cayman, Cayman Islands|NMS|Technology|Semiconductors|63.6|-23814000|15990000|0.0|0.0|0.0|0.0|-12586799.0|245588000|-0.15|0.0|0.5
+CIEN|Hanover, United States|NYQ|Technology|Communication Equipment|-0.5|83956000|1632253056|0.0|0.0|0.0|0.0|1733000256.0|4014955008|0.58|0.0|0.5
+WPC|New York, United States|NYQ|Real Estate|REIT - Diversified|-2.4|460839008|8183123968|166.99|5.44|5.99|3.52|8736130780.0|1576386048|2.08|-2.6|1.2
+HLI|Los Angeles, United States|NYQ|Financial Services|Capital Markets|24.1|358868000|433032000|43.21|1.35|1.88|2.28|863673603.0|2243101952|4.98|-0.6|0.0
+SGIOY|Osaka, Japan|PNK|Healthcare|Drug Manufacturers - Specialty & Generic|12.6|168611004416|23057000448|27.13|2.42|1.98|0.18|225390205747.0|456868986880|0.66|-1.1|0.2
+JLL|Chicago, United States|NYQ|Real Estate|Real Estate Services|15.8|546800000|2973199872|0.0|0.0|0.53|0.0|3629359873.0|23432900608|11.1|0.0|0.5
+NDEKY|Osaka, Japan|PNK|Basic Materials|Specialty Chemicals|0.0|129767997440|443000000|27.77|1.83|2.51|0.35|156164596928.0|999524007936|1.23|-0.8|0.2
+KGC|Toronto, Canada|NYQ|Basic Materials|Gold|26.9|948800000|1452499968|15.58|1.12|1.24|0.12|2591059968.0|5148800000|0.8|-0.5|0.3
+AU|Greenwood Village, United States|NYQ|Basic Materials|Gold|39.3|1004000000|2152999936|17.6|4.67|1.59|1.38|3357799936.0|5792999936|2.33|-2.2|0.3
+SRPT|Cambridge, United States|NMS|Healthcare|Biotechnology|65.9|235239008|1342870016|0.0|0.0|0.0|0.0|1625156827.0|1901979008|2.38|0.0|0.5
+PR|Midland, United States|NYQ|Energy|Oil & Gas E&P|15.4|984700992|4321676800|48.97|4.64|0.0|0.6|5503317989.0|5000734208|1.41|-2.2|0.0
+UHAL|Reno, United States|NYQ|Industrials|Rental & Leasing Services|3.7|448518016|6946529792|0.0|0.0|0.0|0.0|7484751412.0|5691147776|2.08|0.0|0.5
+WIX|Tel Aviv, Israel|NMS|Technology|Software - Infrastructure|14.0|138322000|969945984|0.0|0.0|0.0|0.0|1135932385.0|1760649984|2.35|0.0|0.5
+EBR|Rio De Janeiro, Brazil|NYQ|Utilities|Utilities - Renewable|25.8|10316807168|72645820416|9.24|3.36|3.02|0.22|85025989017.0|38078595072|0.74|-1.6|0.4
+PAA|Houston, United States|NMS|Energy|Oil & Gas Midstream|-2.3|514000000|7997000192|173.97|7.62|8.48|1.52|8613800191.0|50073001984|0.71|-3.7|1.3
+TXRH|Louisville, United States|NMS|Consumer Cyclical|Restaurants|23.5|433592000|857038016|37.71|1.5|1.65|2.72|1377348419.0|5373331968|6.61|-0.7|0.0
+VIV|São Paulo, Brazil|NYQ|Communication Services|Telecom Services|7.7|5547948032|20757798912|80.26|6.16|5.54|0.51|27415336548.0|55845048320|0.57|-3.0|0.4
+CHRW|Eden Prairie, United States|NMS|Industrials|Integrated Freight & Logistics|-0.9|465689984|1741132032|63.73|2.47|2.4|2.48|2299960015.0|17724956672|3.79|-1.1|0.2
+HST|Bethesda, United States|NMS|Real Estate|REIT - Hotel & Motel|7.6|697000000|5642999808|80.81|4.96|4.49|0.8|6479399807.0|5690999808|0.97|-2.4|0.4
+KMX|Richmond, United States|NYQ|Consumer Cyclical|Auto & Truck Dealerships|1.8|460958016|19420620800|0.0|0.0|0.0|0.0|19973770420.0|27796199424|2.93|0.0|0.5
+SAIA|Johns Creek, United States|NMS|Industrials|Trucking|5.0|362064992|324464000|0.0|0.0|0.0|0.0|758941991.0|3209073920|13.74|0.0|0.5
+CPT|Houston, United States|NYQ|Real Estate|REIT - Residential|-0.3|162998000|3488791040|274.67|3.35|3.23|4.2|3684388646.0|1555399040|1.47|-1.6|2.3
+SWK|New Britain, United States|NYQ|Industrials|Tools & Accessories|-0.4|286300000|6594800128|172.49|3.9|2.79|3.28|6938360131.0|15365699584|1.83|-1.9|1.3
+RBRK|Palo Alto, United States|NYQ|Technology|Software - Infrastructure|42.6|-1137427968|326377984|0.0|0.0|0.0|0.0|-1038535577.0|803457024|-6.16|0.0|0.5
+CLH|Norwell, United States|NYQ|Industrials|Waste Management|6.9|402299008|3227470080|0.0|0.0|0.0|0.0|3710228890.0|5889951744|7.19|0.0|0.5
+CPB|Camden, United States|NMS|Consumer Defensive|Packaged Foods|10.1|551000000|8277000192|80.87|3.78|3.15|1.56|8938200193.0|9889999872|1.79|-1.8|0.4
+LAMR|Baton Rouge, United States|NMS|Real Estate|REIT - Specialty|4.4|361502016|4557992960|153.41|4.98|4.21|6.2|4991795386.0|2212197120|3.45|-2.4|1.1
+INSM|Bridgewater, United States|NMS|Healthcare|Biotechnology|24.8|-913772032|1309944064|0.0|0.0|0.0|0.0|213417626.0|363707008|-5.64|0.0|0.5
+JNPR|Sunnyvale, United States|NYQ|Technology|Communication Equipment|2.9|287900000|1872400000|102.33|2.44|2.84|0.88|2217880001.0|5073600000|0.86|-1.1|0.6
+DVA|Denver, United States|NYQ|Healthcare|Medical Care Facilities|4.7|936342016|12066836480|0.0|0.0|0.0|0.0|13190446900.0|12815550464|10.62|0.0|0.5
+RTO|Crawley, United Kingdom|NYQ|Industrials|Specialty Business Services|1.3|392000000|4853000192|56.3|2.31|1.23|0.58|5323400192.0|5409999872|0.97|-1.1|0.0
+SUZ|Salvador, Brazil|NYQ|Basic Materials|Paper & Paper Products|36.7|-7074198016|108408446976|35.69|3.51|1.79|0.33|99919409356.0|47403282432|-0.95|-1.7|0.0
+GFI|Sandton, South Africa|NYQ|Basic Materials|Gold|0.0|1244999936|2945799936|54.94|1.84|2.72|0.34|4439799859.0|5201600000|0.71|-0.8|0.0
+TOL|Fort Washington, United States|NYQ|Consumer Cyclical|Residential Construction|-4.6|1509340032|2873245952|6.34|0.85|1.08|0.92|4684453992.0|10758023168|14.48|-0.3|0.4
+LOGI|Lausanne, Switzerland|NMS|Technology|Computer Hardware|6.8|655078016|94873000|32.44|1.41|1.33|1.38|880966620.0|4556032000|4.17|-0.6|0.0
+JKHY|Monett, United States|NMS|Technology|Information Technology Services|5.2|405208000|205692000|39.64|1.3|1.14|2.32|691941603.0|2273303040|5.52|-0.6|0.0
+POOL|Covington, United States|NMS|Industrials|Industrial Distribution|-1.6|432075008|1271922944|41.59|1.39|0.96|4.8|1790412959.0|5310952960|11.19|-0.6|0.0
+BMRN|San Rafael, United States|NMS|Healthcare|Biotechnology|15.6|426859008|633969024|0.0|0.0|0.0|0.0|1146199834.0|2853914880|2.19|0.0|0.5
+MMYT|Gurugram, India|NMS|Consumer Cyclical|Travel Services|24.8|237912992|232647008|0.0|0.0|0.0|0.0|518142599.0|935761024|1.89|0.0|0.5
+CNA|Chicago, United States|NYQ|Financial Services|Insurance - Property & Casualty|5.2|959000000|3212000000|50.0|3.69|3.83|1.84|4362800001.0|14270000128|3.41|-1.8|0.0
+RNR|Pembroke, Bermuda|NYQ|Financial Services|Insurance - Reinsurance|-27.5|1807512960|2028167040|4.43|0.66|0.81|1.6|4197182594.0|11771224064|35.7|-0.2|0.4
+EPAM|Newtown, United States|NYQ|Technology|Information Technology Services|7.9|454532992|163254000|0.0|0.0|0.0|0.0|708693591.0|4727940096|7.82|0.0|0.5
+EWBC|Pasadena, United States|NMS|Financial Services|Banks - Regional|-4.4|1165586048|3625236992|26.41|2.56|2.45|2.4|5023940252.0|2385691904|8.03|-1.2|0.2
+RDY|Hyderabad, India|NYQ|Healthcare|Drug Manufacturers - Specialty & Generic|15.9|53675999232|51085000704|12.39|0.75|0.72|0.1|115496199783.0|311305011200|0.74|-0.3|0.3
+PFGC|Richmond, United States|NYQ|Consumer Defensive|Food Distribution|9.4|387300000|7860899840|0.0|0.0|0.0|0.0|8325659841.0|56500600832|2.44|0.0|0.5
+GLPI|Wyomissing, United States|NMS|Real Estate|REIT - Specialty|5.6|784161024|8041637888|105.92|6.1|6.13|3.04|8982631118.0|1531545984|2.87|-3.0|0.6
+OMVKY|Vienna, Austria|PNK|Energy|Oil & Gas Integrated|-14.8|1388999936|9406999552|68.81|7.19|3.71|0.79|11073799473.0|33290000384|1.16|-3.5|0.2
+BXP|Boston, United States|NYQ|Real Estate|REIT - Office|4.5|14272000|16984070144|4355.56|5.76|4.95|3.92|17001196581.0|3380318976|0.09|-2.8|43.1
+JBAXY|Zurich, Switzerland|PNK|Financial Services|Asset Management|58.3|1022099968|26999099392|141.63|4.17|4.1|0.57|28225619354.0|3860800000|0.41|-2.0|1.0
+JBSAY|São Paulo, Brazil|OQX|Consumer Defensive|Packaged Foods|20.9|7286354944|119017193472|61.76|9.79|6.11|1.06|127760819402.0|396591955968|1.07|-4.8|0.2
+CW|Davidson, United States|NYQ|Industrials|Aerospace & Defense|4.9|404977984|1233638016|7.87|0.27|0.47|0.84|1719611598.0|3121189120|10.47|-0.0|0.4
+CAVA|Washington, United States|NYQ|Consumer Cyclical|Restaurants|28.3|130319000|378708000|0.0|0.0|0.0|0.0|535090801.0|963713024|1.08|0.0|0.5
+CAG|Chicago, United States|NYQ|Consumer Defensive|Packaged Foods|-0.4|492600000|8463600128|135.92|5.37|3.71|1.4|9054720128.0|11928800256|1.01|-2.6|0.9
+FTI|Houston, United States|NYQ|Energy|Oil & Gas Equipment & Services|13.9|842899968|1791399936|10.47|0.71|0.0|0.2|2802879898.0|9083299840|1.83|-0.3|0.3
+REG|Jacksonville, United States|NMS|Real Estate|REIT - Retail|3.6|386737984|4653983744|128.67|3.63|4.23|2.82|5118069327.0|1503291008|2.07|-1.7|0.8
+PKX|Seoul, South Korea|NYQ|Basic Materials|Steel|-4.6|1094917029888|25997367836672|60.07|3.9|3.35|1.79|27311268272538.0|72688143958016|2.08|-1.9|0.2
+UNM|Chattanooga, United States|NYQ|Financial Services|Insurance - Life|2.9|1779100032|4064900096|16.6|2.06|3.85|1.68|6199820136.0|12887300096|9.05|-0.9|0.3
+JHX|Dublin, Ireland|NYQ|Basic Materials|Building Materials|-2.6|436000000|1188099968|0.0|0.0|2.27|0.0|1711299968.0|3910899968|1.01|0.0|0.5
+SFM|Phoenix, United States|NMS|Consumer Defensive|Grocery Stores|17.5|380600992|1679240960|0.0|0.0|0.0|0.0|2135962151.0|7719289856|3.71|0.0|0.5
+AMCR|Zurich, Switzerland|NYQ|Consumer Cyclical|Packaging & Containers|-0.3|795000000|7485000192|91.2|5.03|4.44|0.51|8439000191.0|13539999744|0.54|-2.4|0.5
+SMMT|Miami, United States|NGM|Healthcare|Biotechnology|0.0|-221315008|7218000|0.0|0.0|0.0|0.0|-258360009.0|N/A|-0.31|0.0|0.5
+INCY|Wilmington, United States|NMS|Healthcare|Biotechnology|16.3|32615000|60337000|0.0|0.0|0.0|0.0|99475001.0|4241217024|0.15|0.0|0.5
+BZLFY|London, United Kingdom|PNK|Consumer Defensive|Food Distribution|0.0|0|0|46.65|2.28|2.03|0.44|-0.0|N/A|0.94|-1.0|0.0
+ELS|Chicago, United States|NYQ|Real Estate|REIT - Residential|2.9|366998016|3231688960|97.45|2.98|2.31|2.06|3672086581.0|1532413952|1.93|-1.4|0.5
+GMAB|Copenhagen, Denmark|NMS|Healthcare|Biotechnology|35.3|7843999744|1029000000|0.0|0.0|0.0|0.0|10441799694.0|21525999616|1.72|0.0|0.5
+FMS|Bad Homburg, Germany|NYQ|Healthcare|Medical Care Facilities|1.9|537913024|11004223488|64.86|2.73|1.3|0.64|11649719117.0|19335909376|0.93|-1.3|0.2
+EDPFY|Lisbon, Portugal|PNK|Utilities|Utilities - Diversified|5.1|801000000|22972999680|75.42|6.52|4.98|2.1|23934199680.0|14965999616|2.75|-3.2|0.3
+OKTA|San Francisco, United States|NMS|Technology|Software - Infrastructure|12.7|28000000|952000000|0.0|0.0|0.0|0.0|985600001.0|2609999872|-0.42|0.0|0.5
+SN|Needham, United States|NYQ|Consumer Cyclical|Furnishings, Fixtures & Appliances|29.7|438704992|920860032|0.0|0.0|0.0|0.0|1447306023.0|5528638976|2.96|0.0|0.5
+RVTY|Waltham, United States|NYQ|Healthcare|Diagnostics & Research|4.8|283071008|3325805056|12.17|0.25|0.22|0.28|3665490266.0|2755025920|2.27|-0.0|0.3
+AKAM|Cambridge, United States|NMS|Technology|Software - Infrastructure|2.5|504918016|4634605056|0.0|0.0|0.0|0.0|5240506676.0|3991168000|3.32|0.0|0.5
+NBIX|San Diego, United States|NMS|Healthcare|Drug Manufacturers - Specialty & Generic|21.8|341300000|495700000|0.0|0.0|0.0|0.0|905260001.0|2355300096|3.25|0.0|0.5
+RKLB|Long Beach, United States|NCM|Industrials|Aerospace & Defense|120.7|-190175008|474859008|0.0|0.0|0.0|0.0|246649001.0|436214016|-0.39|0.0|0.5
+TXT|Providence, United States|NYQ|Industrials|Aerospace & Defense|0.0|825000000|3959000064|1.84|0.11|0.13|0.08|4949000064.0|13701999616|4.11|0.0|0.4
+CNH|Basildon, United Kingdom|NYQ|Industrials|Farm & Heavy Construction Machinery|-28.2|1246000000|27243999232|47.47|3.87|1.93|0.47|28739199230.0|19836000256|0.96|-1.8|0.0
+WLMIY|Singapore, Singapore|PNK|Consumer Defensive|Packaged Foods|5.3|1169814016|28599134208|67.97|5.21|3.93|1.27|30002911027.0|67379081216|1.9|-2.5|0.2
+GME|Grapevine, United States|NYQ|Consumer Cyclical|Specialty Retail|-20.2|63100000|463500000|0.0|0.0|9.52|0.0|539220000.0|4334000128|0.2|0.0|0.5
+APTV|Schaffhausen, Switzerland|NYQ|Consumer Cyclical|Auto Parts|-0.2|1787000064|8888000512|0.0|0.0|1.16|0.0|11032400589.0|19712999424|6.83|0.0|0.5
+EVRG|Kansas City, United States|NMS|Utilities|Utilities - Regulated Electric|5.9|873500032|14215499776|68.47|3.84|3.87|2.67|15263699816.0|5847300096|3.69|-1.8|0.2
+GGG|Minneapolis, United States|NYQ|Industrials|Specialty Industrial Machinery|-3.2|486084000|48653000|36.17|1.29|1.15|1.1|631953801.0|2113315968|2.76|-0.6|0.0
+SWKS|Irvine, United States|NMS|Technology|Semiconductors|-11.1|526700000|1192999936|84.92|4.27|2.03|2.8|1825039938.0|4044999936|3.28|-2.0|0.4
+KKPNY|Rotterdam, Netherlands|PNK|Communication Services|Telecom Services|1.5|798000000|7257999872|70.59|4.69|4.73|0.18|8215599870.0|5602999808|0.22|-2.3|0.3
+DOC|Denver, United States|NYQ|Real Estate|REIT - Healthcare Facilities|26.1|242384000|9023268864|333.33|5.98|5.14|1.22|9314129665.0|2700449024|0.36|-2.9|2.9
+ACM|Dallas, United States|NYQ|Industrials|Engineering & Construction|2.9|586515968|3140271104|21.25|1.07|0.0|1.04|3844090267.0|16219729920|4.2|-0.4|0.2
+BSY|Exton, United States|NMS|Technology|Software - Application|12.6|234787008|1426637952|33.33|0.65|0.0|0.28|1708382362.0|1353095040|0.71|-0.2|0.0
+ARCC|Los Angeles, United States|NMS|Financial Services|Asset Management|7.4|1522000000|13788000256|78.69|8.27|9.26|1.92|15614400255.0|2990000128|2.39|-4.0|0.3
+MORN|Chicago, United States|NMS|Financial Services|Financial Data & Stock Exchanges|9.7|369900000|904000000|19.46|0.59|0.58|1.82|1347880003.0|2275099904|8.38|-0.2|0.3
+GWRE|San Mateo, United States|NYQ|Technology|Software - Application|26.8|30107000|983348992|0.0|0.0|0.0|0.0|1019477393.0|1035990976|0.37|0.0|0.5
+RGA|Chesterfield, United States|NYQ|Financial Services|Insurance - Reinsurance|4.7|717000000|5041999872|32.43|1.79|2.29|3.56|5902399876.0|22107000832|10.41|-0.8|0.0
+WLK|Houston, United States|NYQ|Basic Materials|Specialty Chemicals|0.6|599000000|5402999808|44.18|1.93|1.37|2.1|6121799810.0|12142000128|4.57|-0.9|0.0
+RS|Scottsdale, United States|NYQ|Basic Materials|Steel|-6.3|875200000|1418099968|28.28|1.66|1.71|4.8|2468339974.0|13834999808|15.13|-0.7|0.2
+CASY|Ankeny, United States|NMS|Consumer Cyclical|Specialty Retail|-2.9|535068992|2707480064|12.96|0.49|0.64|2.0|3349562857.0|14973769728|14.36|-0.2|0.3
+CHWY|Plantation, United States|NYQ|Consumer Cyclical|Internet Retail|4.8|401832000|543627008|0.0|0.0|0.0|0.0|1025825408.0|11439852544|0.88|0.0|0.5
+RL|New York, United States|NYQ|Consumer Cyclical|Apparel Manufacturing|10.8|704600000|2683699968|29.4|1.26|2.23|3.3|3529219972.0|6949600256|10.56|-0.5|0.2
+VTRS|Canonsburg, United States|NMS|Healthcare|Drug Manufacturers - Specialty & Generic|-8.1|-634200000|14305899520|960.0|5.13|0.89|0.48|13544859525.0|14739300352|-0.53|-2.5|9.2
+BAP|Lima, Peru|NYQ|Financial Services|Banks - Regional|15.5|5216368128|29421021184|51.44|5.06|3.02|9.29|35680662947.0|17358172160|18.35|-2.4|0.0
+OC|Toledo, United States|NYQ|Industrials|Building Products & Equipment|23.3|647000000|5616000000|33.79|1.86|1.41|2.76|6392400003.0|10974999552|7.14|-0.8|0.0
+BIP|Hamilton, Bermuda|NYQ|Utilities|Utilities - Diversified|9.5|57000000|51093999616|4050.0|5.55|4.37|1.72|51162399648.0|21038999552|0.04|-2.7|40.0
+AVTR|Radnor, United States|NYQ|Healthcare|Medical Instruments & Supplies|-2.1|711500032|4228800000|0.0|0.0|0.0|0.0|5082600039.0|6783600128|1.02|0.0|0.5
+AVY|Mentor, United States|NYQ|Consumer Cyclical|Packaging & Containers|3.6|704899968|3377900032|39.52|1.89|1.59|3.52|4223779997.0|8755699712|8.52|-0.9|0.0
+DUOL|Pittsburgh, United States|NMS|Technology|Software - Application|38.8|88574000|57237000|0.0|0.0|0.0|0.0|163525801.0|748024000|1.88|0.0|0.5
+FFIV|Seattle, United States|NMS|Technology|Software - Infrastructure|10.7|594841024|274324000|0.0|0.0|0.0|0.0|988133229.0|2890011904|9.92|0.0|0.5
+WES|The Woodlands, United States|NYQ|Energy|Oil & Gas Midstream|8.2|1536967040|8140377088|79.6|8.87|10.19|3.5|9984737537.0|3605222912|3.94|-4.3|0.3
+LNT|Madison, United States|NMS|Utilities|Utilities - Regulated Electric|1.6|690000000|10616999936|71.38|3.07|3.12|2.03|11444999937.0|3980999936|2.62|-1.4|0.3
+LINE|Northville, United States|NMS|Real Estate|REIT - Industrial|0.4|-706000000|7345999872|0.0|1.51|0.0|0.91|6498799873.0|5340000256|-3.71|-0.7|0.5
+H|Chicago, United States|NYQ|Consumer Cyclical|Lodging|-12.4|1296000000|4060999936|4.74|0.43|0.0|0.6|5616199937.0|3296000000|12.41|-0.1|0.4
+BAX|Deerfield, United States|NYQ|Healthcare|Medical Instruments & Supplies|1.0|-337000000|13448999936|464.0|1.95|2.09|0.68|13044599939.0|10636000256|-0.64|-0.9|4.2
+EQH|New York, United States|NYQ|Financial Services|Asset Management|106.0|1227000064|6782000128|24.87|1.77|2.55|0.96|8254400207.0|12759000064|3.57|-0.8|0.2
+ENTG|Billerica, United States|NMS|Technology|Semiconductor Equipment & Materials|4.6|292787008|4068954880|20.73|0.41|0.38|0.4|4420299290.0|3241208064|1.97|-0.1|0.2
+SYM|Wilmington, United States|NGM|Industrials|Specialty Industrial Machinery|35.2|-14130000|24759000|0.0|0.0|0.0|0.0|7803001.0|1914929024|-0.14|0.0|0.5
+BEP|Toronto, Canada|NYQ|Utilities|Utilities - Renewable|8.2|-390000000|35548000256|649.02|6.88|4.39|1.49|35080000260.0|5875999744|-0.89|-3.4|6.0
+DPZ|Ann Arbor, United States|NMS|Consumer Cyclical|Restaurants|3.1|584169984|5299667968|36.19|1.44|1.04|6.96|6000671957.0|4706416128|16.62|-0.6|0.0
+HACBY|Nagano, Japan|PNK|Financial Services|Banks - Regional|20.4|36034998272|2686988058624|34.02|2.66|3.31|0.35|2730230056550.0|188794994688|1.0|-1.2|0.0
+RPRX|New York, United States|NMS|Healthcare|Biotechnology|-0.4|858982976|7612426240|43.98|2.6|0.0|0.88|8643205811.0|2263576064|1.88|-1.2|0.0
+FTAI|New York, United States|NMS|Industrials|Rental & Leasing Services|59.5|-32079000|3440477952|54.55|1.01|4.98|1.2|3401983154.0|1734900992|-0.08|-0.4|0.0
+CF|Northbrook, United States|NYQ|Basic Materials|Agricultural Inputs|-3.0|1218000000|3246000128|29.67|2.57|2.35|2.0|4707600129.0|5936000000|6.5|-1.2|0.2
+FNF|Jacksonville, United States|NYQ|Financial Services|Insurance - Specialty|5.4|1270000000|4705999872|41.72|3.09|3.86|2.0|6229999873.0|13713999872|4.5|-1.5|0.0
+FLEX|Austin, United States|NMS|Technology|Electronic Components|2.1|1011000000|4153999872|0.0|0.0|0.0|0.0|5367199872.0|25584001024|2.38|0.0|0.5
+MAS|Livonia, United States|NYQ|Industrials|Building Products & Equipment|-2.9|822000000|3214000128|30.85|1.68|1.57|1.24|4200400129.0|7827999744|3.69|-0.8|0.0
+RPM|Medina, United States|NYQ|Basic Materials|Specialty Chemicals|3.0|650057984|2330423040|37.35|1.66|1.74|2.04|3110492623.0|7345251840|4.96|-0.7|0.0
+TPR|New York, United States|NYQ|Consumer Cyclical|Luxury Goods|5.3|795699968|4106599936|40.7|1.66|4.06|1.4|5061439899.0|6776399872|3.32|-0.7|0.0
+EXPD|Bellevue, United States|NYQ|Industrials|Integrated Freight & Logistics|29.7|810073024|568937024|25.52|1.23|1.15|1.46|1541024655.0|10600514560|5.69|-0.5|0.2
+AMH|Las Vegas, United States|NYQ|Real Estate|REIT - Residential|6.8|397164992|5027070976|96.3|3.22|1.66|1.2|5503668967.0|1728696960|1.05|-1.5|0.5
+ALGN|Tempe, United States|NMS|Healthcare|Medical Instruments & Supplies|4.0|421361984|119277000|0.0|0.0|0.0|0.0|624911381.0|3999012096|5.45|0.0|0.5
+DLTR|Chesapeake, United States|NMS|Consumer Defensive|Discount Stores|3.5|-1044000000|10549699584|0.0|0.0|0.0|0.0|9296899584.0|31219699712|-4.55|0.0|0.5
+KIM|Jericho, United States|NYQ|Real Estate|REIT - Retail|16.3|371260992|8578375168|176.36|4.54|4.66|1.0|9023888359.0|2037014016|0.54|-2.2|1.3
+IEX|Northbrook, United States|NYQ|Industrials|Specialty Industrial Machinery|9.4|505000000|2087900032|40.81|1.46|1.13|2.76|2693900035.0|3268800000|6.54|-0.6|0.0
+EG|Hamilton, Bermuda|NYQ|Financial Services|Insurance - Reinsurance|20.6|1358000000|3712999936|24.39|2.25|2.24|8.0|5342599946.0|17208000512|31.7|-1.0|0.2
+USFD|Rosemont, United States|NYQ|Consumer Defensive|Food Distribution|6.2|494000000|5433999872|0.0|0.0|0.0|0.0|6026799872.0|37876998144|1.97|0.0|0.5
+AZPN|Bedford, United States|NMS|Technology|Software - Application|18.0|6131000|115257000|0.0|0.0|0.0|0.0|122614201.0|1140443008|0.11|0.0|0.5
+SOFI|San Francisco, United States|NMS|Financial Services|Credit Services|20.5|479136000|3204209920|0.0|0.0|0.0|0.0|3779173121.0|2643147008|0.38|0.0|0.5
+FIX|Houston, United States|NYQ|Industrials|Engineering & Construction|37.6|522432992|308600000|8.22|0.46|0.53|1.6|935519593.0|7027475968|14.31|-0.1|0.4
+UTHR|Silver Spring, United States|NMS|Healthcare|Biotechnology|19.7|1195100032|338600000|0.0|0.0|0.0|0.0|1772720039.0|2877400064|24.55|0.0|0.5
+WMG|New York, United States|NMS|Communication Services|Entertainment|-4.7|505000000|4224000000|71.43|2.17|0.0|0.72|4830000000.0|6344000000|0.98|-1.0|0.3
+XPO|Greenwich, United States|NYQ|Industrials|Trucking|-0.9|387000000|4121999872|0.0|0.0|0.0|0.0|4586399872.0|8072000000|3.15|0.0|0.5
+AS|Helsinki, Finland|NYQ|Consumer Cyclical|Leisure|24.4|72600000|1483200000|0.0|0.0|0.0|0.0|1570320001.0|5183300096|0.14|0.0|0.5
+UDR|Highlands Ranch, United States|NYQ|Real Estate|REIT - Residential|5.4|84750000|6009240064|651.92|3.69|3.65|1.7|6110940069.0|1700177024|0.25|-1.8|6.1
+NWSA|New York, United States|NMS|Communication Services|Entertainment|4.8|428000000|2923000064|26.67|0.7|1.03|0.2|3436600064.0|10252999680|0.74|-0.3|0.2
+BALL|Westminster, United States|NYQ|Consumer Cyclical|Packaging & Containers|-0.8|424000000|6016999936|58.39|1.53|1.11|0.8|6525799936.0|11795000320|1.34|-0.7|0.0
+MRNA|Cambridge, United States|NMS|Healthcare|Biotechnology|-65.6|-3560999936|747000000|0.0|0.0|0.0|0.0|-3526199924.0|3236000000|-9.31|0.0|0.5
+GPC|Atlanta, United States|NYQ|Consumer Cyclical|Auto Parts|3.3|904076032|6086011904|61.82|3.32|2.75|4.12|7170903146.0|23486568448|6.41|-1.6|0.2
+DT|Waltham, United States|NYQ|Technology|Software - Application|19.5|482324000|75211000|0.0|0.0|0.0|0.0|653999801.0|1634365952|1.58|0.0|0.5
+DG|Goodlettsville, United States|NYQ|Consumer Defensive|Discount Stores|5.0|1335848960|17566181376|38.94|3.28|1.26|2.36|19169200130.0|40166322176|6.15|-1.5|0.0
+COHR|Saxonburg, United States|NYQ|Technology|Scientific & Technical Instruments|26.8|-59056000|4064218880|0.0|0.0|0.0|0.0|3993351681.0|5305971200|-0.41|0.0|0.5
+RIVN|Irvine, United States|NMS|Consumer Cyclical|Auto Manufacturers|31.9|-4746999808|5005000192|0.0|0.0|0.0|0.0|-691399577.0|4969999872|-4.59|0.0|0.5
+RYAN|Chicago, United States|NYQ|Financial Services|Insurance - Specialty|25.2|94665000|3464197888|61.97|0.69|0.0|0.48|3577795889.0|2455671040|0.71|-0.3|0.2
+SUI|Southfield, United States|NYQ|Real Estate|REIT - Residential|2.8|88600000|7886499840|529.58|2.76|2.41|3.76|7992819848.0|3190400000|0.69|-1.3|4.8
+BLDR|Irving, United States|NYQ|Industrials|Building Products & Equipment|-8.0|1077897984|4332825088|0.0|0.0|0.0|0.0|5626302669.0|16400491520|8.76|0.0|0.5
+J|Dallas, United States|NYQ|Industrials|Engineering & Construction|4.4|459856992|3034074112|31.69|1.02|0.75|1.28|3585902504.0|11623669760|3.58|-0.4|0.0
+HOLX|Marlborough, United States|NMS|Healthcare|Medical Instruments & Supplies|0.9|744000000|2540400128|0.0|0.0|0.0|0.0|3433200128.0|4039000064|3.11|0.0|0.5
+JEF|New York, United States|NYQ|Financial Services|Capital Markets|63.5|665606016|32490326016|43.92|2.51|2.86|1.6|33289053237.0|7010603008|2.8|-1.2|0.0
+PNR|London, United Kingdom|NYQ|Industrials|Specialty Industrial Machinery|-1.2|625600000|1767100032|24.6|1.09|1.39|1.0|2517820033.0|4082800128|3.66|-0.5|0.2
+MANH|Atlanta, United States|NMS|Technology|Software - Application|16.6|218364000|23157000|0.0|0.0|0.0|0.0|285193801.0|1042352000|3.48|0.0|0.5
+CYBR|Petah Tikva, Israel|NMS|Technology|Software - Infrastructure|40.9|-93461000|0|0.0|0.0|0.0|0.0|-112153199.0|1000742016|-2.13|0.0|0.5
+KOF|Mexico City, Mexico|NYQ|Consumer Defensive|Beverages - Non-Alcoholic|18.5|23729000448|76881002496|54.78|3.74|4.0|3.26|105355803036.0|279793008640|5.54|-1.8|0.0
+SHG|Seoul, South Korea|NYQ|Financial Services|Banks - Regional|7.1|4422649774080|158064695050240|151.19|4.91|3.8|1.56|163371874779137.0|14933557248000|0.72|-2.4|1.1
+NTNX|San Jose, United States|NMS|Technology|Software - Infrastructure|15.8|-55364000|1457035008|0.0|0.0|0.0|0.0|1390598209.0|2318205952|-0.26|0.0|0.5
+UMC|Hsinchu City, Taiwan|NYQ|Technology|Semiconductors|9.9|47210930176|81462493184|72.16|7.1|5.07|0.46|138115609393.0|232302592000|0.65|-3.5|0.3
+BAH|McLean, United States|NYQ|Industrials|Consulting Services|13.5|865073024|3598018048|30.45|2.14|1.57|2.2|4636105679.0|11776700416|6.9|-1.0|0.0
+JBL|Saint Petersburg, United States|NYQ|Technology|Electronic Components|-16.6|1294000000|3279000064|3.02|0.22|0.51|0.32|4831800064.0|27490000896|10.22|-0.0|0.4
+MOH|Long Beach, United States|NYQ|Healthcare|Healthcare Plans|19.1|1179000064|3224000000|0.0|0.0|0.0|0.0|4638800077.0|39163998208|20.66|0.0|0.5
+TLK|Bandung, Indonesia|NYQ|Communication Services|Telecom Services|-2.2|22602999398400|73138998083584|78.01|7.46|4.21|1.1|100262597361662.0|150197002829824|1.38|-3.6|0.3
+YUMC|Shanghai, China|NYQ|Consumer Cyclical|Restaurants|4.1|911000000|2414000128|27.47|1.96|1.0|0.96|3507200129.0|11303000064|2.32|-0.9|0.2
+CSL|Scottsdale, United States|NYQ|Industrials|Building Products & Equipment|-0.4|863400000|2016800000|20.17|1.2|1.1|4.0|3052880005.0|5003599872|18.01|-0.5|0.2
+OMC|New York, United States|NYQ|Communication Services|Advertising Agencies|6.4|1480600064|7197000192|37.53|3.47|3.65|2.8|8973720271.0|15689100288|7.47|-1.6|0.0
+GEN|Tempe, United States|NMS|Technology|Software - Infrastructure|4.0|641000000|8530999808|49.02|1.81|2.19|0.5|9300199808.0|3900999936|1.01|-0.8|0.0
+RCI|Toronto, Canada|NYQ|Communication Services|Telecom Services|2.7|1734000000|47632998400|62.5|5.02|3.52|1.39|49713798400.0|20604000256|2.2|-2.4|0.2
+PHYS|N/A, N/A|NYQ|N/A|N/A|0.0|0|0|0.0|0.0|0.0|0.0|0.0|N/A|N/A|0.0|0.5
+DGX|Secaucus, United States|NYQ|Healthcare|Diagnostics & Research|14.6|866000000|7120999936|38.49|1.81|1.89|3.2|8160199940.0|9872000000|7.61|-0.8|0.0
+NI|Merrillville, United States|NYQ|Utilities|Utilities - Regulated Gas|11.7|738099968|13987600384|65.43|2.72|3.43|1.12|14873320346.0|5455099904|1.56|-1.3|0.2
+EC|Bogotá, Colombia|NYQ|Energy|Oil & Gas Integrated|-1.5|15265042530304|116388177903616|106.22|33.73|12.8|3.19|134706228939969.0|133330397822976|1.94|-16.8|0.6
+RBA|Westchester, United States|NYQ|Industrials|Specialty Business Services|9.7|372700000|4563599872|55.72|1.13|1.56|1.16|5010839873.0|4284199936|1.97|-0.5|0.0
+KEY|Cleveland, United States|NYQ|Financial Services|Banks - Regional|-42.9|-306000000|15783000064|107.89|4.83|5.04|0.82|15415800063.0|4239000064|-0.31|-2.3|0.6
+STLD|Fort Wayne, United States|NMS|Basic Materials|Steel|-8.5|1537133952|3345338880|18.7|1.53|1.84|2.0|5189899624.0|17540390912|9.53|-0.7|0.3
+TWLO|San Francisco, United States|NYQ|Technology|Software - Infrastructure|11.0|-109403000|1110146944|0.0|0.0|0.0|0.0|978863345.0|4458036224|-0.65|0.0|0.5
+HRL|Austin, United States|NYQ|Consumer Defensive|Packaged Foods|-0.3|756750016|2857392896|82.43|3.93|2.55|1.16|3765492915.0|11912698880|1.35|-1.9|0.4
+TRMB|Westminster, United States|NMS|Technology|Scientific & Technical Instruments|5.5|1504400000|1514000000|0.0|0.0|0.0|0.0|3319280000.0|3683300096|5.98|0.0|0.5
+BF-A|Louisville, United States|NYQ|Consumer Defensive|Beverages - Wineries & Distilleries|-1.1|1004000000|3203000064|41.09|2.74|1.33|0.91|4407800064.0|4079000064|2.09|-1.3|0.0
+CRBG|Houston, United States|NYQ|Financial Services|Asset Management|74.4|2230000128|12472000512|24.73|2.81|0.0|0.96|15148000667.0|18639998976|3.49|-1.3|0.2
+ARE|Pasadena, United States|NYQ|Real Estate|REIT - Office|5.0|309555008|12751501312|288.33|5.2|3.32|5.28|13122967328.0|3123452928|1.78|-2.5|2.4
+MBLY|Jerusalem, Israel|NMS|Consumer Cyclical|Auto Parts|-23.1|-3089999872|50000000|0.0|0.0|0.0|0.0|-3657999846.0|1654000000|-3.8|0.0|0.5
+ZG|Seattle, United States|NMS|Communication Services|Internet Content & Information|16.9|-112000000|660000000|0.0|0.0|0.0|0.0|525600001.0|2236000000|-0.49|0.0|0.5
+NMR|Tokyo, Japan|NYQ|Financial Services|Capital Markets|25.4|325516001280|33900476760064|34.36|3.82|3.69|0.25|34291095961599.0|1884852060160|0.69|-1.8|0.0
+MT|Luxembourg City, Luxembourg|NYQ|Basic Materials|Steel|1.1|1339000064|11562999808|29.59|1.7|3.21|0.5|13169799885.0|62441000960|1.73|-0.8|0.2
+GFL|Vaughan, Canada|NYQ|Industrials|Waste Management|5.5|-803000000|10549000192|53.1|0.12|0.0|0.06|9585400192.0|7862000128|-1.43|0.0|0.0
+SNA|Kenosha, United States|NYQ|Industrials|Tools & Accessories|0.4|1043900032|1294300032|39.57|2.56|2.5|8.56|2546980080.0|5108400128|19.24|-1.2|0.0
+ICLR|Dublin, Ireland|NMS|Healthcare|Diagnostics & Research|-1.2|791473984|3603027968|0.0|0.0|0.0|0.0|4552796749.0|8281675776|9.45|0.0|0.5
+JBHT|Lowell, United States|NMS|Industrials|Integrated Freight & Logistics|-4.8|570886016|1789801984|30.94|1.12|0.85|1.76|2474865205.0|12087203840|5.55|-0.5|0.0
+PFG|Des Moines, United States|NMS|Financial Services|Asset Management|76.6|1571000064|4657500160|42.66|3.38|3.78|3.0|6542700240.0|16127699968|6.46|-1.6|0.0
+BBD|Osasco, Brazil|NYQ|Financial Services|Banks - Regional|19.3|17252900864|705771143168|77.6|9.15|4.38|0.18|726474624201.0|78885347328|0.22|-4.5|0.3
+TRU|Chicago, United States|NYQ|Financial Services|Financial Data & Stock Exchanges|8.6|284400000|5210699776|28.97|0.51|0.46|0.46|5551979777.0|4183800064|1.42|-0.2|0.2
+BBY|Richfield, United States|NYQ|Consumer Cyclical|Specialty Retail|-3.2|1270000000|4080999936|64.04|4.33|3.59|3.76|5604999939.0|42225999872|5.06|-2.1|0.2
+DKNG|Boston, United States|NMS|Consumer Cyclical|Gambling|13.2|-507284992|1335081984|0.0|0.0|0.0|0.0|726339994.0|4767698944|-1.04|0.0|0.5
+FDS|Norwalk, United States|NYQ|Financial Services|Financial Data & Stock Exchanges|4.9|538593024|1551992064|29.37|0.91|0.87|4.16|2198303698.0|2229507072|13.56|-0.4|0.2
+AER|Dublin, Ireland|NYQ|Industrials|Rental & Leasing Services|9.1|2098631936|45365727232|6.95|1.07|0.0|1.08|47884085557.0|7996643840|10.52|-0.4|0.4
+DOCU|San Francisco, United States|NMS|Technology|Software - Application|7.8|1011635008|130639000|0.0|0.0|0.0|0.0|1344601010.0|2912872960|4.84|0.0|0.5
+COO|San Ramon, United States|NMS|Healthcare|Medical Instruments & Supplies|9.8|392300000|2853100032|0.0|0.0|0.02|0.0|3323860033.0|3895399936|1.94|0.0|0.5
+L|New York, United States|NYQ|Financial Services|Insurance - Property & Casualty|6.8|1414000000|9349999616|3.9|0.29|0.45|0.25|11046799617.0|17510000640|6.26|-0.1|0.4
+VIK|Pembroke, Bermuda|NYQ|Consumer Cyclical|Travel Services|11.4|-280428000|5312642048|0.0|0.0|0.0|0.0|4976128449.0|5104082944|-1.27|0.0|0.5
+ONON|Zurich, Switzerland|NYQ|Consumer Cyclical|Footwear & Accessories|32.3|126000000|281800000|0.0|0.0|0.0|0.0|433000001.0|2158799872|0.46|0.0|0.5
+BURL|Burlington, United States|NYQ|Consumer Cyclical|Apparel Retail|10.6|470328992|5239491072|0.0|0.0|0.0|0.0|5803885863.0|10475057152|7.12|0.0|0.5
+MAA|Germantown, United States|NYQ|Real Estate|REIT - Residential|1.4|523780000|5007048192|130.96|3.55|3.22|6.06|5635584199.0|2191014912|4.42|-1.7|0.9
+CJPRY|Nagoya, Japan|PNK|Industrials|Railroads|8.5|442501988352|4313344901120|6.33|0.96|0.86|0.1|4844347287143.0|1805427015680|1.48|-0.4|0.4
+CG|Washington, United States|NMS|Financial Services|Asset Management|13.4|1020400000|9496299520|50.54|2.9|3.33|1.4|10720779521.0|4739899904|2.58|-1.4|0.0
+PODD|Acton, United States|NMS|Healthcare|Medical Devices|17.2|418300000|1434200064|0.0|0.0|0.0|0.0|1936160065.0|2071600000|5.72|0.0|0.5
+DKS|Coraopolis, United States|NYQ|Consumer Cyclical|Specialty Retail|0.5|1161771008|4489246208|30.76|2.05|2.04|4.4|5883371422.0|13425371136|13.83|-0.9|0.0
+STX|Singapore, Singapore|NMS|Technology|Computer Hardware|49.5|1179000064|5679000064|51.27|2.88|3.78|2.88|7093800144.0|8034999808|5.17|-1.3|0.0
+SSNC|Windsor, United States|NMS|Technology|Software - Application|8.4|760499968|7184699904|32.67|1.13|1.17|1.0|8097299867.0|5881999872|2.93|-0.5|0.0
+ESS|San Mateo, United States|NYQ|Real Estate|REIT - Residential|17.6|741521984|6654090240|84.92|3.28|3.41|10.28|7543916633.0|1822656000|11.32|-1.5|0.4
+YAHOY|Chiyoda, Japan|PNK|Consumer Cyclical|Internet Retail|6.0|118428000256|1819242004480|33.92|1.06|1.36|0.07|1961355604787.0|1896581955584|0.21|-0.4|0.0
+SMCI|San Jose, United States|NMS|Technology|Computer Hardware|54.9|1444626048|1957741056|0.0|0.0|0.0|0.0|3691292315.0|20819873792|2.5|0.0|0.5
+SGSOY|Geneva, Switzerland|PNK|Industrials|Consulting Services|3.6|581000000|3880000000|106.09|3.38|3.42|0.35|4577199999.0|6793999872|0.33|-1.6|0.6
+YPF|Buenos Aires, Argentina|NYQ|Energy|Oil & Gas Integrated|243.3|760020008960|8998674759680|0.0|0.0|0.73|0.0|9910698770436.0|15204648747008|1.93|0.0|0.5
+LH|Burlington, United States|NYQ|Healthcare|Diagnostics & Research|9.8|746000000|7349600256|32.58|1.13|0.0|2.88|8244800259.0|13008900096|8.94|-0.5|0.0
+GRAB|Singapore, Singapore|NMS|Technology|Software - Application|17.0|-105000000|364000000|0.0|0.0|0.0|0.0|238000001.0|2796999936|-0.03|0.0|0.5
+CTRA|Houston, United States|NYQ|Energy|Oil & Gas E&P|-3.5|1120000000|3801999872|56.0|3.35|4.33|0.88|5145999872.0|5244000256|1.51|-1.6|0.0
+CFG|Providence, United States|NYQ|Financial Services|Banks - Regional|0.4|1372000000|14577000448|55.45|3.73|4.58|1.68|16223400448.0|7121999872|2.93|-1.8|0.0
+IHG|Windsor, United Kingdom|NYQ|Consumer Cyclical|Lodging|8.5|628000000|3688000000|40.8|1.32|1.87|1.68|4441600002.0|4922999808|3.82|-0.6|0.0
+INVH|Dallas, United States|NYQ|Real Estate|REIT - Residential|5.8|453164000|8232842240|152.7|3.38|2.49|1.16|8776639041.0|2590497024|0.73|-1.6|1.1
+LDOS|Reston, United States|NYQ|Technology|Information Technology Services|9.7|1254000000|5414000128|16.7|1.24|1.35|1.6|6918800130.0|16661999616|9.44|-0.5|0.3
+KSPI|Almaty, Kazakhstan|NMS|Technology|Software - Infrastructure|28.0|1056833994752|137939992576|63.65|7.09|0.0|7.31|1406140786285.0|2532156112896|10.78|-3.5|0.2
+WSO|Miami, United States|NYQ|Industrials|Industrial Distribution|9.4|498894016|447463008|79.32|2.19|2.75|10.8|1046135841.0|7618316800|13.3|-1.0|0.3
+MDB|New York, United States|NGM|Technology|Software - Infrastructure|22.3|-200358000|1202301952|0.0|0.0|0.0|0.0|961872353.0|1916046976|-2.7|0.0|0.5
+VRSN|Reston, United States|NMS|Technology|Software - Infrastructure|3.9|785699968|1801500032|0.0|0.0|0.0|0.0|2744339994.0|1557400064|7.89|0.0|0.5
+ONC|Camana Bay, Cayman Islands|NMS|Healthcare|Biotechnology|84.8|-644785984|1079865984|0.0|0.0|0.0|0.0|306122805.0|3810241024|-6.41|0.0|0.5
+FSLR|Tempe, United States|NMS|Technology|Solar|30.7|1292044032|718801984|0.0|0.0|0.0|0.0|2269254823.0|4206288896|12.36|0.0|0.5
+NRG|Houston, United States|NYQ|Utilities|Utilities - Independent Power Producers|0.2|1058000000|10993999872|32.67|1.76|3.03|1.76|12263599874.0|28130000896|4.99|-0.8|0.0
+CMS|Jackson, United States|NYQ|Utilities|Utilities - Regulated Electric|2.0|993000000|16590000128|61.86|2.93|2.93|2.17|17781600130.0|7514999808|3.28|-1.4|0.2
+EJPRY|Tokyo, Japan|PNK|Industrials|Railroads|4.2|227847995392|4657780883456|25.69|1.72|1.6|0.17|4931198477926.0|2855166017536|0.67|-0.8|0.2
+SNAP|Santa Monica, United States|NYQ|Communication Services|Internet Content & Information|14.4|-697856000|4243896064|0.0|0.0|0.0|0.0|3406468865.0|5361397760|-0.41|0.0|0.5
+ULTA|Bolingbrook, United States|NMS|Consumer Cyclical|Specialty Retail|1.7|1202216960|2141001984|0.0|0.0|0.0|0.0|3583662336.0|11362332672|24.59|0.0|0.5
+STE|Mentor, United States|NYQ|Healthcare|Medical Devices|5.6|616590016|2319892992|35.05|1.02|0.88|2.28|3059801014.0|5398370816|6.3|-0.4|0.0
+CHKP|Tel Aviv, Israel|NMS|Technology|Software - Infrastructure|6.1|845699968|32300000|0.0|0.0|0.0|0.0|1047139962.0|2564999936|7.48|0.0|0.5
+CLX|Oakland, United States|NYQ|Consumer Defensive|Household & Personal Products|-15.3|457000000|3092000000|131.88|3.13|2.88|4.88|3640400005.0|7165000192|3.54|-1.5|0.9
+ZBRA|Lincolnshire, United States|NMS|Technology|Communication Equipment|32.2|528000000|2361999872|0.0|0.0|0.0|0.0|2995599873.0|4981000192|9.89|0.0|0.5
+LUV|Dallas, United States|NYQ|Industrials|Airlines|1.6|465000000|8057999872|94.74|2.35|1.03|0.72|8615999872.0|27483000832|0.73|-1.1|0.5
+PKG|Lake Forest, United States|NYQ|Consumer Cyclical|Packaging & Containers|10.7|799500032|2771500032|55.99|2.39|2.93|5.0|3730900076.0|8383300096|8.62|-1.1|0.0
+AFRM|San Francisco, United States|NMS|Technology|Software - Infrastructure|46.6|-198934000|7496018944|0.0|0.0|0.0|0.0|7257298145.0|2800203008|-0.57|0.0|0.5
+NTRS|Chicago, United States|NMS|Financial Services|Asset Management|28.4|1972400000|17601099776|30.71|2.74|3.16|3.0|19967979779.0|8293400064|9.32|-1.3|0.0
+MKC|Hunt Valley, United States|NYQ|Consumer Defensive|Packaged Foods|2.6|788499968|4602100224|57.53|2.12|1.76|1.8|5548300187.0|6723700224|2.84|-1.0|0.0
+CBOE|Chicago, United States|BTS|Financial Services|Financial Data & Stock Exchanges|14.3|761000000|1599299968|32.73|1.17|1.44|2.52|2512499971.0|4094500096|7.08|-0.5|0.0
+TS|Luxembourg City, Luxembourg|NYQ|Energy|Oil & Gas Equipment & Services|-16.7|2036445056|582323968|35.67|4.48|2.97|1.66|3026058035.0|12523933696|3.65|-2.2|0.0
+CNP|Houston, United States|NYQ|Utilities|Utilities - Regulated Electric|3.7|1019000000|20991000576|51.27|2.55|2.96|0.88|22213800576.0|8643000320|1.54|-1.2|0.0
+WY|Seattle, United States|NYQ|Real Estate|REIT - Specialty|-3.7|396000000|5233999872|148.15|2.68|2.67|0.84|5709199873.0|7123999744|0.53|-1.2|1.0
+TU|Vancouver, Canada|NYQ|Communication Services|Telecom Services|3.4|993000000|29895999488|232.33|7.27|5.36|1.13|31087599487.0|20138999808|0.46|-3.5|1.9
+ZBH|Warsaw, United States|NYQ|Healthcare|Medical Devices|4.3|903800000|6620800000|21.67|0.91|0.77|0.96|7705360001.0|7678600192|4.37|-0.4|0.2
+TSN|Springdale, United States|NYQ|Consumer Defensive|Farm Products|2.3|1052000000|9806000128|66.55|3.23|2.86|2.0|11068400129.0|53612998656|2.9|-1.5|0.2
+PSTG|Santa Clara, United States|NYQ|Technology|Computer Hardware|11.4|106739000|280766016|0.0|0.0|0.0|0.0|408852817.0|3168164096|0.32|0.0|0.5
+UI|New York, United States|NYQ|Technology|Communication Equipment|29.0|444876992|451264992|32.61|0.73|0.97|2.4|985117386.0|2150681088|7.24|-0.3|0.0
+NJDCY|Kyoto, Japan|PNK|Industrials|Specialty Industrial Machinery|11.0|115722002432|664833032192|38.35|1.48|0.88|0.06|803699435110.0|2548049903616|0.16|-0.6|0.0
+PUK|Central, Hong Kong|NYQ|Financial Services|Insurance - Life|-1.7|877000000|5466999808|64.37|2.26|1.75|0.42|6519399808.0|10944000000|0.63|-1.0|0.2
+PINS|San Francisco, United States|NYQ|Communication Services|Internet Content & Information|17.6|1862105984|185788992|0.0|0.0|0.0|0.0|2420316173.0|3646166016|2.64|0.0|0.5
+TECK|Vancouver, Canada|NYQ|Basic Materials|Other Industrial Metals & Mining|51.2|-800000000|9964999680|17.18|0.89|1.07|0.35|9004999681.0|9064999936|-0.61|-0.4|0.3
+ES|Springfield, United States|NYQ|Utilities|Utilities - Regulated Electric|10.3|811652992|29238652928|125.99|4.78|3.42|3.01|30212636521.0|11900809216|2.15|-2.3|0.8
+TOST|Boston, United States|NYQ|Technology|Software - Infrastructure|29.2|19000000|34000000|0.0|0.0|0.0|0.0|56800001.0|4960000000|0.03|0.0|0.5
+IFF|New York, United States|NYQ|Basic Materials|Specialty Chemicals|2.5|243000000|9621000192|168.42|1.98|2.82|1.6|9912600194.0|11484000256|0.93|-0.9|1.2
+CVNA|Tempe, United States|NYQ|Consumer Cyclical|Auto & Truck Dealerships|46.3|210000000|6112999936|0.0|0.0|0.0|0.0|6364999937.0|13672999936|1.55|0.0|0.5
+TER|North Reading, United States|NMS|Technology|Semiconductor Equipment & Materials|12.3|542371968|76621000|14.46|0.45|0.41|0.48|727467363.0|2819879936|3.37|-0.1|0.3
+RF|Birmingham, United States|NYQ|Financial Services|Banks - Regional|15.6|1774000000|0|50.78|4.32|3.99|1.0|2128799999.0|6595999744|1.86|-2.1|0.0
+TDY|Thousand Oaks, United States|NYQ|Technology|Scientific & Technical Instruments|5.4|819200000|2788800000|0.0|0.0|0.0|0.0|3771840000.0|5670000128|16.56|0.0|0.5
+KB|Seoul, South Korea|NYQ|Financial Services|Banks - Regional|38.9|5078221062144|156031766233088|32.88|5.23|5.01|2.83|162125631507663.0|14983884701696|7.82|-2.5|0.0
+PBA|Calgary, Canada|NYQ|Energy|Oil & Gas Midstream|16.8|1720999936|13320999936|91.25|5.0|6.14|1.92|15386199860.0|7384000000|2.06|-2.4|0.5
+ATO|Dallas, United States|NYQ|Utilities|Utilities - Regulated Gas|1.5|1082935040|8510133248|47.06|2.27|2.47|3.48|9809655300.0|4182718976|6.8|-1.0|0.0
+ERIE|Erie, United States|NMS|Financial Services|Insurance Brokers|13.0|600313984|7513000|45.21|1.21|1.8|5.46|727889788.0|3795115008|11.23|-0.5|0.0
+EME|Norwalk, United States|NYQ|Industrials|Engineering & Construction|9.6|1007145024|348916992|4.32|0.25|0.36|1.0|1557491023.0|14566116352|21.11|-0.0|0.4
+ILMN|San Diego, United States|NMS|Healthcare|Diagnostics & Research|-1.6|-1223000064|2622000128|0.0|0.0|0.0|0.0|1154400052.0|4371999744|-7.75|0.0|0.5
+BCE|Verdun, Canada|NYQ|Communication Services|Telecom Services|-0.8|163000000|40504000512|4400.0|11.89|6.72|2.78|40699600545.0|24408999936|0.06|-5.9|43.5
+SBAC|Boca Raton, United States|NMS|Real Estate|REIT - Specialty|2.8|749536000|15756193792|56.48|2.0|1.06|4.44|16655636997.0|2679633920|6.87|-0.9|0.0
+VOD|Newbury, United Kingdom|NMS|Communication Services|Telecom Services|1.6|2360000000|57784000512|101.44|8.11|8.1|0.72|60616000509.0|37010001920|0.91|-4.0|0.6
+LII|Richardson, United States|NYQ|Industrials|Building Products & Equipment|16.5|806899968|1488600064|20.19|0.78|1.2|4.6|2456880032.0|5341300224|22.0|-0.3|0.2
+FOXA|New York, United States|NMS|Communication Services|Entertainment|19.9|2184999936|8121999872|11.37|0.95|1.45|0.54|10743999796.0|15180999680|4.59|-0.4|0.3
+RKT|Detroit, United States|NYQ|Financial Services|Mortgage Finance|139.9|29370000|13975783424|0.0|0.0|0.0|0.0|14011027426.0|5416391168|0.2|0.0|0.5
+BEKE|Beijing, China|NYQ|Real Estate|Real Estate Services|26.8|4164513024|21680267264|70.56|1.59|0.0|0.35|26677682893.0|82536620032|0.49|-0.7|0.3
+NTRA|Austin, United States|NMS|Healthcare|Diagnostics & Research|53.0|-190426000|187118000|0.0|0.0|0.0|0.0|-41393199.0|1696910976|-1.52|0.0|0.5
+ALAB|Santa Clara, United States|NMS|Technology|Semiconductors|179.3|-83421000|3074000|0.0|0.0|0.0|0.0|-97031197.0|396289984|-0.66|0.0|0.5
+WDC|San Jose, United States|NMS|Technology|Computer Hardware|0.0|1211000064|0|0.0|0.0|3.23|0.0|1453200077.0|15601000448|3.28|0.0|0.5
+MKL|Glen Allen, United States|NYQ|Financial Services|Insurance - Property & Casualty|-17.3|2599322112|5054264832|0.0|0.0|0.0|0.0|8173451367.0|16620763136|193.71|0.0|0.5
+DRI|Orlando, United States|NYQ|Consumer Cyclical|Restaurants|6.0|1046700032|8093499904|61.94|2.86|2.84|5.6|9349539949.0|11579100160|8.61|-1.3|0.2
+WRB|Greenwich, United States|NYQ|Financial Services|Insurance - Property & Casualty|13.9|1756114944|3059363072|7.19|0.5|0.62|0.32|5166701006.0|13638752256|4.26|-0.2|0.4
+WAT|Milford, United States|NYQ|Healthcare|Diagnostics & Research|6.5|637833984|1702983040|0.0|0.0|0.0|0.0|2468383821.0|2958386944|10.6|0.0|0.5
+CINF|Fairfield, United States|NMS|Financial Services|Insurance - Property & Casualty|-24.4|2292000000|875000000|22.3|2.36|2.56|3.48|3625400003.0|11336999936|14.11|-1.1|0.2
+ASX|Kaohsiung, Taiwan|NYQ|Technology|Semiconductors|1.0|32482478080|213868150784|71.13|3.25|4.7|0.32|252847124479.0|595409567744|0.45|-1.5|0.3
+BIIB|Cambridge, United States|NMS|Healthcare|Drug Manufacturers - General|2.9|1632199936|6716700160|0.0|0.0|0.0|0.0|8675340084.0|9675899904|11.26|0.0|0.5
+PTC|Boston, United States|NMS|Technology|Software - Application|2.7|392177984|1719880960|0.0|0.0|0.0|0.0|2190494541.0|2313385984|3.2|0.0|0.5
+DVN|Oklahoma City, United States|NYQ|Energy|Oil & Gas E&P|17.6|2891000064|9255999488|31.8|2.79|5.18|0.96|12725199565.0|15171000320|4.54|-1.3|0.0
+ROL|Atlanta, United States|NYQ|Consumer Cyclical|Personal Services|10.4|466379008|812528000|64.06|1.25|1.05|0.66|1372182810.0|3388708096|0.95|-0.5|0.2
+PHM|Atlanta, United States|NYQ|Consumer Cyclical|Residential Construction|14.6|3083261952|2382178048|5.58|0.86|1.02|0.88|6082092392.0|17946949632|14.82|-0.3|0.4
+STMEF|Schiphol, Netherlands|PNK|Technology|Semiconductors|-22.4|1556999936|3167000064|19.88|1.5|0.66|0.36|5035399987.0|13269000192|1.64|-0.7|0.3
+HUBB|Shelton, United States|NYQ|Industrials|Electrical Equipment & Parts|-0.9|776300032|1719600000|34.66|1.49|1.85|5.28|2651160045.0|5628499968|14.25|-0.7|0.0
+CCJ|Saskatoon, Canada|NYQ|Energy|Uranium|40.2|171852992|1296012032|41.03|0.27|0.32|0.11|1502235623.0|3135771904|0.28|-0.0|0.0
+BAM|Toronto, Canada|NYQ|Financial Services|Asset Management|0.0|541000000|229000000|114.29|3.16|0.0|1.75|878200001.0|N/A|1.26|-1.5|0.7
+FE|Akron, United States|NYQ|Utilities|Utilities - Regulated Electric|1.0|978000000|24266000384|99.12|4.29|4.19|1.7|25439600385.0|13285999616|1.69|-2.1|0.5
+EXE|Oklahoma City, United States|NMS|Energy|Oil & Gas E&P|75.9|-714000000|5824999936|141.1|2.34|0.0|2.3|4968199940.0|4259000064|-4.66|-1.1|1.0
+NTR|Saskatoon, Canada|NYQ|Basic Materials|Agricultural Inputs|-10.0|674000000|12807000064|158.82|4.4|3.47|2.18|13615800065.0|25016000512|1.33|-2.1|1.1
+DIDIY|Beijing, China|PNK|Technology|Software - Application|5.0|6934827008|11616000000|0.0|0.0|0.0|0.0|19937792410.0|203303911424|0.2|0.0|0.5
+CDW|Vernon Hills, United States|NMS|Technology|Information Technology Services|3.3|1077799936|6379299840|31.18|1.45|1.12|2.5|7672659766.0|20998699008|7.91|-0.6|0.0
+RYAAY|Swords, Ireland|NMS|Industrials|Airlines|9.7|1664000000|2699800064|23.56|1.94|0.0|0.94|4696600065.0|13821100032|3.01|-0.9|0.2
+TEF|Madrid, Spain|NYQ|Communication Services|Telecom Services|17.2|-318000000|47084998656|111.21|7.23|8.74|0.32|46703398654.0|41315000320|-0.06|-3.5|0.7
+WSM|San Francisco, United States|NYQ|Consumer Cyclical|Specialty Retail|-2.9|1094802944|1315475968|25.49|1.21|1.9|2.28|2629239503.0|7528260096|8.26|-0.5|0.2
+FNV|Toronto, Canada|NYQ|Basic Materials|Gold|-11.9|-605800000|0|37.85|1.08|0.93|1.52|-726959999.0|1087000064|-3.2|-0.5|0.0
+LYB|Houston, United States|NYQ|Basic Materials|Specialty Chemicals|-4.4|1350000000|13068999680|127.29|7.3|5.3|5.36|14688999684.0|40301998080|4.14|-3.6|0.8
+HBAN|Columbus, United States|NMS|Financial Services|Banks - Regional|16.2|1800999936|17575999488|50.82|3.83|4.76|0.62|19737199410.0|6946999808|1.17|-1.8|0.0
+NTAP|San Jose, United States|NMS|Technology|Computer Hardware|2.2|1136999936|2249999872|38.15|2.17|2.71|2.08|3614399797.0|6508000256|5.28|-1.0|0.0
+PPL|Allentown, United States|NYQ|Utilities|Utilities - Regulated Electric|8.9|886000000|16862999552|85.83|3.06|4.58|1.09|17926199552.0|8462000128|1.17|-1.4|0.4
+AEE|Saint Louis, United States|NYQ|Utilities|Utilities - Regulated Electric|20.5|1182000000|18794000384|60.63|2.74|2.81|2.84|20212400387.0|7324000256|4.26|-1.3|0.2
+EXPE|Seattle, United States|NMS|Consumer Cyclical|Travel Services|10.3|1234000000|6593999872|0.0|0.83|0.96|1.6|8074799874.0|13690999808|8.73|-0.3|0.5
+PHG|Amsterdam, Netherlands|NYQ|Healthcare|Medical Devices|-0.4|-844000000|7639000064|0.0|3.36|2.64|0.89|6626200064.0|18020999168|-0.95|-1.6|0.5
+CPAY|Atlanta, United States|NYQ|Technology|Software - Infrastructure|10.4|1003745984|8090337792|0.0|0.0|0.0|0.0|9294832973.0|3974588928|13.34|0.0|0.5
+GFS|Malta, United States|NMS|Technology|Semiconductors|-1.3|-265000000|2230000128|0.0|0.0|0.0|0.0|1912000128.0|6750000128|-0.49|0.0|0.5
+ADM|Chicago, United States|NYQ|Consumer Defensive|Farm Products|-6.4|1800000000|11537999872|54.79|4.38|2.64|2.04|13697999872.0|85530001408|3.59|-2.1|0.0
+TPG|Fort Worth, United States|NMS|Financial Services|Asset Management|9.5|-307000|1583310976|1928.57|3.29|0.0|1.74|1582942592.0|3500081920|-0.4|-1.6|18.8
+AWK|Camden, United States|NYQ|Utilities|Utilities - Regulated Water|16.4|1051000000|14124000256|55.71|2.19|1.76|3.06|15385200259.0|4684000256|5.37|-1.0|0.0
+NOK|Espoo, Finland|NYQ|Technology|Communication Equipment|4.8|1704000000|4750000128|42.04|2.78|3.5|0.14|6794800127.0|19220000768|0.31|-1.3|0.0
+HAL|Houston, United States|NYQ|Energy|Oil & Gas Equipment & Services|-2.2|2500999936|8771999744|24.03|2.72|1.98|0.68|11773199667.0|22944000000|2.73|-1.3|0.2
+WST|Exton, United States|NYQ|Healthcare|Medical Instruments & Supplies|2.3|492700000|305300000|12.11|0.37|0.23|0.84|896540001.0|2893199872|6.61|-0.1|0.3
+VTR|Chicago, United States|NYQ|Real Estate|REIT - Healthcare Facilities|10.9|81153000|13740554240|947.37|2.73|4.23|1.92|13837937849.0|4889014784|0.19|-1.3|9.0
+TEVA|Tel Aviv, Israel|NYQ|Healthcare|Drug Manufacturers - Specialty & Generic|-5.1|-1639000064|18183999488|0.0|0.0|2.95|0.0|16217199411.0|16544000000|-1.42|0.0|0.5
+GIB|Montreal, Canada|NYQ|Technology|Information Technology Services|5.1|1741499008|3400349952|1.98|0.41|0.0|0.42|5490148762.0|14858427392|5.21|-0.1|0.4
+IX|Tokyo, Japan|NYQ|Financial Services|Financial Conglomerates|10.7|398703984640|6505591996416|32.66|3.72|3.76|0.77|6984036777983.0|2925088997376|2.31|-1.8|0.0
+NVR|Reston, United States|NYQ|Consumer Cyclical|Residential Construction|16.4|1681927936|1054436992|0.0|0.0|0.0|0.0|3072750516.0|10687461376|507.0|0.0|0.5
+FANUY|Yamanashi, Japan|PNK|Industrials|Specialty Industrial Machinery|-0.4|137603006464|0|57.27|1.99|1.95|0.28|165123607756.0|783762980864|0.48|-0.9|0.0
+TYL|Plano, United States|NYQ|Technology|Software - Application|12.5|263026000|638368000|0.0|0.0|0.0|0.0|953999201.0|2137803008|6.17|0.0|0.5
+VLTO|Waltham, United States|NYQ|Industrials|Pollution & Treatment Controls|4.4|833000000|2767000064|11.38|0.44|0.0|0.44|3766600065.0|5192999936|3.3|-0.1|0.3
+LPLA|San Diego, United States|NMS|Financial Services|Capital Markets|31.5|1058616000|5747565056|8.55|0.33|0.66|1.2|7017904258.0|12084526080|13.14|-0.1|0.4
+SMPNY|Tokyo, Japan|PNK|Financial Services|Insurance - Property & Casualty|-1.6|474861993984|682354999296|20.69|2.28|3.8|0.34|1252189392076.0|5151846825984|1.63|-1.0|0.2
+DTE|Detroit, United States|NYQ|Utilities|Utilities - Regulated Electric|1.2|1400999936|23241000960|61.3|3.22|3.35|4.36|24922200887.0|12456999936|6.61|-1.5|0.2
+ZM|San Jose, United States|NMS|Technology|Software - Application|3.3|1010238016|64432000|0.0|0.0|0.0|0.0|1276717620.0|4665433088|3.24|0.0|0.5
+IOT|San Francisco, United States|NYQ|Technology|Software - Infrastructure|35.6|-257076000|85954000|0.0|0.0|0.0|0.0|-222537199.0|1179182976|-0.45|0.0|0.5
+TROW|Baltimore, United States|NMS|Financial Services|Asset Management|11.1|2044300032|337800000|54.21|4.89|3.5|5.08|2790960043.0|7093600256|8.82|-2.4|0.0
+FUJIY|Tokyo, Japan|PNK|Industrials|Conglomerates|6.0|251287994368|840255995904|72.55|1.81|1.58|0.18|1141801589145.0|3133023977472|0.25|-0.8|0.3
+CHD|Ewing, United States|NYQ|Consumer Defensive|Household & Personal Products|3.5|585299968|2405499904|47.89|1.05|1.14|1.18|3107859867.0|6107100160|2.34|-0.4|0.0
+SYF|Stamford, United States|NYQ|Financial Services|Credit Services|20.8|3427000064|15461999616|11.7|1.72|2.58|1.0|19574399694.0|9392000000|8.27|-0.8|0.3
+DOV|Downers Grove, United States|NYQ|Industrials|Specialty Industrial Machinery|1.3|1399968000|3163098880|20.32|1.07|1.41|2.06|4843060482.0|7745909248|9.61|-0.4|0.2
+EL|New York, United States|NYQ|Consumer Defensive|Household & Personal Products|-6.4|-700000000|9383000064|471.43|1.99|1.35|1.4|8543000068.0|15175999488|-1.88|-0.9|4.3
+WBD|New York, United States|NMS|Communication Services|Entertainment|-2.5|-11310999552|43006001152|0.0|0.0|0.0|0.0|29432801690.0|39321001984|-4.74|0.0|0.5
+WPM|Vancouver, Canada|NYQ|Basic Materials|Gold|38.1|609427968|5664000|45.79|0.9|1.23|0.62|736977563.0|1217595008|1.35|-0.4|0.0
+NVZMY|Bagsvaerd, Denmark|PNK|Basic Materials|Specialty Chemicals|62.2|305800000|1796800000|79.57|0.95|1.46|0.58|2163760002.0|3833499904|0.71|-0.4|0.3
+MTD|Columbus, United States|NYQ|Healthcare|Diagnostics & Research|11.8|863139968|2131073024|0.0|0.0|0.0|0.0|3166840986.0|3872360960|39.59|0.0|0.5
+FTV|Everett, United States|NYQ|Technology|Scientific & Technical Instruments|2.3|832899968|3876900096|13.56|0.41|0.41|0.32|4876380058.0|6231799808|2.31|-0.1|0.3
+PUBGY|Paris, France|OQX|Communication Services|Advertising Agencies|8.9|1660000000|5175000064|51.97|3.65|3.67|0.91|7167000064.0|16030000128|1.67|-1.7|0.0
+PPG|Pittsburgh, United States|NYQ|Basic Materials|Specialty Chemicals|-14.3|1344000000|6410999808|46.5|2.43|1.8|2.72|8023799810.0|15845000192|5.6|-1.1|0.0
+BR|Lake Success, United States|NYQ|Technology|Information Technology Services|13.1|759100032|3867000064|52.58|1.44|1.61|3.52|4777920107.0|6682899968|6.31|-0.6|0.0
+CQP|Houston, United States|NYQ|Energy|Oil & Gas Midstream|-8.4|2060000000|15265000448|81.53|4.84|7.03|3.25|17737000450.0|8704000000|4.08|-2.3|0.4
+NTDTY|Tokyo, Japan|PNK|Technology|Information Technology Services|6.4|146599002112|2925811990528|21.88|0.83|1.1|0.16|3101730793063.0|4598980935680|0.69|-0.3|0.2
+NUE|Charlotte, United States|NYQ|Basic Materials|Steel|-8.2|2018000000|7066999808|25.65|1.64|1.85|2.2|9488599810.0|30734000128|8.17|-0.7|0.2
+ERIXF|Stockholm, Sweden|PNK|Technology|Communication Equipment|1.4|20000000|45540999168|27000.0|3.07|3.44|0.26|45564999383.0|247880007680|0.0|-1.4|269.6
+LAAOF|Beijing, China|PNK|Consumer Cyclical|Auto Manufacturers|23.6|10167493632|15690470400|0.0|0.0|0.0|0.0|27891462759.0|141918371840|0.68|0.0|0.5
+BAIDF|Beijing, China|PNK|Communication Services|Internet Content & Information|-2.4|23759998976|79323996160|0.0|0.0|0.0|0.0|107835994932.0|133124997120|1.1|0.0|0.5
+ON|Scottsdale, United States|NMS|Technology|Semiconductors|-14.6|1572800000|3643099904|0.0|0.0|0.0|0.0|5530459904.0|7082299904|3.59|0.0|0.5
+SW|Dublin, Ireland|NYQ|Consumer Cyclical|Packaging & Containers|163.4|319000000|13594999808|228.5|4.62|3.33|2.31|13977799813.0|21109000192|0.77|-2.2|1.8
+EQR|Chicago, United States|NYQ|Real Estate|REIT - Residential|5.4|1032774016|8426641920|99.26|3.6|3.73|2.7|9665970742.0|2980108032|2.67|-1.7|0.5
+DOW|Midland, United States|NYQ|Basic Materials|Chemicals|-2.0|1104000000|17671999488|178.34|7.76|5.45|2.8|18996799489.0|42964000768|1.55|-3.8|1.3
+GOLD|Toronto, Canada|NYQ|Basic Materials|Gold|19.2|2144000000|5256000000|32.79|2.26|2.25|0.4|7828800000.0|12922000384|1.22|-1.0|0.0
+BNTX|Mainz, Germany|NMS|Healthcare|Biotechnology|39.0|-466900000|243700000|0.0|0.0|0.0|0.0|-316579999.0|3040100096|-1.98|0.0|0.5
+TSCO|Brentwood, United States|NMS|Consumer Cyclical|Specialty Retail|3.1|1101240064|5424416768|43.14|1.68|1.41|0.92|6745904845.0|14883230720|2.05|-0.8|0.0
+CVE|Calgary, Canada|NYQ|Energy|Oil & Gas Integrated|-10.6|3105999872|10634000384|48.8|3.99|1.83|0.51|14361200229.0|54277001216|1.11|-1.9|0.0
+K|Chicago, United States|NYQ|Consumer Defensive|Packaged Foods|-1.6|1343000064|6392000000|58.25|2.76|3.54|2.28|8003600078.0|12748999680|3.87|-1.3|0.0
+TPL|Dallas, United States|NYQ|Energy|Oil & Gas E&P|11.5|453960000|1250000|25.9|0.47|0.86|6.4|546002009.0|705822976|19.83|-0.1|0.2
+GDDY|Tempe, United States|NYQ|Technology|Software - Infrastructure|8.4|936899968|3894700032|0.0|0.0|0.0|0.0|5018979994.0|4573199872|6.4|0.0|0.5
+FITB|Cincinnati, United States|NMS|Financial Services|Banks - Regional|-5.4|2155000064|22395000832|45.86|3.44|3.8|1.48|24981000909.0|7950000128|3.03|-1.6|0.0
+EQT|Pittsburgh, United States|NYQ|Energy|Oil & Gas E&P|31.3|230576992|9424708608|140.0|1.29|0.49|0.63|9701401000.0|5041955840|0.46|-0.6|0.9
+KEYS|Santa Rosa, United States|NYQ|Technology|Scientific & Technical Instruments|3.1|611000000|2020000000|0.0|0.0|0.0|0.0|2753200000.0|5017999872|3.44|0.0|0.5
+STT|Boston, United States|NYQ|Financial Services|Asset Management|12.5|2483000064|58558001152|35.32|3.13|3.11|3.04|61537601231.0|12924999680|7.77|-1.5|0.0
+BSBR|São Paulo, Brazil|NYQ|Financial Services|Banks - Regional|22.8|13477390336|295217528832|94.4|6.62|7.51|0.29|311390397233.0|58112253952|0.29|-3.2|0.5
+XYL|Washington, United States|NYQ|Industrials|Specialty Industrial Machinery|6.5|890000000|2016000000|39.45|1.23|1.15|1.6|3084000002.0|8561999872|3.58|-0.5|0.0
+ZS|San Jose, United States|NMS|Technology|Software - Infrastructure|26.4|-36274000|1238765056|0.0|0.0|0.0|0.0|1195236257.0|2299023104|-0.25|0.0|0.5
+HPE|Spring, United States|NYQ|Technology|Communication Equipment|15.1|2553999872|19874000896|26.94|2.73|3.32|0.52|22938800742.0|30126999552|1.91|-1.3|0.2
+GPN|Atlanta, United States|NYQ|Industrials|Specialty Business Services|3.4|1570365056|17177639936|16.23|0.97|0.7|1.0|19062078004.0|10105893888|5.95|-0.4|0.3
+CAH|Dublin, United States|NYQ|Healthcare|Medical Distribution|-3.8|1312000000|7606000128|37.57|1.57|2.88|2.02|9180400130.0|222275993600|5.25|-0.7|0.0
+HEI|Hollywood, United States|NYQ|Industrials|Aerospace & Defense|14.9|567366016|2353630976|5.43|0.08|0.12|0.22|3034470196.0|3991527936|4.04|0.0|0.4
+CUK|Miami, United States|NYQ|Consumer Cyclical|Travel Services|10.0|1916000000|28879998976|0.0|0.0|4.56|0.0|31179198977.0|25020999680|1.36|0.0|0.5
+CHT|Taipei City, Taiwan|NYQ|Communication Services|Telecom Services|5.5|37220462592|43229581312|100.08|3.76|4.02|1.47|87894136423.0|229968297984|1.44|-1.8|0.6
+BRO|Daytona Beach, United States|NYQ|Financial Services|Insurance Brokers|15.2|981000000|4060000000|15.61|0.5|0.66|0.6|5237200001.0|4712000000|3.44|-0.2|0.3
+ABEV|São Paulo, Brazil|NYQ|Consumer Defensive|Beverages - Brewers|35.3|14437237760|3452728064|73.64|6.27|4.28|0.13|20777413374.0|89452666880|0.16|-3.0|0.3
+PPRUY|Paris, France|PNK|Consumer Cyclical|Luxury Goods|-13.3|1132999936|20142000128|151.79|4.4|2.67|1.23|21501600051.0|17194000384|0.95|-2.1|1.1
+QSR|Toronto, Canada|NYQ|Consumer Cyclical|Restaurants|26.2|1021000000|15925999616|72.96|3.83|3.44|2.48|17151199618.0|8406000128|3.21|-1.8|0.3
+TW|New York, United States|NMS|Financial Services|Capital Markets|25.3|501118016|35748000|17.17|0.35|0.43|0.48|637089620.0|1721670016|2.27|-0.1|0.3
+EBAY|San Jose, United States|NMS|Consumer Cyclical|Internet Retail|0.7|1980999936|7863000064|27.34|1.78|1.64|1.16|10240199988.0|10282999808|4.04|-0.8|0.2
+ANSS|Canonsburg, United States|NMS|Technology|Software - Application|9.6|575692032|865630976|0.0|0.0|0.0|0.0|1556461415.0|2544808960|6.5|0.0|0.5
+CSGP|Arlington, United States|NMS|Real Estate|Real Estate Services|10.8|138700000|1127600000|0.0|0.0|0.0|0.0|1294040001.0|2736199936|0.34|0.0|0.5
+FCNCA|Raleigh, United States|NMS|Financial Services|Banks - Regional|-1.5|2716000000|39048998912|3.63|0.39|0.28|7.8|42308198922.0|9329000448|180.86|-0.1|0.4
+WEC|Milwaukee, United States|NYQ|Utilities|Utilities - Regulated Electric|3.0|1527200000|20368799744|69.15|3.29|3.14|3.57|22201439747.0|8599900160|4.71|-1.6|0.2
+DSCSY|Tokyo, Japan|PNK|Technology|Semiconductor Equipment & Materials|0.0|120676999168|0|30.26|0.92|1.63|0.23|144812399002.0|376895012864|0.73|-0.4|0.0
+LYV|Beverly Hills, United States|NYQ|Communication Services|Entertainment|-2.4|638211008|8271740928|0.0|0.0|0.0|0.0|9037594138.0|23155625984|2.67|0.0|0.5
+WDS|Perth, Australia|NYQ|Energy|Oil & Gas E&P|9.1|3572999936|11619999744|69.02|7.95|6.88|1.22|15907599665.0|13178999808|1.85|-3.9|0.2
+MRAAY|Nagaokakyo, Japan|PNK|Technology|Electronic Components|2.0|207647997952|60686000128|45.53|2.06|1.66|0.17|309863597670.0|1721902956544|0.37|-0.9|0.0
+ALNY|Cambridge, United States|NMS|Healthcare|Biotechnology|34.9|-278156992|2743418880|0.0|0.0|0.0|0.0|2409630490.0|2248242944|-2.16|0.0|0.5
+FER|Amsterdam, Netherlands|NMS|Industrials|Infrastructure Operations|6.7|3224999936|11594000384|17.92|1.89|2.28|0.84|15464000308.0|9146999808|4.64|-0.9|0.3
+MPWR|Kirkland, United States|NMS|Technology|Semiconductors|36.9|1786700032|0|13.66|1.08|0.64|6.24|2144040047.0|2207099904|37.13|-0.5|0.3
+GWLIF|Winnipeg, Canada|PNK|Financial Services|Insurance - Life|13.7|4011000064|14359000064|51.75|4.63|5.44|1.7|19172200141.0|34739998720|3.01|-2.2|0.0
+HPQ|Palo Alto, United States|NYQ|Technology|Computer Hardware|2.4|2718000128|10903000064|40.15|3.85|3.21|1.16|14164600217.0|53878001664|2.71|-1.8|0.0
+EIX|Rosemead, United States|NYQ|Utilities|Utilities - Regulated Electric|7.5|1284000000|37760999424|95.69|5.99|4.33|3.31|39301799426.0|17599000576|3.28|-2.9|0.5
+ED|New York, United States|NYQ|Utilities|Utilities - Regulated Electric|6.5|1820000000|27829000192|63.36|3.27|3.67|3.4|30013000195.0|15256000512|5.15|-1.5|0.2
+VICI|New York, United States|NYQ|Real Estate|REIT - Diversified|4.7|2678810112|17650085888|66.21|5.3|5.03|1.73|20864658022.0|3849204992|2.52|-2.6|0.2
+IRM|Portsmouth, United States|NYQ|Real Estate|REIT - Specialty|11.4|180156000|16374637568|447.54|3.48|5.22|3.14|16590824774.0|6149908992|0.6|-1.6|4.0
+AVB|Arlington, United States|NYQ|Real Estate|REIT - Residential|5.4|1079924992|8250530816|89.47|3.07|3.4|7.0|9546440814.0|2964439040|7.43|-1.4|0.4
+MCHP|Chandler, United States|NMS|Technology|Semiconductors|-41.9|308800000|6784000000|317.72|3.14|1.62|1.82|7154560002.0|4756899840|0.57|-1.5|2.7
+WTW|London, United Kingdom|NMS|Financial Services|Insurance Brokers|4.2|-98000000|5936000000|33.14|1.08|1.34|3.68|5818400004.0|9930000384|-0.93|-0.5|0.0
+CNC|Saint Louis, United States|NYQ|Healthcare|Healthcare Plans|2.3|3304999936|19428999168|0.0|0.0|0.0|0.0|23394999092.0|147169001472|6.23|0.0|0.5
+FRFHF|Toronto, Canada|PNK|Financial Services|Insurance - Property & Casualty|7.4|3874899968|11753700352|9.34|1.05|1.95|15.0|16403580333.0|34804699136|159.85|-0.4|0.4
+UAL|Chicago, United States|NMS|Industrials|Airlines|7.8|3148999936|29920999424|0.0|0.0|0.0|0.0|33699799348.0|57062998016|8.89|0.0|0.5
+DD|Wilmington, United States|NYQ|Basic Materials|Specialty Chemicals|6.7|743000000|7576999936|85.88|2.08|1.93|1.64|8468599938.0|12385999872|1.75|-0.9|0.4
+ANYYY|Madrid, Spain|PNK|Industrials|Airports & Air Services|9.0|1934224000|7318872064|59.73|4.56|0.0|1.02|9639940863.0|5792892928|1.39|-2.2|0.0
+EFX|Atlanta, United States|NYQ|Industrials|Consulting Services|7.0|604099968|5167499776|32.23|0.64|0.75|1.56|5892419740.0|5681099776|4.81|-0.2|0.0
+RDDT|San Francisco, United States|NYQ|Communication Services|Internet Content & Information|71.3|-484276000|26702000|0.0|0.0|0.0|0.0|-554429199.0|1300205056|-3.26|0.0|0.5
+DXCM|San Diego, United States|NMS|Healthcare|Medical Devices|7.6|576200000|2593799936|0.0|0.0|0.0|0.0|3285239936.0|4032999936|1.36|0.0|0.5
+MTB|Buffalo, United States|NYQ|Financial Services|Banks - Regional|8.2|2448999936|15164000256|36.54|2.86|3.34|5.4|18102800185.0|8668999680|14.05|-1.3|0.0
+MLM|Raleigh, United States|NYQ|Basic Materials|Building Materials|1.4|1995000064|6024999936|9.44|0.67|0.69|3.16|8419000017.0|6536000000|31.87|-0.2|0.4
+DECK|Goleta, United States|NYQ|Consumer Cyclical|Footwear & Accessories|17.1|942225024|257028992|0.0|0.0|0.0|0.0|1387699021.0|4923590144|6.01|0.0|0.5
+CCL|Miami, United States|NYQ|Consumer Cyclical|Travel Services|10.0|1916000000|28879998976|0.0|0.0|4.21|0.0|31179198977.0|25020999680|1.36|0.0|0.5
+HIG|Hartford, United States|NYQ|Financial Services|Insurance - Property & Casualty|7.4|3089999872|4511000064|18.65|1.74|2.25|2.08|8218999913.0|26560000000|10.11|-0.8|0.3
+HUM|Louisville, United States|NYQ|Healthcare|Healthcare Plans|10.4|1207000064|12645999616|35.47|1.35|0.75|3.54|14094399697.0|117760999424|10.04|-0.6|0.0
+MDY|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|1.14|0.0|0.0|-0.0|N/A|N/A|-0.5|0.5
+ROK|Milwaukee, United States|NYQ|Industrials|Specialty Industrial Machinery|-8.3|917200000|4027000064|63.01|1.88|1.71|5.24|5127640070.0|8093199872|7.71|-0.8|0.2
+RJF|Saint Petersburg, United States|NYQ|Financial Services|Asset Management|14.6|2160999936|4725000192|18.07|1.33|1.43|2.0|7318200118.0|13239000064|9.82|-0.6|0.3
+IMO|Calgary, Canada|ASE|Energy|Oil & Gas Integrated|-3.8|4790000128|4255000064|26.58|3.02|2.67|2.0|10003000219.0|51513999360|6.2|-1.4|0.2
+WAB|Pittsburgh, United States|NYQ|Industrials|Railroads|2.3|1053000000|4288000000|13.25|0.55|0.59|1.0|5551600001.0|10387000320|5.92|-0.2|0.3
+ETR|New Orleans, United States|NYQ|Utilities|Utilities - Regulated Electric|0.6|1055590016|29310871552|93.67|2.73|3.76|2.4|30577579573.0|11879653376|2.37|-1.3|0.5
+TTWO|New York, United States|NMS|Communication Services|Electronic Gaming & Multimedia|-0.5|-3655699968|4103699968|0.0|0.0|0.0|0.0|-283139993.0|5450500096|-21.42|0.0|0.5
+EXR|Salt Lake City, United States|NYQ|Real Estate|REIT - Industrial|3.3|854681024|13027861504|160.79|4.21|3.31|6.48|14053478740.0|3337904128|4.02|-2.0|1.2
+PPERY|Jakarta, Indonesia|PNK|Financial Services|Banks - Regional|2.8|55782741639168|298631961772032|59.04|7.54|4.79|0.89|365571251739031.0|134735363833856|1.43|-3.7|0.0
+RMD|San Diego, United States|NYQ|Healthcare|Medical Instruments & Supplies|10.3|1248706048|839736000|23.85|0.91|0.83|2.12|2338183260.0|4926773248|8.4|-0.4|0.2
+VMC|Birmingham, United States|NYQ|Basic Materials|Building Materials|1.1|919500032|5898500096|26.63|0.82|0.85|1.96|7001900137.0|7417699840|6.76|-0.3|0.2
+IDXX|Westbrook, United States|NMS|Healthcare|Diagnostics & Research|5.8|887867008|986947968|0.0|0.0|0.0|0.0|2052388378.0|3897504000|10.78|0.0|0.5
+SLF|Toronto, Canada|NYQ|Financial Services|Insurance - Diversified|7.0|3048999936|20770000896|61.6|4.2|4.09|2.35|24428800820.0|33102999552|3.6|-2.0|0.2
+HSY|Hershey, United States|NYQ|Consumer Defensive|Confectioners|8.7|2221239040|5447554048|50.18|3.07|2.12|5.48|8113040902.0|11202263040|10.79|-1.4|0.0
+DB|Frankfurt am Main, Germany|NYQ|Financial Services|Banks - Regional|10.2|2792000000|497264984064|23.67|3.28|2.78|0.71|500615384064.0|28263000064|1.92|-1.5|0.2
+ACGL|Pembroke, Bermuda|NMS|Financial Services|Insurance - Diversified|14.4|4272000000|2891000064|0.0|0.0|0.0|0.0|8017400065.0|17440000000|11.05|0.0|0.5
+VEEV|Pleasanton, United States|NYQ|Healthcare|Health Information Services|13.4|665910976|71701000|0.0|0.0|0.0|0.0|870794172.0|2656350976|4.04|0.0|0.5
+DIA|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|1.52|0.0|0.0|-0.0|N/A|N/A|-0.7|0.5
+DKILY|Osaka, Japan|PNK|Industrials|Building Products & Equipment|5.9|253173006336|915899023360|33.62|1.91|1.01|0.2|1219706630963.0|4724889223168|0.59|-0.9|0.0
+FERG|Newport News, United States|NYQ|Industrials|Industrial Distribution|0.8|1686000000|5638000128|37.94|1.84|1.98|3.2|7661200131.0|29699000320|8.09|-0.8|0.0
+GIS|Minneapolis, United States|NYQ|Consumer Defensive|Packaged Foods|2.0|2603200000|14521600000|51.74|3.87|3.19|2.4|17645440001.0|19901300736|4.53|-1.8|0.0
+OLCLY|Urayasu, Japan|PNK|Consumer Cyclical|Leisure|14.3|116158996480|297435004928|20.03|0.47|0.22|0.1|436825800704.0|657389977600|0.47|-0.1|0.2
+IQV|Durham, United States|NYQ|Healthcare|Diagnostics & Research|2.3|1372999936|14483999744|0.0|0.0|0.0|0.0|16131599668.0|15404999680|7.43|0.0|0.5
+HUBS|Cambridge, United States|NYQ|Technology|Software - Application|20.8|4628000|745416000|0.0|0.0|0.0|0.0|750969601.0|2627543040|0.07|0.0|0.5
+HOOD|Menlo Park, United States|NMS|Financial Services|Capital Markets|115.3|1411000064|7725000192|0.0|0.0|0.0|0.0|9418200271.0|2951000064|1.54|0.0|0.5
+OWL|New York, United States|NYQ|Financial Services|Asset Management|27.8|109584000|2978849024|340.0|3.46|0.0|0.72|3110349826.0|2295427072|0.19|-1.6|2.9
+CCEP|Uxbridge, United Kingdom|NMS|Consumer Defensive|Beverages - Non-Alcoholic|13.8|1418000000|11491999744|63.96|2.41|2.89|2.09|13193599746.0|20437999616|3.17|-1.1|0.2
+WIT|Bengaluru, India|NYQ|Technology|Information Technology Services|0.5|124003999744|193559003136|4.23|2.12|0.58|0.07|342363802828.0|887924981760|0.13|-1.0|0.4
+LVS|Las Vegas, United States|NYQ|Consumer Cyclical|Resorts & Casinos|-0.7|1446000000|13939999744|40.82|2.2|4.75|1.0|15675199744.0|11297999872|1.94|-1.0|0.0
+GEHC|Chicago, United States|NMS|Healthcare|Health Information Services|2.2|1992999936|9376000000|2.76|0.16|0.0|0.14|11767599924.0|19672000512|4.23|0.0|0.4
+LEN|Miami, United States|NYQ|Consumer Cyclical|Residential Construction|-9.3|3893710080|4451358208|13.98|1.7|1.15|2.0|9123810306.0|35441451008|14.4|-0.8|0.3
+VALE|Rio De Janeiro, Brazil|NYQ|Basic Materials|Other Industrial Metals & Mining|-7.9|31591999488|109738999808|69.58|14.67|8.34|1.38|147649399188.0|206004994048|1.44|-7.2|0.2
+STLA|Hoofddorp, Netherlands|NYQ|Consumer Cyclical|Auto Manufacturers|-21.2|5472999936|37250998272|84.24|5.76|0.0|0.71|43818598193.0|156877996032|1.83|-2.8|0.4
+SYY|Houston, United States|NYQ|Consumer Defensive|Food Distribution|4.5|1932000000|13692000256|52.05|2.7|2.58|2.04|16010400257.0|80569999360|3.86|-1.3|0.0
+OTIS|Farmington, United States|NYQ|Industrials|Specialty Industrial Machinery|1.5|1644999936|8741999616|37.1|1.55|0.0|1.56|10715999541.0|14261000192|4.02|-0.7|0.0
+IR|Davidson, United States|NYQ|Industrials|Specialty Industrial Machinery|4.2|838600000|4980199936|3.88|0.1|0.0|0.08|5986519937.0|7234999808|2.03|0.0|0.4
+KHC|Pittsburgh, United States|NMS|Consumer Defensive|Packaged Foods|-4.1|2744000000|20450000896|70.8|5.11|4.53|1.6|23742800896.0|25845999616|2.24|-2.5|0.3
+YUM|Louisville, United States|NYQ|Consumer Cyclical|Restaurants|16.0|1486000000|12286000128|51.34|1.81|1.82|2.84|14069200131.0|7549000192|5.28|-0.8|0.0
+IT|Stamford, United States|NYQ|Technology|Information Technology Services|8.1|1253714944|2900005888|0.0|0.0|0.0|0.0|4404463821.0|6267410944|15.72|0.0|0.5
+ARGX|Amsterdam, Netherlands|NMS|Healthcare|Biotechnology|82.2|-40293000|0|0.0|0.0|0.0|0.0|-48351598.0|1908658944|12.72|0.0|0.5
+CTSH|Teaneck, United States|NMS|Technology|Information Technology Services|6.8|2240000000|1503000064|26.61|1.48|1.47|1.24|4191000065.0|19736000512|4.52|-0.6|0.2
+DAL|Atlanta, United States|NYQ|Industrials|Airlines|9.4|3456999936|23871000576|9.38|1.03|2.3|0.6|28019400500.0|61643001856|4.99|-0.4|0.4
+EXC|Chicago, United States|NMS|Utilities|Utilities - Regulated Electric|1.9|2460000000|46904999936|62.04|3.59|3.57|1.6|49856999937.0|23028000768|2.4|-1.7|0.2
+EA|Redwood City, United States|NMS|Communication Services|Electronic Gaming & Multimedia|-3.2|1049000000|2279000064|19.34|0.59|0.0|0.76|3537800065.0|7346999808|4.01|-0.2|0.3
+CTVA|Indianapolis, United States|NYQ|Basic Materials|Agricultural Inputs|7.3|851000000|3179000064|54.1|1.13|1.2|0.68|4200200065.0|16908000256|1.21|-0.5|0.0
+XEL|Minneapolis, United States|NMS|Utilities|Utilities - Regulated Electric|-9.4|1936000000|30269999104|63.66|3.17|2.96|2.28|32593199105.0|13441000448|3.35|-1.5|0.2
+ODFL|Thomasville, United States|NMS|Industrials|Trucking|-7.3|1186072960|168287008|18.98|0.65|0.36|1.12|1591574561.0|5814810112|5.56|-0.2|0.3
+WTKWY|Alphen aan den Rijn, Netherlands|PNK|Industrials|Specialty Business Services|5.8|1079000064|4089999872|48.68|1.59|1.56|2.5|5384799951.0|5916000256|4.59|-0.7|0.0
+CAIXY|Valencia, Spain|PNK|Financial Services|Banks - Regional|21.2|5519000064|79971999744|71.26|8.04|4.76|0.19|86594799818.0|14819999744|0.26|-3.9|0.3
+A|Santa Clara, United States|NYQ|Healthcare|Diagnostics & Research|1.4|1259000064|3363000064|21.93|0.79|0.65|0.99|4873800142.0|6533000192|4.25|-0.3|0.2
+CCI|Houston, United States|NYQ|Real Estate|REIT - Specialty|-0.9|1228000000|29635999744|221.99|6.53|4.27|6.26|31109599750.0|6592999936|2.77|-3.2|1.8
+VRSK|Jersey City, United States|NMS|Industrials|Consulting Services|8.6|951400000|3245799936|23.42|0.6|0.6|1.8|4387479938.0|2881700096|6.62|-0.2|0.2
+NET|San Francisco, United States|NYQ|Technology|Software - Infrastructure|26.9|-78800000|1463213056|0.0|0.0|0.0|0.0|1368653057.0|1669625984|-0.23|0.0|0.5
+VLO|San Antonio, United States|NYQ|Energy|Oil & Gas Refining & Marketing|-14.0|2761999872|11539999744|49.88|3.52|4.36|4.52|14854399594.0|123974000640|8.52|-1.7|0.0
+F|Dearborn, United States|NYQ|Consumer Cyclical|Auto Manufacturers|4.9|5879000064|160861995008|41.1|7.99|5.76|0.75|167916795082.0|184992006144|1.42|-3.9|0.0
+GRMN|Schaffhausen, Switzerland|NYQ|Technology|Scientific & Technical Instruments|22.9|1411436032|162787008|40.82|1.59|2.27|3.6|1856510251.0|6296903168|7.11|-0.7|0.0
+RBLX|San Mateo, United States|NYQ|Communication Services|Electronic Gaming & Multimedia|31.8|-935384000|1805278976|0.0|0.0|0.0|0.0|682818177.0|3601978880|-1.45|0.0|0.5
+LHX|Melbourne, United States|NYQ|Industrials|Aerospace & Defense|3.4|1502000000|12979999744|58.96|2.31|1.98|4.8|14782399749.0|21325000704|7.85|-1.1|0.0
+CBRE|Dallas, United States|NYQ|Real Estate|Real Estate Services|16.2|968000000|5858999808|0.0|0.0|0.0|0.0|7020599809.0|35767001088|3.11|0.0|0.5
+STZ|Victor, United States|NYQ|Consumer Defensive|Beverages - Brewers|-0.3|686300032|12119499776|104.53|2.3|1.46|4.04|12943059819.0|10183700480|3.69|-1.1|0.6
+GLW|Corning, United States|NYQ|Technology|Electronic Components|16.9|506000000|8090999808|193.1|2.32|2.9|1.12|8698199810.0|13118000128|0.56|-1.1|1.5
+CPNG|Seattle, United States|NYQ|Consumer Cyclical|Internet Retail|21.4|154000000|3724999936|0.0|0.0|0.0|0.0|3909799937.0|30268000256|0.08|0.0|0.5
+KVUE|Skillman, United States|NYQ|Consumer Defensive|Household & Personal Products|-0.1|1030000000|8718999552|150.0|3.45|0.0|0.82|9954999552.0|15454999552|0.53|-1.6|1.1
+TRGP|Houston, United States|NYQ|Energy|Oil & Gas Midstream|3.9|1269500032|14290199552|47.91|1.53|3.97|3.0|15813599594.0|16381500416|5.57|-0.7|0.0
+AEM|Toronto, Canada|NYQ|Basic Materials|Gold|26.6|1895581056|1282182016|42.33|1.67|2.4|1.6|3556879285.0|8285752832|3.78|-0.7|0.0
+DNZOY|Kariya, Japan|PNK|Consumer Cyclical|Auto Parts|-1.5|449916993536|732953968640|38.09|3.1|2.41|0.4|1272854360882.0|7078292226048|1.0|-1.5|0.0
+SVNDY|Tokyo, Japan|PNK|Consumer Defensive|Grocery Stores|-0.3|106091003904|4064423968768|90.71|1.77|2.08|0.26|4191733173453.0|10340663296000|0.26|-0.8|0.5
+LYG|London, United Kingdom|NYQ|Financial Services|Banks - Regional|-19.7|3923000064|146250006528|47.11|4.3|4.67|0.16|150957606603.0|17504999424|0.32|-2.1|0.0
+FAST|Winona, United States|NMS|Industrials|Industrial Distribution|3.7|1150599936|485400000|78.0|2.31|2.21|1.72|1866119925.0|7545999872|2.0|-1.1|0.3
+NWG|Edinburgh, United Kingdom|NYQ|Financial Services|Banks - Regional|10.3|4438000128|151453007872|33.29|4.43|0.0|0.54|156778608024.0|14343999488|1.29|-2.1|0.0
+AME|Berwyn, United States|NYQ|Industrials|Specialty Industrial Machinery|1.8|1376124032|2324474112|18.89|0.66|0.63|1.24|3975822952.0|6941179904|5.83|-0.2|0.3
+CRARY|Montrouge, France|PNK|Financial Services|Banks - Regional|17.7|6358000128|498179014656|49.78|6.78|5.43|0.57|505808614807.0|25326999552|1.1|-3.3|0.0
+HES|New York, United States|NYQ|Energy|Oil & Gas E&P|6.5|2768999936|9459999744|20.88|1.39|1.38|2.0|12782799669.0|12661999616|8.87|-0.6|0.2
+BKR|Houston, United States|NMS|Energy|Oil & Gas Equipment & Services|7.7|2979000064|6696000000|28.19|2.11|2.95|0.92|10270800077.0|27829000192|2.93|-1.0|0.2
+ALC|Geneva, Switzerland|NYQ|Healthcare|Medical Instruments & Supplies|6.4|1018000000|5139999744|12.96|0.28|0.0|0.27|6361599745.0|9911000064|2.02|-0.1|0.3
+PRU|Newark, United States|NYQ|Financial Services|Insurance - Life|-17.0|2695000064|38394998784|69.33|4.76|5.0|5.4|41628998865.0|70404997120|7.24|-2.3|0.2
+TKPHF|Tokyo, Japan|PNK|Healthcare|Drug Manufacturers - Specialty & Generic|3.0|208065003520|5431329030144|148.06|4.22|4.73|1.26|5681007034368.0|4579020767232|0.86|-2.0|1.0
+TEL|Ballybrit, Ireland|NYQ|Technology|Electronic Components|0.1|1918000000|4211000064|40.13|1.73|1.7|2.6|6512600067.0|15850000384|6.22|-0.8|0.0
+E|Rome, Italy|NYQ|Energy|Oil & Gas Integrated|-3.9|2640999936|36842999808|121.66|7.3|6.59|2.08|40012199731.0|91213996032|1.62|-3.6|0.8
+AMX|Mexico City, Mexico|NYQ|Communication Services|Telecom Services|18.0|28308000768|781585022976|106.53|3.58|2.71|0.51|815554623897.0|869221007360|0.45|-1.7|0.6
+KDP|Burlington, United States|NMS|Consumer Defensive|Beverages - Non-Alcoholic|5.3|1440999936|18329999360|84.76|2.7|2.22|0.92|20059199284.0|15351000064|1.03|-1.3|0.4
+PEG|Newark, United States|NYQ|Utilities|Utilities - Regulated Electric|-5.4|1772000000|22887999488|67.8|3.08|3.36|2.52|25014399490.0|10289999872|3.53|-1.4|0.2
+HLN|Weybridge, United Kingdom|NYQ|Healthcare|Drug Manufacturers - Specialty & Generic|-0.3|1442000000|10286999552|39.3|1.59|0.0|0.17|12017399552.0|11233000448|0.4|-0.7|0.0
+FIS|Jacksonville, United States|NYQ|Technology|Information Technology Services|3.4|787000000|11541000192|101.41|2.22|2.0|1.6|12485400194.0|10126999552|1.38|-1.0|0.6
+EW|Irvine, United States|NYQ|Healthcare|Medical Devices|9.4|1400899968|700000000|0.0|0.0|0.0|0.0|2381079962.0|5439499776|2.34|0.0|0.5
+KMB|Dallas, United States|NYQ|Consumer Defensive|Household & Personal Products|-0.8|2544999936|7916000256|64.64|3.52|3.43|5.04|10970000184.0|20057999360|7.44|-1.7|0.2
+NEM|Denver, United States|NYQ|Basic Materials|Gold|42.8|3280000000|8972000256|34.97|2.36|3.2|1.0|12908000257.0|18681999360|2.87|-1.1|0.0
+TRPCF|Singapore, Singapore|PNK|Consumer Cyclical|Travel Services|23.4|17066999808|40128000000|0.0|0.43|0.0|0.3|60608399771.0|53293998080|3.4|-0.1|0.5
+BAESY|Camberley, United Kingdom|PNK|Industrials|Aerospace & Defense|14.5|1956000000|10252999680|48.07|1.81|3.33|1.57|12600199681.0|26311999488|3.15|-0.8|0.0
+ATEYY|Tokyo, Japan|PNK|Technology|Semiconductor Equipment & Materials|63.8|136357003264|92951003136|19.24|0.46|1.1|0.24|256579407054.0|683120984064|1.2|-0.1|0.3
+DFS|Riverwoods, United States|NYQ|Financial Services|Credit Services|56.6|4446000128|16254000128|15.8|1.47|2.24|2.8|21589200286.0|12999000064|16.65|-0.6|0.3
+WCN|Woodbridge, Canada|NYQ|Industrials|Waste Management|11.0|617572992|8408004096|48.95|0.66|0.69|1.26|9149091688.0|8919590912|2.36|-0.2|0.0
+PCG|Oakland, United States|NYQ|Utilities|Utilities - Regulated Electric|-5.8|2475000064|58342998016|4.78|0.61|3.32|0.1|61312998093.0|24419000320|1.13|-0.2|0.4
+COR|Conshohocken, United States|NYQ|Healthcare|Medical Distribution|12.8|1396220032|9733088256|29.5|0.86|1.24|2.2|11408552297.0|303192834048|6.99|-0.3|0.2
+KR|Cincinnati, United States|NYQ|Consumer Defensive|Grocery Stores|-0.6|2744999936|21152999424|31.48|2.04|2.01|1.28|24446999348.0|149878996992|3.8|-0.9|0.0
+DHI|Arlington, United States|NYQ|Consumer Cyclical|Residential Construction|-1.5|4653899776|5164000256|9.2|1.27|0.95|1.6|10748679989.0|36688400384|14.15|-0.5|0.4
+ITUB|São Paulo, Brazil|NYQ|Financial Services|Banks - Regional|8.9|41085001728|987359019008|69.33|6.46|3.23|0.36|1036661021079.0|135738998784|0.7|-3.1|0.2
+NDAQ|New York, United States|NMS|Financial Services|Financial Data & Stock Exchanges|23.3|1116999936|9923000320|48.7|1.17|1.36|0.96|11263400244.0|7400000000|1.85|-0.5|0.0
+FLUT|Dublin, Ireland|NYQ|Consumer Cyclical|Gambling|27.0|-950000000|7585999872|0.0|0.0|0.0|0.0|6445999873.0|13569000448|-6.2|0.0|0.5
+HMC|Tokyo, Japan|NYQ|Consumer Cyclical|Auto Manufacturers|2.6|1042827968512|11863875125248|31.87|5.16|3.78|1.42|13115268687462.0|21758035886080|4.33|-2.5|0.0
+AIG|New York, United States|NYQ|Financial Services|Insurance - Diversified|8.8|2200000000|9790000128|38.33|1.94|2.58|1.6|12430000129.0|27026999296|3.94|-0.9|0.0
+URI|Stamford, United States|NYQ|Industrials|Rental & Leasing Services|9.8|2575000064|14789000192|16.85|1.16|0.0|7.16|17879000278.0|15345000448|37.49|-0.5|0.3
+SU|Calgary, Canada|NYQ|Energy|Oil & Gas Integrated|-2.2|6016000000|15070999552|46.72|4.39|4.45|1.59|22290199552.0|50688999424|3.17|-2.1|0.0
+MPC|Findlay, United States|NYQ|Energy|Oil & Gas Refining & Marketing|-9.1|3441999872|28757999616|33.58|2.5|3.33|3.64|32888399466.0|139336007680|9.86|-1.2|0.0
+HWM|Pittsburgh, United States|NYQ|Industrials|Aerospace & Defense|9.2|1152999936|3471000064|9.25|0.31|0.0|0.4|4854599988.0|7430000128|2.72|-0.1|0.4
+D|Richmond, United States|NYQ|Utilities|Utilities - Regulated Electric|-3.8|1848999936|42626998272|121.36|4.69|4.48|2.67|44845798197.0|14458999808|2.1|-2.3|0.8
+AXON|Scottsdale, United States|NMS|Industrials|Aerospace & Defense|33.6|377033984|731124992|0.0|0.0|0.0|0.0|1183565774.0|2082525952|4.81|0.0|0.5
+LULU|Vancouver, Canada|NMS|Consumer Cyclical|Apparel Retail|8.7|1735681024|1514100992|0.0|0.0|0.0|0.0|3596918221.0|10181732352|13.74|0.0|0.5
+O|San Diego, United States|NYQ|Real Estate|REIT - Retail|24.5|847892992|26677340160|319.69|5.59|4.85|3.22|27694811754.0|5278935040|0.98|-2.7|2.7
+VRT|Westerville, United States|NYQ|Industrials|Electrical Equipment & Parts|25.8|495800000|3145299968|8.79|0.18|0.0|0.15|3740259969.0|8011800064|1.3|0.0|0.4
+MSCI|New York, United States|NYQ|Financial Services|Financial Data & Stock Exchanges|7.7|1109127936|4656820224|45.55|1.22|0.89|7.2|5987773756.0|2856128000|13.57|-0.5|0.0
+OXY|Houston, United States|NYQ|Energy|Oil & Gas E&P|-5.7|2225999872|27104000000|38.94|2.07|3.53|0.96|29775199847.0|26724999168|2.27|-0.9|0.0
+CTA-PA|Indianapolis, United States|NYQ|Basic Materials|Agricultural Inputs|-10.2|702000000|5715999744|0.0|5.93|5.02|3.5|6558399746.0|16636999680|N/A|-2.9|0.5
+PSX|Houston, United States|NYQ|Energy|Oil & Gas Refining & Marketing|-12.0|2107000064|21417000960|90.18|3.68|4.25|4.6|23945401041.0|143153004544|4.88|-1.8|0.5
+PWR|Houston, United States|NYQ|Industrials|Engineering & Construction|13.3|904824000|4478957056|6.14|0.16|0.22|0.4|5564745857.0|23672795136|5.99|0.0|0.4
+FICO|Bozeman, United States|NYQ|Technology|Software - Application|15.2|544273984|2441980928|0.0|0.0|0.09|0.0|3095109709.0|1775435008|21.89|0.0|0.5
+CMI|Columbus, United States|NYQ|Industrials|Specialty Industrial Machinery|-1.1|3945999872|7687000064|24.67|2.05|2.52|7.28|12422199919.0|34101999616|27.68|-0.9|0.2
+IAU|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|0.0|0.0|0.0|0.0|N/A|N/A|0.0|0.5
+BCS|London, United Kingdom|NYQ|Financial Services|Banks - Diversified|12.9|5315999744|660182007808|20.19|2.67|2.97|0.42|666561207500.0|24249999360|1.74|-1.2|0.2
+ING|Amsterdam, Netherlands|NYQ|Financial Services|Banks - Diversified|471.3|6392000000|211888996352|56.1|6.54|5.57|1.2|219559396357.0|21422000128|2.07|-3.2|0.0
+DDOG|New York, United States|NMS|Technology|Software - Application|25.1|183746000|1842179968|0.0|0.0|0.0|0.0|2062675169.0|2684274944|0.53|0.0|0.5
+AEP|Columbus, United States|NMS|Utilities|Utilities - Regulated Electric|2.6|2967099904|45997998080|63.98|3.45|3.57|3.72|49558517968.0|19721299968|5.45|-1.6|0.2
+MPLX|Findlay, United States|NYQ|Energy|Oil & Gas Midstream|3.1|4280999936|21436000256|83.29|7.05|9.88|3.83|26573200181.0|11130999808|4.12|-3.4|0.4
+TRP|Calgary, Canada|NYQ|Energy|Oil & Gas Midstream|0.0|4199000064|60016001024|91.42|5.3|6.07|2.38|65054801102.0|13770999808|2.82|-2.6|0.5
+LNG|Houston, United States|NYQ|Energy|Oil & Gas Midstream|-2.7|3252000000|26116999168|12.71|0.91|0.0|2.0|30019399170.0|15454000128|14.14|-0.4|0.3
+BMWKY|Munich, Germany|PNK|Consumer Cyclical|Auto Manufacturers|-15.7|8181000192|106833002496|46.16|7.46|5.75|2.16|116650202725.0|148932001792|4.48|-3.6|0.0
+FANG|Midland, United States|NMS|Energy|Oil & Gas E&P|66.1|3316999936|13098999808|53.38|4.2|4.05|6.21|17079399738.0|10561000448|15.21|-2.0|0.0
+PAYX|Rochester, United States|NMS|Technology|Software - Application|4.7|1719299968|862800000|80.63|2.56|2.7|3.92|2925959966.0|5369800192|4.71|-1.2|0.4
+CHTR|Stamford, United States|NMS|Communication Services|Telecom Services|1.6|5082999808|97176002560|0.0|0.0|0.0|0.0|103275602330.0|55084998656|34.74|0.0|0.5
+ALL|Northbrook, United States|NYQ|Financial Services|Insurance - Property & Casualty|11.3|4550000128|8320999936|21.66|1.98|2.39|4.0|13781000094.0|64106000384|16.74|-0.9|0.2
+ROST|Dublin, United States|NMS|Consumer Cyclical|Apparel Retail|3.0|2113629056|5734475776|22.64|1.07|0.96|1.47|8270830645.0|21239441408|6.31|-0.4|0.2
+MNST|Corona, United States|NMS|Consumer Defensive|Beverages - Non-Alcoholic|4.7|1509048064|434587008|0.0|0.0|0.0|0.0|2245444685.0|7492708864|1.48|0.0|0.5
+GWW|Lake Forest, United States|NYQ|Industrials|Industrial Distribution|5.9|1908999936|3183000064|20.69|0.82|1.21|8.2|5473799998.0|17168000000|38.27|-0.3|0.2
+AMP|Minneapolis, United States|NYQ|Financial Services|Asset Management|11.5|3400999936|3680000000|17.52|1.11|1.71|5.92|7761199931.0|17926000640|30.94|-0.5|0.3
+PSA|Glendale, United States|NYQ|Real Estate|REIT - Industrial|1.4|1872685056|9353033728|112.78|3.86|3.31|12.0|11600255810.0|4715437056|10.47|-1.8|0.7
+NU|São Paulo, Brazil|NYQ|Financial Services|Banks - Regional|19.1|1972112000|2097465984|0.0|0.0|0.0|0.0|4464000385.0|5513232896|0.4|0.0|0.5
+JCI|Cork, Ireland|NYQ|Industrials|Building Products & Equipment|4.2|1430000000|11189999616|69.48|1.79|2.21|1.48|12905999617.0|23168999424|2.09|-0.8|0.2
+NXPI|Eindhoven, Netherlands|NMS|Technology|Semiconductors|-9.1|2510000128|11146000384|41.69|1.87|1.5|4.06|14158000542.0|12613999616|9.48|-0.8|0.0
+SNOW|Bozeman, United States|NYQ|Technology|Software - Application|27.4|-1285639936|2685270016|0.0|0.0|0.0|0.0|1142502094.0|3626395904|-3.85|0.0|0.5
+NSC|Atlanta, United States|NYQ|Industrials|Railroads|-1.6|2619000064|18012000256|46.67|2.2|2.0|5.4|21154800339.0|12122999808|11.26|-1.0|0.0
+MFC|Toronto, Canada|NYQ|Financial Services|Insurance - Life|-3.2|5073999872|25469999104|56.34|4.05|4.98|1.24|31558798950.0|29991999488|1.87|-1.9|0.0
+MBGYY|Stuttgart, Germany|PNK|Consumer Cyclical|Auto Manufacturers|-6.7|10840000512|109618003968|49.79|9.17|6.1|1.43|122626004580.0|147947995136|2.72|-4.5|0.0
+BSQKZ|Oakland, United States|PNK|Technology|Software - Infrastructure|4.5|2897047040|7918612992|0.0|0.0|0.0|0.0|11395069440.0|24121053184|4.56|0.0|0.5
+PTCAY|Jakarta, Indonesia|PNK|Basic Materials|Specialty Chemicals|-37.9|-72097000|2120695040|1267.49|0.05|0.0|0.03|2034178649.0|1728900992|-0.11|0.1|12.2
+GBTC|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|0.0|0.0|0.0|0.0|N/A|N/A|0.0|0.5
+SLB|Houston, United States|NYQ|Energy|Oil & Gas Equipment & Services|3.3|4461000192|12999000064|35.37|2.86|2.72|1.14|18352200295.0|36288999424|3.05|-1.3|0.0
+GLNCY|Baar, Switzerland|PNK|Basic Materials|Other Industrial Metals & Mining|3.1|-1634000000|38946000896|152.94|3.22|3.88|0.26|36985200896.0|230943997952|-0.27|-1.5|1.1
+FCX|Phoenix, United States|NYQ|Basic Materials|Copper|-3.1|1883000064|9738000384|46.15|1.69|3.73|0.6|11997600461.0|25454999552|1.28|-0.8|0.0
+AZO|Memphis, United States|NYQ|Consumer Cyclical|Specialty Retail|2.1|2633896960|12654440448|0.0|0.0|0.0|0.0|15815116800.0|18579632128|149.37|0.0|0.5
+PCAR|Bellevue, United States|NMS|Industrials|Farm & Heavy Construction Machinery|-12.9|4161999872|16009199616|14.81|1.26|1.37|1.32|21003599464.0|33663799296|7.63|-0.5|0.3
+VST|Irving, United States|NYQ|Utilities|Utilities - Independent Power Producers|31.2|2467000064|17412999168|12.48|0.72|2.41|0.89|20373399246.0|17223999488|7.17|-0.3|0.3
+CPRT|Dallas, United States|NMS|Industrials|Specialty Business Services|14.0|1454343936|119397000|0.0|0.0|0.0|0.0|1864609724.0|4506402816|1.48|0.0|0.5
+TRV|New York, United States|NYQ|Financial Services|Insurance - Property & Casualty|9.9|4960999936|8307999744|19.33|1.61|2.2|4.2|14261199672.0|46422999040|21.04|-0.7|0.3
+ROP|Sarasota, United States|NMS|Technology|Software - Application|16.3|1549299968|7824000000|20.91|0.56|0.53|3.3|9683159966.0|7039200256|14.33|-0.2|0.2
+SRE|San Diego, United States|NYQ|Utilities|Utilities - Diversified|7.6|2816999936|37310001152|56.11|3.61|3.15|2.58|40690401077.0|13185000448|4.37|-1.7|0.0
+BK|New York, United States|NYQ|Financial Services|Banks - Diversified|12.9|4336000000|69714001920|30.69|2.13|2.93|1.88|74917201922.0|18549000192|5.61|-1.0|0.0
+BBVA|Bilbao, Spain|NYQ|Financial Services|Banks - Diversified|21.4|9665999872|69867003904|41.41|5.6|5.15|0.75|81466203749.0|31156000768|1.72|-2.7|0.0
+JD|Beijing, China|NMS|Consumer Cyclical|Internet Retail|5.1|34894000128|87997997056|24.02|1.89|0.0|0.76|129870797210.0|1117909942272|3.14|-0.9|0.2
+ARES|Los Angeles, United States|NYQ|Financial Services|Asset Management|19.5|410195008|13147967488|182.35|2.64|2.86|4.48|13640201504.0|3884781056|1.93|-1.2|1.4
+GM|Detroit, United States|NYQ|Consumer Cyclical|Auto Manufacturers|11.0|7189000192|130946998272|7.54|1.01|4.06|0.48|139573798503.0|187442003968|6.08|-0.4|0.4
+MET|New York, United States|NYQ|Financial Services|Insurance - Life|-1.9|4225999872|64661999616|36.28|2.54|3.28|2.18|69733199464.0|70982000640|5.65|-1.2|0.0
+AFL|Columbus, United States|NYQ|Financial Services|Insurance - Life|43.0|5442999808|9863999488|20.77|2.11|2.34|2.32|16395599260.0|18926999552|9.4|-1.0|0.2
+CVS|Woonsocket, United States|NYQ|Healthcare|Healthcare Plans|3.6|4614000128|82919997440|72.68|4.1|3.08|2.66|88456797595.0|370655985664|3.62|-2.0|0.3
+NTES|Hangzhou, China|NMS|Communication Services|Electronic Gaming & Multimedia|-1.4|29697609728|12233048064|37.95|2.68|1.67|2.59|47870179740.0|105295233024|6.57|-1.2|0.0
+NGG|London, United Kingdom|NYQ|Utilities|Utilities - Regulated Electric|-6.2|1724000000|46449000448|141.75|5.69|5.26|3.51|48517800450.0|19321999360|2.6|-2.8|1.0
+TFC|Charlotte, United States|NYQ|Financial Services|Banks - Regional|6.5|-394000000|67747999744|52.26|4.58|4.59|2.08|67275199745.0|11408000000|-0.29|-2.2|0.0
+CM|Toronto, Canada|NYQ|Financial Services|Banks - Diversified|19.0|7278000128|285696000000|47.66|4.53|5.18|2.71|294429600155.0|24676999168|5.12|-2.2|0.0
+TTD|Ventura, United States|NGM|Technology|Software - Application|22.3|393076000|312215008|0.0|0.0|0.0|0.0|783906209.0|2444830976|0.78|0.0|0.5
+HLT|McLean, United States|NYQ|Consumer Cyclical|Lodging|4.5|1535000064|12003000320|9.77|0.23|0.8|0.6|13845000398.0|4745999872|6.05|-0.0|0.4
+OKE|Tulsa, United States|NYQ|Energy|Oil & Gas Midstream|33.7|3033999872|32292999168|76.6|4.26|6.92|4.12|35933799018.0|21698000896|5.01|-2.0|0.3
+SE|Singapore, Singapore|NYQ|Consumer Cyclical|Internet Retail|30.8|97273000|4403627008|0.0|0.0|0.0|0.0|4520354609.0|15486058496|0.16|0.0|0.5
+DLR|Austin, United States|NYQ|Real Estate|REIT - Specialty|4.5|561766016|18414729216|303.11|3.14|3.45|4.88|19088848442.0|5434829824|1.62|-1.5|2.6
+RCL|Miami, United States|NYQ|Consumer Cyclical|Travel Services|12.9|2876999936|20820000768|8.68|1.24|2.52|3.0|24272400695.0|16485000192|10.31|-0.5|0.4
+CARR|Palm Beach Gardens, United States|NYQ|Industrials|Building Products & Equipment|19.3|1108000000|12844999680|80.74|1.42|0.0|0.9|14174599681.0|22485999616|1.2|-0.6|0.4
+TGT|Minneapolis, United States|NYQ|Consumer Defensive|Discount Stores|1.1|4369999872|19850999808|46.87|3.71|2.33|4.48|25094999658.0|107570003968|9.15|-1.8|0.0
+CSX|Jacksonville, United States|NMS|Industrials|Railroads|-3.8|3470000128|19185000448|26.82|1.63|1.28|0.52|23349000602.0|14540000256|1.75|-0.7|0.2
+MFG|Tokyo, Japan|NYQ|Financial Services|Banks - Regional|31.0|892046999552|66227833667584|32.68|2.78|4.55|0.16|67298290067046.0|3834387103744|0.47|-1.3|0.0
+KMI|Houston, United States|NYQ|Energy|Oil & Gas Midstream|-1.3|2598000128|32398999552|97.86|4.24|6.27|1.15|35516599705.0|15100000256|1.16|-2.0|0.5
+RSG|Phoenix, United States|NYQ|Industrials|Waste Management|5.6|2043000064|12956999680|34.36|0.97|1.41|2.32|15408599760.0|16032000000|6.39|-0.4|0.0
+APD|Allentown, United States|NYQ|Basic Materials|Specialty Chemicals|-2.2|3850200064|15173900288|40.97|2.3|2.27|7.16|19794140373.0|12034700288|16.98|-1.1|0.0
+CRH|Dublin, Ireland|NYQ|Basic Materials|Building Materials|0.0|3457999872|15564000256|27.89|1.48|2.5|1.48|19713600104.0|35571998720|4.83|-0.6|0.2
+GLD|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|0.0|0.0|0.0|0.0|N/A|N/A|0.0|0.5
+ADSK|San Francisco, United States|NMS|Technology|Software - Application|11.6|1112000000|2559000064|0.0|0.0|0.48|0.0|3893400065.0|6130999808|5.03|0.0|0.5
+TEAM|Sydney, Australia|NMS|Technology|Software - Application|21.4|-346144000|1244525952|0.0|0.0|0.0|0.0|829153153.0|4794961920|-1.34|0.0|0.5
+CNI|Montreal, Canada|NYQ|Industrials|Railroads|-2.5|4448000000|21371000832|48.22|2.51|1.84|2.47|26708600834.0|17045999616|4.82|-1.2|0.0
+ECL|Saint Paul, United States|NYQ|Basic Materials|Specialty Chemicals|17.8|2112400000|7000000000|32.02|0.96|1.05|2.6|9534880003.0|15741400064|7.31|-0.4|0.0
+SPG|Indianapolis, United States|NYQ|Real Estate|REIT - Retail|3.6|2367558912|24784777216|111.57|4.47|6.16|8.4|27625847920.0|5963798016|7.1|-2.1|0.7
+FDX|Memphis, United States|NYQ|Industrials|Integrated Freight & Logistics|13.9|3883000064|0|33.72|2.13|1.63|5.52|4659600083.0|87393001472|14.99|-1.0|0.0
+BDX|Franklin Lakes, United States|NYQ|Healthcare|Medical Instruments & Supplies|9.8|1727000064|18758000640|65.49|1.74|1.41|3.98|20830400722.0|20640000000|5.83|-0.8|0.2
+CNQ|Calgary, Canada|NYQ|Energy|Oil & Gas E&P|-10.1|7594999808|11516999680|59.03|5.8|4.51|1.55|20630999449.0|35740999680|2.45|-2.8|0.0
+ET|Dallas, United States|NYQ|Energy|Oil & Gas Midstream|-4.8|4393999872|60558000128|99.61|6.83|9.7|1.3|65830799973.0|82671001600|1.24|-3.3|0.5
+SHECY|Tokyo, Japan|PNK|Basic Materials|Chemicals|5.7|546149990400|19060000768|35.08|2.2|1.9|0.33|674439989248.0|2521232048128|0.91|-1.0|0.0
+WDAY|Pleasanton, United States|NMS|Technology|Software - Application|15.0|526000000|3361999872|0.0|0.0|0.0|0.0|3993199873.0|8446000128|1.95|0.0|0.5
+COIN|New York, United States|NMS|Financial Services|Financial Data & Stock Exchanges|142.9|2577754880|4629577216|0.0|0.0|0.0|0.0|7722883075.0|6293245952|9.8|0.0|0.5
+NOC|Falls Church, United States|NYQ|Industrials|Aerospace & Defense|0.5|4174000128|18396000256|28.41|1.74|1.6|8.24|23404800420.0|41032998912|27.78|-0.8|0.2
+GSK|England, United Kingdom|NYQ|Healthcare|Drug Manufacturers - General|0.8|2575000064|16986000384|97.83|4.1|4.82|1.55|20076000461.0|31375998976|1.59|-2.0|0.5
+DEO|London, United Kingdom|NYQ|Consumer Defensive|Beverages - Wineries & Distilleries|-0.6|3595000064|22592999424|64.15|3.79|2.43|4.14|26906999505.0|20208001024|6.4|-1.8|0.2
+COF|McLean, United States|NYQ|Financial Services|Credit Services|13.5|4441999872|48543997952|20.73|1.22|1.74|2.4|53874397801.0|27395999744|10.91|-0.5|0.2
+EQNR|Stavanger, Norway|NYQ|Energy|Oil & Gas Integrated|-8.0|8805999616|30094000128|43.41|6.18|3.73|1.4|40661199666.0|102501998592|3.08|-3.0|0.0
+WMB|Tulsa, United States|NYQ|Energy|Oil & Gas Midstream|15.6|2222000128|27079000064|104.4|3.47|5.71|2.0|29745400219.0|10753000448|1.79|-1.6|0.6
+CP|Calgary, Canada|NYQ|Industrials|Railroads|2.6|3718000128|22989000704|19.1|0.7|0.78|0.53|27450600858.0|14545999872|2.69|-0.3|0.3
+BNPQY|Paris, France|OQX|Financial Services|Banks - Regional|12.7|10842999808|662972989440|47.95|6.41|5.3|2.49|675984589210.0|45640998912|5.01|-3.1|0.0
+ORLY|Springfield, United States|NMS|Consumer Cyclical|Specialty Retail|6.9|2386680064|7920849920|0.0|0.0|0.0|0.0|10784865997.0|16708478976|40.02|0.0|0.5
+SAN|Madrid, Spain|NYQ|Financial Services|Banks - Diversified|16.0|11953999872|390445006848|25.34|3.35|5.29|0.22|404789806693.0|49571999744|0.79|-1.6|0.2
+AJG|Rolling Meadows, United States|NYQ|Financial Services|Insurance Brokers|11.4|1462700032|13576999936|36.92|0.76|1.18|2.6|15332239978.0|10927399936|6.41|-0.3|0.0
+EMR|Saint Louis, United States|NYQ|Industrials|Specialty Industrial Machinery|1.4|2034000000|8256000000|59.23|1.8|2.33|2.11|10696800002.0|17550000128|3.46|-0.8|0.0
+BMO|Montreal, Canada|NYQ|Financial Services|Banks - Diversified|17.2|7751000064|244285997056|58.44|4.4|4.45|4.47|253587197137.0|30243999744|7.2|-2.1|0.0
+MMM|Saint Paul, United States|NYQ|Industrials|Conglomerates|0.1|4008999936|13658999808|49.72|1.9|4.28|2.92|18469799734.0|24575000576|6.9|-0.9|0.0
+EOG|Houston, United States|NYQ|Energy|Oil & Gas E&P|-6.4|6402999808|5792000000|32.36|3.24|2.51|3.9|13475599773.0|23477999616|11.39|-1.5|0.0
+TDG|Cleveland, United States|NYQ|Industrials|Aerospace & Defense|12.1|1644000000|25109999616|0.0|0.0|0.0|0.0|27082799617.0|8157000192|27.94|0.0|0.5
+TOELY|Tokyo, Japan|PNK|Technology|Semiconductor Equipment & Materials|41.2|526106001408|0|42.96|2.29|2.33|1.66|631327201691.0|2323459080192|3.86|-1.1|0.0
+GD|Reston, United States|NYQ|Industrials|Aerospace & Defense|14.3|3782000128|10675999744|41.67|2.24|2.31|5.68|15214399904.0|47715999744|13.47|-1.0|0.0
+DASH|San Francisco, United States|NMS|Communication Services|Internet Content & Information|24.8|123000000|536000000|0.0|0.0|0.0|0.0|683600001.0|10721999872|0.29|0.0|0.5
+BNS|Toronto, Canada|NYQ|Financial Services|Banks - Diversified|-8.3|6245000192|289741996032|87.42|6.04|5.72|2.98|297235996264.0|28860000256|3.3|-2.9|0.4
+SCCO|Phoenix, United States|NYQ|Basic Materials|Copper|21.3|3376800000|6935099904|47.9|3.23|4.31|2.8|10987259906.0|11433400320|4.27|-1.5|0.0
+TRI|Toronto, Canada|NMS|Industrials|Specialty Business Services|5.2|2190000128|3052000000|44.54|1.33|1.56|2.38|5680000156.0|7257999872|4.78|-0.6|0.0
+MCK|Irving, United States|NYQ|Healthcare|Medical Distribution|17.8|2825999872|9790000128|12.2|0.44|0.68|2.84|13181199978.0|344583012352|21.76|-0.1|0.3
+ZTS|Parsippany, United States|NYQ|Healthcare|Drug Manufacturers - Specialty & Generic|4.7|2486000128|6829000192|31.59|1.17|0.71|2.0|9812200348.0|9255999488|5.45|-0.5|0.0
+CL|New York, United States|NYQ|Consumer Defensive|Household & Personal Products|-0.1|2888999936|8512000000|56.41|2.15|2.3|2.0|11978799925.0|20100999168|3.44|-1.0|0.0
+ITW|Glenview, United States|NYQ|Industrials|Specialty Industrial Machinery|-1.3|3488000000|8078000128|49.53|2.29|2.22|6.0|12263600135.0|15898000384|11.41|-1.1|0.0
+HCA|Nashville, United States|NYQ|Healthcare|Medical Care Facilities|5.7|5760000000|45236998144|12.0|0.93|0.82|2.88|52148998148.0|70602997760|22.06|-0.4|0.3
+CTAS|Cincinnati, United States|NMS|Industrials|Specialty Business Services|7.8|1706269056|2846664960|35.08|0.75|0.96|1.56|4894187829.0|9940477952|4.09|-0.3|0.0
+FTNT|Sunnyvale, United States|NMS|Technology|Software - Infrastructure|17.3|1745200000|1073400000|0.0|0.0|0.0|0.0|3167640001.0|5955800064|2.26|0.0|0.5
+USB|Minneapolis, United States|NYQ|Financial Services|Banks - Regional|3.2|5909000192|80099999744|52.24|4.33|4.17|2.0|87190799975.0|25097000960|3.66|-2.1|0.0
+SNPS|Sunnyvale, United States|NMS|Technology|Software - Infrastructure|-3.7|1299943040|665036992|0.0|0.0|0.0|0.0|2224968640.0|6071761920|8.37|0.0|0.5
+MAR|Bethesda, United States|NMS|Consumer Cyclical|Lodging|2.9|2375000064|15345000448|28.93|0.91|1.29|2.52|18195000528.0|6617999872|8.12|-0.4|0.2
+AON|Dublin, Ireland|NYQ|Financial Services|Insurance Brokers|22.9|2654000128|17891999744|21.14|0.66|0.77|2.7|21076799901.0|15697999872|12.34|-0.2|0.2
+PNC|Pittsburgh, United States|NYQ|Financial Services|Banks - Regional|5.5|5496000000|66710999040|45.85|3.38|3.57|6.4|73306199047.0|20765999104|13.08|-1.6|0.0
+MSI|Chicago, United States|NYQ|Technology|Communication Equipment|5.7|1576999936|6551000064|43.66|1.02|1.26|4.36|8443399993.0|10817000448|9.14|-0.4|0.0
+RACE|Maranello, Italy|NYQ|Consumer Cyclical|Auto Manufacturers|13.9|1521876992|3351887872|28.88|0.67|0.6|3.11|5178140267.0|6676667904|8.73|-0.2|0.2
+IBKR|Greenwich, United States|NMS|Financial Services|Capital Markets|22.4|755000000|16542000128|12.27|0.5|0.58|1.0|17448000130.0|5200000000|6.74|-0.2|0.3
+PBR|Rio De Janeiro, Brazil|NYQ|Energy|Oil & Gas Integrated|-9.7|36606001152|373466988544|242.68|21.42|20.28|2.82|417394189921.0|490828988416|1.14|-10.6|2.0
+CI|Bloomfield, United States|NYQ|Healthcare|Healthcare Plans|28.4|3433999872|31971999744|46.2|1.94|1.19|6.04|36092799598.0|247121002496|12.01|-0.9|0.0
+WELL|Toledo, United States|NYQ|Real Estate|REIT - Healthcare Facilities|28.6|951680000|16771350528|160.0|1.71|3.35|2.68|17913366532.0|7991117824|1.57|-0.8|1.2
+CEG|Baltimore, United States|NMS|Utilities|Utilities - Renewable|-7.1|3748999936|8995000320|11.86|0.67|0.0|1.55|13493800245.0|23567998976|11.86|-0.2|0.3
+REGN|Tarrytown, United States|NMS|Healthcare|Biotechnology|10.3|4412599808|2938800128|0.0|0.51|0.0|3.52|8233919903.0|14202000384|37.83|-0.2|0.5
+MDLZ|Chicago, United States|NMS|Consumer Defensive|Confectioners|3.1|4610999808|18544001024|52.34|2.86|2.24|1.88|24077200795.0|36441001984|3.4|-1.3|0.0
+BP|London, United Kingdom|NYQ|Energy|Oil & Gas Integrated|-12.3|370000000|71547002880|1316.38|6.04|5.85|1.92|71991002890.0|187386003456|0.14|-2.9|12.7
+WM|Houston, United States|NYQ|Industrials|Waste Management|13.0|2745999872|24939999232|44.05|1.41|1.61|3.3|28235199082.0|22062999552|6.69|-0.6|0.0
+CMG|Newport Beach, United States|NYQ|Consumer Cyclical|Restaurants|13.1|1534109952|4540618240|0.0|0.0|0.0|0.0|6381550183.0|11313853440|1.08|0.0|0.5
+BTI|London, United Kingdom|NYQ|Consumer Defensive|Tobacco|-2.3|3025999872|36949999616|171.81|7.53|7.85|3.0|40581199464.0|25866999808|1.71|-3.7|1.3
+PH|Cleveland, United States|NYQ|Industrials|Specialty Industrial Machinery|-1.6|3158499072|9041241088|26.31|1.0|1.42|6.52|12831439983.0|19907747840|23.25|-0.4|0.2
+CME|Chicago, United States|NMS|Financial Services|Financial Data & Stock Exchanges|6.0|3481499904|3821400064|107.55|4.2|3.37|10.8|7999199961.0|6120300032|9.47|-2.0|0.6
+DUK|Charlotte, United States|NYQ|Utilities|Utilities - Regulated Electric|2.7|4392000000|85437997056|72.63|3.52|4.04|4.18|90708397060.0|29934000128|5.59|-1.7|0.3
+MSTR|Tysons Corner, United States|NMS|Technology|Software - Application|-3.0|-1166660992|7258462208|0.0|0.0|0.0|0.0|5858469018.0|463456000|-6.66|0.0|0.5
+CDNS|San Jose, United States|NMS|Technology|Software - Application|26.9|1055484032|2626629888|0.0|0.0|0.0|0.0|3893210727.0|4641264128|3.84|0.0|0.5
+DELL|Round Rock, United States|NYQ|Technology|Computer Hardware|7.2|4592000000|24566999040|27.9|2.2|0.0|2.1|30077399042.0|95567003648|6.28|-1.0|0.2
+APH|Wallingford, United States|NYQ|Technology|Electronic Components|29.8|2424000000|7280200192|28.65|1.04|0.93|0.66|10189000193.0|15222700032|1.91|-0.4|0.2
+RELX|London, United Kingdom|NYQ|Industrials|Specialty Business Services|2.8|1934000000|6544000000|58.73|1.64|2.11|0.8|8864800000.0|9434000384|1.31|-0.7|0.0
+ABNB|San Francisco, United States|NMS|Consumer Cyclical|Travel Services|11.8|2648000000|2294000128|0.0|0.0|0.0|0.0|5471600129.0|11102000128|4.13|0.0|0.5
+SHW|Cleveland, United States|NYQ|Basic Materials|Specialty Chemicals|0.9|2681400064|12102599680|27.11|0.89|0.84|3.16|15320279761.0|23098499072|10.52|-0.4|0.2
+TT|Swords, Ireland|NYQ|Industrials|Building Products & Equipment|10.2|2592600064|5384999936|29.6|1.09|1.42|3.76|8496120018.0|19838199808|11.26|-0.5|0.2
+AMT|Boston, United States|NYQ|Real Estate|REIT - Specialty|-8.6|3233299968|43954098176|118.38|3.09|2.51|6.48|47834058145.0|10127200256|6.83|-1.5|0.7
+ICE|Atlanta, United States|NYQ|Financial Services|Financial Data & Stock Exchanges|5.5|2753999872|20739999744|37.66|1.11|1.24|1.92|24044799593.0|9278999552|4.69|-0.5|0.0
+CFRUY|Bellevue, Switzerland|PNK|Consumer Cyclical|Luxury Goods|-1.4|3391000064|17386999808|49.78|1.58|1.85|0.32|21456199884.0|20472000512|0.6|-0.7|0.0
+ELV|Indianapolis, United States|NYQ|Healthcare|Healthcare Plans|6.6|5980000256|34347999232|25.39|1.73|1.18|6.84|41523999548.0|176810000384|25.78|-0.8|0.2
+MCO|New York, United States|NYQ|Financial Services|Financial Data & Stock Exchanges|13.0|2058000000|7914999808|30.2|0.75|0.81|3.76|10384599813.0|7088000000|10.78|-0.3|0.0
+BN|Toronto, Canada|NYQ|Financial Services|Asset Management|-18.0|473000000|234791993344|103.23|0.64|1.05|0.36|235359593344.0|88734998528|0.29|-0.2|0.6
+KLAC|Milpitas, United States|NMS|Technology|Semiconductor Equipment & Materials|23.7|3208365056|6072612864|25.46|0.98|1.16|6.8|9922650940.0|10846956544|24.05|-0.4|0.2
+PYPL|San Jose, United States|NMS|Financial Services|Credit Services|4.2|4147000064|11857000448|0.0|0.0|0.0|0.0|16833400525.0|31797000192|3.86|0.0|0.5
+CRWD|Austin, United States|NMS|Technology|Software - Infrastructure|28.5|126710000|791950976|0.0|0.0|0.0|0.0|944002977.0|3740421120|0.51|0.0|0.5
+INTC|Santa Clara, United States|NMS|Technology|Semiconductors|-7.4|-18755999744|50706001920|208.33|2.24|2.84|0.5|28198802228.0|53100998656|-4.11|-1.0|1.6
+MO|Richmond, United States|NYQ|Consumer Defensive|Tobacco|1.6|11235999744|24925999104|61.16|7.12|8.02|4.08|38409198799.0|20444000256|6.42|-3.5|0.2
+SO|Atlanta, United States|NYQ|Utilities|Utilities - Regulated Electric|4.9|4400999936|66276999168|71.68|3.17|3.95|2.88|71558199094.0|26723999744|3.95|-1.5|0.3
+EQIX|Redwood City, United States|NMS|Real Estate|REIT - Specialty|1.4|815000000|18961000448|200.47|2.06|1.69|18.76|19939000473.0|8173000192|8.46|-0.9|1.6
+MELI|Montevideo, Uruguay|NMS|Consumer Cyclical|Internet Retail|37.4|1911000064|6879000064|0.0|0.0|0.34|0.0|9172200142.0|20777000960|37.49|0.0|0.5
+TD|Toronto, Canada|NYQ|Financial Services|Banks - Diversified|1.0|8272999936|498774999040|87.08|4.92|4.4|2.93|508702598965.0|53368000512|3.22|-2.4|0.4
+AIQUY|Paris, France|PNK|Basic Materials|Specialty Chemicals|0.4|3305999872|12448000000|50.65|1.67|1.87|0.63|16415199846.0|27057999872|1.21|-0.7|0.0
+INFY|Bengaluru, India|NYQ|Technology|Information Technology Services|5.9|3304000000|960000000|73.86|2.51|2.21|0.5|4924800000.0|19111999488|0.78|-1.2|0.3
+ENB|Calgary, Canada|NYQ|Energy|Oil & Gas Midstream|43.5|5053000192|103007002624|156.41|6.11|6.95|2.61|109070602856.0|53473001472|1.58|-3.0|1.1
+SPOT|Luxembourg City, Luxembourg|NYQ|Communication Services|Internet Content & Information|15.6|1138000000|2076000000|0.0|0.0|0.0|0.0|3441600001.0|15672999936|5.55|0.0|0.5
+SMFG|Tokyo, Japan|NYQ|Financial Services|Banks - Diversified|7.2|1216480018432|60373717745664|29.89|2.65|4.23|0.41|61833493767782.0|4244871053312|1.31|-1.2|0.2
+APO|New York, United States|NYQ|Financial Services|Asset Management|-52.6|4328999936|30360999936|24.8|1.28|2.98|1.85|35555799860.0|25888000000|6.99|-0.6|0.2
+LRCX|Fremont, United States|NMS|Technology|Semiconductor Equipment & Materials|16.4|4293570048|4982283776|26.14|1.21|1.12|0.92|10134567835.0|16209088512|3.32|-0.5|0.2
+RIO|London, United Kingdom|NYQ|Basic Materials|Other Industrial Metals & Mining|-1.9|11552000000|14222000128|61.51|6.58|7.82|4.02|28084400130.0|53658001408|7.2|-3.2|0.2
+GEV|Cambridge, United States|NYQ|Utilities|Utilities - Renewable|5.1|1552000000|1061000000|4.48|0.32|0.0|1.0|2923400002.0|34935001088|5.54|-0.1|0.4
+BUD|Leuven, Belgium|NYQ|Consumer Defensive|Beverages - Brewers|2.5|5855000064|72320000000|30.5|1.73|1.51|1.05|79346000077.0|59768000512|2.86|-0.8|0.0
+PLD|San Francisco, United States|NYQ|Real Estate|REIT - Industrial|16.0|3725754112|31494567936|95.76|3.27|2.49|4.04|35965472875.0|8555232768|3.96|-1.5|0.5
+MU|Boise, United States|NMS|Technology|Semiconductors|84.3|3881999872|14442999808|13.18|0.51|0.33|0.46|19101399656.0|29094000640|3.51|-0.2|0.3
+UBS|Zurich, Switzerland|NYQ|Financial Services|Banks - Diversified|7.6|5085000192|540944007168|46.05|2.62|2.4|0.9|547046007398.0|48058998784|1.47|-1.2|0.0
+MRVL|Wilmington, United States|NMS|Technology|Semiconductors|6.9|-1477900032|4341300224|11.01|0.28|0.46|0.24|2567820186.0|5376399872|-1.75|-0.1|0.3
+MDT|Galway, Ireland|NYQ|Healthcare|Medical Devices|2.5|4260000000|26606999552|85.06|2.97|2.74|2.8|31718999555.0|33198999552|3.24|-1.4|0.4
+MMC|New York, United States|NYQ|Financial Services|Insurance Brokers|9.2|4060000000|21862000640|37.29|1.36|1.41|3.26|26734000644.0|24458000384|8.1|-0.6|0.0
+IBN|Mumbai, India|NYQ|Financial Services|Banks - Regional|29.9|491985043456|2170071941120|14.61|0.86|1.01|0.24|2760453993268.0|1755256586240|1.55|-0.3|0.3
+SBUX|Seattle, United States|NMS|Consumer Cyclical|Restaurants|-0.3|3517299968|25903900672|74.84|2.11|2.08|2.44|30124660636.0|36148699136|3.01|-1.0|0.3
+UPS|Atlanta, United States|NYQ|Industrials|Integrated Freight & Logistics|1.5|5782000128|25652000768|96.59|5.5|3.37|6.56|32590400928.0|91069997056|6.61|-2.7|0.5
+VRTX|Boston, United States|NMS|Healthcare|Biotechnology|15.7|-535600000|1749500032|0.0|0.0|0.0|0.0|1106780033.0|11020099584|-2.09|0.0|0.5
+ADI|Wilmington, United States|NMS|Technology|Semiconductors|-3.6|1563862016|7618966016|117.57|1.73|1.76|3.96|9495600440.0|9337626624|3.1|-0.8|0.7
+NKE|Beaverton, United States|NYQ|Consumer Cyclical|Footwear & Accessories|-7.7|4886000128|12065000448|46.6|2.04|1.15|1.6|17928200603.0|48978001920|3.19|-0.9|0.0
+CB|Zurich, Switzerland|NYQ|Financial Services|Insurance - Property & Casualty|9.1|9272000512|20715999232|15.81|1.26|1.71|3.64|31842399851.0|55881998336|22.28|-0.5|0.3
+LMT|Bethesda, United States|NYQ|Industrials|Aerospace & Defense|-1.3|5336000000|21418000384|57.15|2.92|2.63|13.2|27821200400.0|71042998272|22.17|-1.4|0.0
+GILD|Foster City, United States|NMS|Healthcare|Drug Manufacturers - General|6.4|480000000|27321999360|810.53|2.72|3.98|3.16|27897999369.0|28753999872|0.38|-1.3|7.7
+DE|Moline, United States|NYQ|Industrials|Farm & Heavy Construction Machinery|-30.2|6217999872|65362001920|26.71|1.39|1.27|6.48|72823601774.0|47855001600|22.23|-0.6|0.2
+BMY|Princeton, United States|NYQ|Healthcare|Drug Manufacturers - General|7.5|-8947999744|51256999936|59.84|4.14|3.5|2.48|40519400245.0|48299999232|-4.38|-2.0|0.0
+APP|Palo Alto, United States|NMS|Technology|Software - Application|44.0|1577058944|3556404992|0.0|0.0|0.0|0.0|5448875726.0|4709248000|4.38|0.0|0.5
+FI|Milwaukee, United States|NYQ|Technology|Information Technology Services|6.8|3131000064|25610000384|0.0|0.0|0.0|0.0|29367200461.0|20455999488|5.06|0.0|0.5
+RTNTF|London, United Kingdom|PNK|Basic Materials|Other Industrial Metals & Mining|-1.9|11552000000|14222000128|61.08|5.82|6.52|4.03|28084400131.0|53658001408|7.07|-2.8|0.2
+ADP|Roseland, United States|NMS|Technology|Software - Application|8.1|3933700096|4377399808|59.85|1.93|2.01|6.16|9097839930.0|19903399936|9.43|-0.9|0.0
+PANW|Santa Clara, United States|NMS|Technology|Software - Infrastructure|14.3|1254499968|970400000|0.0|0.0|0.0|0.0|2475799962.0|8570500096|1.77|0.0|0.5
+SNY|Paris, France|NMS|Healthcare|Drug Manufacturers - General|-3.1|5496000000|17912999936|85.7|3.6|3.72|2.04|24508199937.0|44286001152|2.33|-1.7|0.4
+BHP|Melbourne, Australia|NYQ|Basic Materials|Other Industrial Metals & Mining|-7.6|11386000384|21710999552|65.15|5.08|7.3|2.48|35374200014.0|53971001344|4.48|-2.5|0.2
+TTFNF|Courbevoie, France|PNK|Energy|Oil & Gas Integrated|-14.0|15758000128|54221000704|50.08|6.07|5.92|3.65|73130600859.0|195610001408|6.6|-2.9|0.0
+BA|Arlington, United States|NYQ|Industrials|Aerospace & Defense|-30.8|-11875000320|55957999616|0.0|0.0|2.48|0.0|41707999232.0|66517000192|-17.16|0.0|0.5
+EADSY|Leiden, Netherlands|PNK|Industrials|Aerospace & Defense|8.0|4232000000|14279000064|33.38|1.03|1.82|0.48|19357400064.0|69230002176|1.38|-0.4|0.0
+SONY|Tokyo, Japan|NYQ|Technology|Consumer Electronics|17.7|1132877971456|4378092896256|9.76|0.5|0.59|0.12|5737546462004.0|13807786131456|1.21|-0.2|0.4
+COP|Houston, United States|NYQ|Energy|Oil & Gas E&P|-3.1|9217999872|25347999744|39.95|3.37|2.7|3.12|36409599593.0|56449998848|7.64|-1.6|0.0
+C|New York, United States|NYQ|Financial Services|Banks - Diversified|13.7|11459999744|641870987264|36.64|2.9|3.78|2.24|655622986959.0|71363002368|5.58|-1.4|0.0
+BSX|Marlborough, United States|NYQ|Healthcare|Medical Devices|22.4|1852999936|11228000256|0.0|0.0|0.0|0.0|13451600180.0|16746999808|1.23|0.0|0.5
+PDD|Dublin, Ireland|NMS|Consumer Cyclical|Internet Retail|44.3|108268183552|10236830720|0.0|0.0|0.0|0.0|140158650983.0|372107018240|10.16|0.0|0.5
+ETN|Dublin, Ireland|NYQ|Industrials|Specialty Industrial Machinery|4.6|3793999872|9985000448|39.58|1.49|1.95|4.16|14537800299.0|24878000128|9.52|-0.7|0.0
+SCHW|Westlake, United States|NYQ|Financial Services|Capital Markets|17.0|5478000128|59010998272|33.44|1.38|1.36|1.08|65584598427.0|19605999616|2.88|-0.6|0.0
+TJX|Framingham, United States|NYQ|Consumer Cyclical|Apparel Retail|-0.4|4864000000|12778000384|34.21|1.21|1.29|1.5|18614800385.0|56360001536|4.2|-0.5|0.0
+UBER|San Francisco, United States|NYQ|Technology|Software - Application|20.4|9856000000|11436000256|0.0|0.0|0.0|0.0|23263200257.0|43977998336|4.61|0.0|0.5
+MUFG|Tokyo, Japan|NYQ|Financial Services|Banks - Diversified|22.0|1779144065024|113089475248128|25.87|2.28|3.86|0.29|115224448126157.0|6199269916672|1.09|-1.0|0.2
+SYK|Portage, United States|NYQ|Healthcare|Medical Devices|10.7|2992999936|14119999488|41.75|0.85|1.03|3.36|17711599415.0|22595000320|7.68|-0.3|0.0
+AMAT|Santa Clara, United States|NMS|Technology|Semiconductor Equipment & Materials|6.8|6343000064|6588000256|19.87|1.05|0.9|1.6|14199600335.0|27634999296|7.69|-0.4|0.3
+LOW|Mooresville, United States|NYQ|Consumer Cyclical|Home Improvement Retail|-0.3|6940000256|39678001152|37.2|1.87|1.68|4.6|48006001464.0|83673997312|11.92|-0.8|0.0
+KKR|New York, United States|NYQ|Financial Services|Asset Management|-23.8|3076244992|51336966144|21.04|0.53|1.03|0.7|55028460135.0|26421798912|2.98|-0.2|0.2
+AMGN|Thousand Oaks, United States|NMS|Healthcare|Drug Manufacturers - General|10.9|4089999872|60878999552|119.05|3.06|2.99|9.52|65786999410.0|33423998976|7.59|-1.4|0.7
+UNP|Omaha, United States|NYQ|Industrials|Railroads|-0.6|6746999808|32462999552|47.61|2.18|2.15|5.36|40559399328.0|24249999360|10.89|-1.0|0.0
+SHOP|Ottawa, Canada|NYQ|Technology|Software - Application|31.2|2019000064|1126000000|0.0|0.0|0.0|0.0|3548800078.0|8880000000|1.48|0.0|0.5
+PGR|Mayfield Village, United States|NYQ|Financial Services|Insurance - Property & Casualty|20.0|8463000064|6893000192|2.08|1.72|1.54|4.9|17048600275.0|75343003648|14.3|-0.8|0.4
+CMCSA|Philadelphia, United States|NMS|Communication Services|Telecom Services|2.1|16192000000|105413001216|22.46|3.67|2.46|1.32|124843401216.0|123731001344|4.09|-1.7|0.2
+ANET|Santa Clara, United States|NYQ|Technology|Computer Hardware|25.3|2852054016|59642000|0.0|0.0|0.0|0.0|3482106820.0|7003146240|2.21|0.0|0.5
+ARM|Cambridge, United Kingdom|NMS|Technology|Semiconductors|19.3|806000000|271000000|0.0|0.0|0.0|0.0|1238200001.0|3694000128|0.77|0.0|0.5
+HON|Charlotte, United States|NMS|Industrials|Conglomerates|6.9|5704999936|32224999424|50.17|2.13|2.01|4.52|39070999352.0|38498000896|8.55|-1.0|0.0
+FMX|Monterrey, Mexico|NYQ|Consumer Defensive|Beverages - Brewers|27.3|13386000384|256290996224|51.06|4.25|2.04|3.97|272354196688.0|781585022976|5.42|-2.0|0.0
+NEE|Juno Beach, United States|NYQ|Utilities|Utilities - Regulated Electric|-21.7|6945999872|83559997440|61.13|3.16|2.29|2.27|91895197288.0|24753000448|3.34|-1.5|0.2
+PFE|New York, United States|NYQ|Healthcare|Drug Manufacturers - General|21.9|8019999744|67418001408|119.15|6.55|4.4|1.72|77042001101.0|63627001856|1.38|-3.2|0.7
+RTX|Arlington, United States|NYQ|Industrials|Aerospace & Defense|8.5|4774000128|43259998208|69.86|1.88|2.6|2.52|48988798364.0|80738000896|3.41|-0.8|0.2
+SPGI|New York, United States|NYQ|Financial Services|Financial Data & Stock Exchanges|14.0|3852000000|12042000384|29.47|0.73|0.82|3.84|16664400389.0|14208000000|12.04|-0.3|0.2
+BLK|New York, United States|NYQ|Financial Services|Asset Management|22.6|6368999936|14222000128|48.56|2.16|2.41|20.84|21864800078.0|20406999040|41.4|-1.0|0.0
+HDB|Mumbai, India|NYQ|Financial Services|Banks - Regional|-8.7|695797481472|6534742409216|21.61|1.15|0.58|0.7|7369699386983.0|2702592180224|3.01|-0.5|0.2
+BKNG|Norwalk, United States|NMS|Consumer Cyclical|Travel Services|14.4|5881999872|17236000768|20.27|0.78|0.0|38.4|24294400664.0|23739000832|170.95|-0.3|0.2
+T|Dallas, United States|NYQ|Communication Services|Telecom Services|0.9|10746000384|145903992832|74.5|4.0|7.04|1.11|158799193293.0|122336002048|1.41|-1.9|0.3
+DHR|Washington, United States|NYQ|Healthcare|Diagnostics & Research|2.1|3899000064|17146000384|20.42|0.62|0.37|1.28|21824800462.0|23875000320|5.29|-0.2|0.2
+RY|Toronto, Canada|NYQ|Financial Services|Banks - Diversified|23.8|17397000192|449852014592|46.38|3.53|3.87|4.13|470728414826.0|57129000960|8.2|-1.7|0.0
+VZ|New York, United States|NYQ|Communication Services|Telecom Services|1.6|17506000896|171694997504|64.86|6.18|5.67|2.71|192702198580.0|134787997696|4.05|-3.0|0.2
+TXN|Dallas, United States|NMS|Technology|Semiconductors|-1.7|4775000064|14376999936|101.15|2.8|2.64|5.44|20107000019.0|15640999936|5.22|-1.3|0.6
+QCOM|San Diego, United States|NMS|Technology|Semiconductors|17.5|10478999552|14577000448|36.14|2.21|2.14|3.4|27151799914.0|40696000512|9.31|-1.0|0.0
+CAT|Irving, United States|NYQ|Industrials|Farm & Heavy Construction Machinery|-5.0|10791999488|39011000320|24.58|1.7|2.08|5.64|51961399712.0|64809000960|21.7|-0.8|0.2
+INTU|Mountain View, United States|NMS|Technology|Software - Application|41.0|3036999936|0|36.3|0.69|0.6|4.16|3644399929.0|17166999552|10.65|-0.3|0.0
+HSBC|London, United Kingdom|NYQ|Financial Services|Banks - Diversified|57.3|22916999168|688553000960|49.11|11.93|6.08|7.2|716053399966.0|61253001216|6.21|-5.9|0.0
+PLTR|Denver, United States|NMS|Technology|Software - Infrastructure|36.0|462190016|239219008|0.0|0.0|0.0|0.0|793847028.0|2865507072|0.19|0.0|0.5
+GS|New York, United States|NYQ|Financial Services|Capital Markets|25.9|13475000320|747975016448|28.37|1.98|2.3|12.0|764145016847.0|52164001792|38.94|-0.9|0.2
+GE|Evendale, United States|NYQ|Industrials|Aerospace & Defense|14.3|6647000064|20377999360|18.39|0.71|0.39|1.44|28354399439.0|38701998080|6.0|-0.3|0.3
+PM|Stamford, United States|NYQ|Consumer Defensive|Tobacco|7.3|7033999872|46351998976|88.2|3.4|5.26|5.4|54792798828.0|37878001664|5.82|-1.6|0.4
+ADBE|San Jose, United States|NMS|Technology|Software - Application|11.1|5560000000|6056000000|0.0|0.0|0.12|0.0|12728000001.0|21504999424|12.49|0.0|0.5
+ISRG|Sunnyvale, United States|NMS|Healthcare|Medical Instruments & Supplies|25.2|2322599936|146000000|0.0|0.0|0.0|0.0|2933119924.0|8352099840|6.3|0.0|0.5
+NVS|Basel, Switzerland|NYQ|Healthcare|Drug Manufacturers - General|15.1|11941000192|31401000960|63.71|3.5|3.64|3.87|45730201194.0|51721998336|5.92|-1.7|0.2
+SHEL|London, United Kingdom|NYQ|Energy|Oil & Gas Integrated|-15.8|16092999680|77078003712|54.39|4.31|4.47|2.86|96389603329.0|284312010752|5.04|-2.1|0.0
+LIN|Woking, United Kingdom|NMS|Basic Materials|Specialty Chemicals|-0.2|6565000192|22609000448|40.82|1.3|1.38|6.0|30487000686.0|33005000704|13.61|-0.6|0.0
+ABT|North Chicago, United States|NYQ|Healthcare|Medical Devices|7.2|13351000064|15274999808|28.8|1.68|1.66|2.36|31296199887.0|41949999104|7.5|-0.8|0.2
+DIS|Burbank, United States|NYQ|Communication Services|Entertainment|4.8|5615000064|45307998208|30.84|0.89|1.38|1.0|52045998286.0|92501999616|2.98|-0.4|0.0
+AMD|Santa Clara, United States|NMS|Technology|Semiconductors|24.2|1640999936|2320999936|0.0|0.0|0.0|0.0|4290199860.0|25784999936|1.03|0.0|0.5
+MS|New York, United States|NYQ|Financial Services|Capital Markets|24.9|12800000000|418580987904|44.65|2.87|3.0|3.7|433940987908.0|61496999936|7.5|-1.3|0.0
+BABA|Hangzhou, China|NYQ|Consumer Cyclical|Internet Retail|7.6|120358002688|264301002752|14.58|1.53|0.0|2.0|408730605980.0|981767028736|6.79|-0.7|0.3
+QQQ|N/A, N/A|NGM|N/A|N/A|0.0|0|0|0.0|0.54|0.0|0.0|0.0|N/A|N/A|-0.2|0.5
+TMO|Waltham, United States|NYQ|Healthcare|Diagnostics & Research|4.7|6335000064|32832000000|9.44|0.33|0.22|1.72|40434000079.0|42879000576|16.32|-0.1|0.4
+IBM|Armonk, United States|NYQ|Technology|Information Technology Services|1.0|6015000064|58396000256|103.89|2.67|4.6|6.68|65614000341.0|62753001472|6.51|-1.2|0.6
+AZN|Cambridge, United Kingdom|NMS|Healthcare|Drug Manufacturers - General|23.8|7034999808|30460000256|66.0|2.04|2.3|1.55|38902000027.0|54072999936|2.29|-0.9|0.2
+PEP|Purchase, United States|NMS|Consumer Defensive|Beverages - Non-Alcoholic|-0.2|9578000384|47751000064|76.69|3.47|2.8|5.42|59244600530.0|91853996032|6.88|-1.6|0.3
+MCD|Chicago, United States|NYQ|Consumer Cyclical|Restaurants|-0.3|8223000064|51988000768|59.53|2.33|2.25|7.08|61855600853.0|25920000000|11.44|-1.1|0.0
+AXP|New York, United States|NYQ|Financial Services|Credit Services|10.6|9994999808|55482998784|19.99|0.95|1.25|2.8|67476998557.0|60764000256|13.44|-0.4|0.3
+BX|New York, United States|NYQ|Financial Services|Asset Management|118.4|2776507904|13362464768|95.3|2.49|3.43|3.95|16694274259.0|12662587392|3.44|-1.2|0.5
+NOW|Santa Clara, United States|NYQ|Technology|Software - Application|21.3|1424999936|2278000128|0.0|0.0|0.0|0.0|3988000052.0|10983999488|6.8|0.0|0.5
+ACN|Dublin, Ireland|NYQ|Technology|Information Technology Services|9.0|7570236928|8146397184|44.84|1.72|1.36|5.92|17230681505.0|66361704448|11.96|-0.8|0.0
+CSCO|San Jose, United States|NMS|Technology|Communication Equipment|9.4|9187000320|32422000640|70.18|2.58|3.04|1.64|43446401025.0|54175997952|2.27|-1.2|0.3
+WFC|San Francisco, United States|NYQ|Financial Services|Banks - Diversified|0.5|18606000128|302642003968|27.93|2.08|2.93|1.6|324969204123.0|77962002432|5.11|-0.9|0.2
+MRK|Rahway, United States|NYQ|Healthcare|Drug Manufacturers - General|6.8|17116999680|38270001152|46.29|3.48|2.93|3.24|58810400771.0|64168001536|6.7|-1.6|0.0
+TMUS|Bellevue, United States|NMS|Communication Services|Telecom Services|6.8|11338999808|114958000128|29.3|1.29|0.0|3.52|128564799902.0|81399996416|9.37|-0.6|0.2
+TM|Toyota, Japan|NYQ|Consumer Cyclical|Auto Manufacturers|2.9|5098080043008|39579683913728|21.06|2.83|2.74|5.2|45697379965343.0|46746151419904|24.89|-1.3|0.2
+CVX|Houston, United States|NYQ|Energy|Oil & Gas Integrated|8.6|17660999680|29610999808|67.08|4.47|4.43|6.84|50804199431.0|195567992832|9.65|-2.1|0.2
+KO|Atlanta, United States|NYQ|Consumer Defensive|Beverages - Non-Alcoholic|6.4|10631000064|46656999424|78.86|2.82|3.02|2.04|59414199502.0|47061000192|2.39|-1.3|0.3
+RCIT|Las Vegas, United States|PNK|Industrials|Specialty Industrial Machinery|0.0|-49766|560829|0.0|0.0|0.0|0.0|501110.0|N/A|-0.0|0.0|0.5
+ASML|Veldhoven, Netherlands|NMS|Technology|Semiconductor Equipment & Materials|28.0|7571599872|3677299968|32.54|1.1|0.81|7.68|12763219824.0|28262899712|20.26|-0.5|0.0
+SAP|Walldorf, Germany|NYQ|Technology|Software - Application|10.7|3124000000|10152999936|83.1|0.85|1.54|2.39|13901799939.0|34176000000|2.73|-0.3|0.4
+CRM|San Francisco, United States|NYQ|Technology|Software - Application|7.6|6197000192|11392000000|25.16|0.55|0.0|1.6|18828400233.0|37895000064|6.24|-0.2|0.2
+ABBV|North Chicago, United States|NYQ|Healthcare|Drug Manufacturers - General|5.6|4238000128|68018999296|259.41|3.1|4.04|6.56|73104599458.0|56334000128|2.35|-1.5|2.1
+BAC|Charlotte, United States|NYQ|Financial Services|Banks - Diversified|6.4|25503000576|717446971392|31.15|2.28|2.45|1.04|748050572084.0|96066002944|3.01|-1.0|0.0
+JNJ|New Brunswick, United States|NYQ|Healthcare|Drug Manufacturers - General|5.3|14065999872|37833998336|84.8|2.97|2.75|4.96|54713198188.0|88820998144|5.72|-1.4|0.4
+NFLX|Los Gatos, United States|NMS|Communication Services|Entertainment|16.0|8711630848|17994973184|0.0|0.0|0.0|0.0|28448930202.0|39000965120|19.84|0.0|0.5
+HD|Atlanta, United States|NYQ|Consumer Cyclical|Home Improvement Retail|14.1|14805999616|62290001920|60.36|2.36|2.29|9.2|80057201470.0|159514001408|14.62|-1.1|0.2
+NVO|Bagsvaerd, Denmark|NYQ|Healthcare|Drug Manufacturers - General|30.1|100988002304|102786998272|43.78|1.81|1.43|1.62|223972601039.0|290402992128|3.1|-0.8|0.0
+PG|Cincinnati, United States|NYQ|Consumer Defensive|Household & Personal Products|2.1|15192000512|34687000576|63.06|2.29|2.4|4.03|52917401195.0|84346003456|6.2|-1.1|0.2
+COST|Issaquah, United States|NMS|Consumer Defensive|Discount Stores|7.5|7576000000|8129999872|26.44|0.44|0.66|4.64|17221199878.0|258805006336|16.9|-0.1|0.2
+ORCL|Austin, United States|NYQ|Technology|Software - Infrastructure|8.6|11623999488|99543998464|39.12|0.99|1.43|1.6|113492797851.0|54933000192|3.97|-0.4|0.0
+UNH|Minnetonka, United States|NYQ|Healthcare|Healthcare Plans|6.8|14405000192|81792999424|52.74|1.8|1.35|8.4|99078999665.0|400277995520|15.76|-0.8|0.0
+XOM|Spring, United States|NYQ|Energy|Oil & Gas Integrated|-2.0|33679998976|48308998144|48.98|3.67|4.89|3.96|88724996919.0|340568014848|7.83|-1.7|0.0
+MA|Purchase, United States|NYQ|Financial Services|Credit Services|14.4|12874000384|18986000384|19.01|0.53|0.52|3.04|34434800849.0|28167000064|13.43|-0.2|0.3
+SPY|N/A, N/A|PCX|N/A|N/A|0.0|0|0|0.0|1.17|0.0|0.0|-0.0|N/A|N/A|-0.5|0.5
+V|San Francisco, United States|NYQ|Financial Services|Credit Services|10.1|19704999936|20608999424|21.67|0.65|0.67|2.36|44254999350.0|36801998848|9.65|-0.2|0.2
+JPM|New York, United States|NYQ|Financial Services|Banks - Diversified|13.0|56867999744|832929988608|24.3|1.92|2.71|5.0|901171588307.0|166774996992|18.97|-0.9|0.2
+LLY|Indianapolis, United States|NYQ|Healthcare|Drug Manufacturers - General|44.7|10590000128|34910601216|44.41|0.65|1.17|6.0|47618601378.0|45042700288|11.48|-0.2|0.0
+WMT|Bentonville, United States|NYQ|Consumer Defensive|Discount Stores|4.1|19435999232|60114001920|34.44|0.96|1.45|0.94|83437200999.0|680984969216|2.35|-0.4|0.0
+BRK-B|Omaha, United States|NYQ|Financial Services|Insurance - Diversified|1.6|88994996224|130758000640|0.0|0.0|0.0|0.0|237551996109.0|371433013248|40.12|0.0|0.5
+AVGO|Palo Alto, United States|NMS|Technology|Semiconductors|16.4|6168000000|40456998912|163.18|1.26|2.56|2.36|47858598916.0|51574001664|1.29|-0.5|1.2
+TSLA|Austin, United States|NMS|Consumer Cyclical|Auto Manufacturers|2.1|7129999872|13623000064|0.0|0.0|0.0|0.0|22178999911.0|97690001408|1.96|0.0|0.5
+META|Menlo Park, United States|NMS|Communication Services|Internet Content & Information|20.6|62359998464|49769000960|8.38|0.32|0.0|2.1|124600999120.0|164500996096|23.3|-0.1|0.4
+AMZN|Seattle, United States|NMS|Consumer Cyclical|Internet Retail|10.5|59248001024|155400994816|0.0|0.0|0.0|0.0|226498596045.0|637959012352|5.5|0.0|0.5
+GOOGL|Mountain View, United States|NMS|Communication Services|Internet Content & Information|11.8|100118003712|28137000960|7.46|0.48|0.0|0.8|148278605416.0|350018011136|8.22|-0.1|0.4
+MSFT|Redmond, United States|NMS|Technology|Software - Infrastructure|12.3|92749996032|102909001728|24.82|0.85|0.85|3.32|214208996971.0|261802000384|12.4|-0.3|0.2
+NVDA|Santa Clara, United States|NMS|Technology|Semiconductors|77.9|72879996928|10270000128|1.16|0.04|0.08|0.04|97725996443.0|130497003520|2.99|0.0|0.4
+AAPL|Cupertino, United States|NMS|Technology|Consumer Electronics|4.0|96150003712|96798998528|15.71|0.42|0.59|1.0|212179002984.0|395760009216|6.25|-0.1|0.3

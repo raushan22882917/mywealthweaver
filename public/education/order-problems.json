@@ -1,0 +1,17 @@
+
+{
+  "id": "order-problems",
+  "title": "PROBLEMS WITH MY ORDER",
+  "questions": [
+    {
+      "id": "missing-items",
+      "question": "WHAT IF ITEMS ARE MISSING FROM MY ORDER?",
+      "answer": "Please contact our customer service team immediately with your order number, and we'll resolve the issue promptly."
+    },
+    {
+      "id": "wrong-items",
+      "question": "WHAT IF I RECEIVED THE WRONG ITEMS?",
+      "answer": "Contact customer service with your order number and photos of the items received. We'll arrange for return shipping and send the correct items."
+    }
+  ]
+}
