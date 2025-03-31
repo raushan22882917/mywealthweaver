@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,6 +24,8 @@ import Reporting from "./pages/Reporting";
 import Dashboard from "./pages/dashboard";
 import PrivacyPolicy from "./pages/policy";
 import UpDown from "./pages/UpDown";
+import Settings from "./pages/Settings";
+import Notifications from "./pages/Notifications";
 import { Session } from '@supabase/supabase-js';
 import TopStocks from "./components/TopStocks";
 
@@ -88,8 +91,8 @@ const App = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
       </div>
     );
   }
@@ -165,6 +168,22 @@ const App = () => {
                     <Navigate to="/auth" replace />
                   )
                 }
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/notifications" 
+                element={
+                  <ProtectedRoute>
+                    <Notifications />
+                  </ProtectedRoute>
+                } 
               />
               <Route 
                 path="/policy" 
