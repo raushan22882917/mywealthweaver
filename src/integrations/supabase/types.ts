@@ -641,20 +641,38 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
           created_at: string
+          email: string | null
+          email_frequency: string | null
+          email_notifications_enabled: string | null
           id: string
+          notifications_enabled: string | null
           updated_at: string
           username: string | null
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          email?: string | null
+          email_frequency?: string | null
+          email_notifications_enabled?: string | null
           id: string
+          notifications_enabled?: string | null
           updated_at?: string
           username?: string | null
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
+          email?: string | null
+          email_frequency?: string | null
+          email_notifications_enabled?: string | null
           id?: string
+          notifications_enabled?: string | null
           updated_at?: string
           username?: string | null
         }
