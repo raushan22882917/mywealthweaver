@@ -9,30 +9,384 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      annual_dividend_history: {
+        Row: {
+          created_at: string | null
+          date: string
+          dividends: number
+          id: number
+          symbol: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          dividends: number
+          id?: number
+          symbol: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          dividends?: number
+          id?: number
+          symbol?: string
+        }
+        Relationships: []
+      }
+      annual_dividends: {
+        Row: {
+          created_at: string | null
+          date: string
+          dividends: number
+          id: number
+          symbol: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          dividends: number
+          id?: number
+          symbol: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          dividends?: number
+          id?: number
+          symbol?: string
+        }
+        Relationships: []
+      }
       company_logos: {
         Row: {
           company_name: string | null
           created_at: string
           domain: string | null
           id: number
-          logo_url: string
-          symbol: string
+          LogoURL: string
+          Symbol: string
         }
         Insert: {
           company_name?: string | null
           created_at?: string
           domain?: string | null
           id?: number
-          logo_url: string
-          symbol: string
+          LogoURL: string
+          Symbol: string
         }
         Update: {
           company_name?: string | null
           created_at?: string
           domain?: string | null
           id?: number
-          logo_url?: string
+          LogoURL?: string
+          Symbol?: string
+        }
+        Relationships: []
+      }
+      company_profiles: {
+        Row: {
+          address: string | null
+          audit_risk: number | null
+          beta: number | null
+          board_risk: number | null
+          book_value: number | null
+          compensation_risk: number | null
+          created_at: string | null
+          current_ratio: number | null
+          debt_to_equity: number | null
+          dividend_rate: number | null
+          dividend_yield: number | null
+          earnings_growth: number | null
+          earnings_quarterly_growth: number | null
+          ebitda: number | null
+          ebitda_margins: number | null
+          enterprise_to_ebitda: number | null
+          enterprise_to_revenue: number | null
+          ex_dividend_date: string | null
+          exchange: string | null
+          fifty_day_average: number | null
+          five_year_avg_dividend_yield: number | null
+          forward_eps: number | null
+          forward_pe: number | null
+          free_cashflow: number | null
+          full_time_employees: number | null
+          gross_margins: number | null
+          gross_profits: number | null
+          held_percent_insiders: number | null
+          held_percent_institutions: number | null
+          id: number
+          industry: string | null
+          last_dividend_date: string | null
+          last_dividend_value: number | null
+          last_fiscal_year_end: string | null
+          long_business_summary: string | null
+          net_income_to_common: number | null
+          number_of_analyst_opinions: number | null
+          operating_cashflow: number | null
+          operating_margins: number | null
+          overall_risk: number | null
+          payout_ratio: number | null
+          phone: string | null
+          price_to_book: number | null
+          price_to_sales_trailing_12_months: number | null
+          profit_margins: number | null
+          quick_ratio: number | null
+          quote_type: string | null
+          recommendation_key: string | null
+          recommendation_mean: number | null
+          return_on_assets: number | null
+          return_on_equity: number | null
+          revenue_growth: number | null
+          revenue_per_share: number | null
+          sand_p_52_week_change: number | null
+          sector: string | null
+          share_holder_rights_risk: number | null
+          short_name: string | null
+          symbol: string
+          target_high_price: number | null
+          target_low_price: number | null
+          target_mean_price: number | null
+          target_median_price: number | null
+          total_cash: number | null
+          total_cash_per_share: number | null
+          total_debt: number | null
+          total_revenue: number | null
+          trailing_annual_dividend_rate: number | null
+          trailing_annual_dividend_yield: number | null
+          trailing_eps: number | null
+          trailing_pe: number | null
+          trailing_peg_ratio: number | null
+          two_hundred_day_average: number | null
+          updated_at: string | null
+          website: string | null
+          week_change_52: number | null
+        }
+        Insert: {
+          address?: string | null
+          audit_risk?: number | null
+          beta?: number | null
+          board_risk?: number | null
+          book_value?: number | null
+          compensation_risk?: number | null
+          created_at?: string | null
+          current_ratio?: number | null
+          debt_to_equity?: number | null
+          dividend_rate?: number | null
+          dividend_yield?: number | null
+          earnings_growth?: number | null
+          earnings_quarterly_growth?: number | null
+          ebitda?: number | null
+          ebitda_margins?: number | null
+          enterprise_to_ebitda?: number | null
+          enterprise_to_revenue?: number | null
+          ex_dividend_date?: string | null
+          exchange?: string | null
+          fifty_day_average?: number | null
+          five_year_avg_dividend_yield?: number | null
+          forward_eps?: number | null
+          forward_pe?: number | null
+          free_cashflow?: number | null
+          full_time_employees?: number | null
+          gross_margins?: number | null
+          gross_profits?: number | null
+          held_percent_insiders?: number | null
+          held_percent_institutions?: number | null
+          id?: number
+          industry?: string | null
+          last_dividend_date?: string | null
+          last_dividend_value?: number | null
+          last_fiscal_year_end?: string | null
+          long_business_summary?: string | null
+          net_income_to_common?: number | null
+          number_of_analyst_opinions?: number | null
+          operating_cashflow?: number | null
+          operating_margins?: number | null
+          overall_risk?: number | null
+          payout_ratio?: number | null
+          phone?: string | null
+          price_to_book?: number | null
+          price_to_sales_trailing_12_months?: number | null
+          profit_margins?: number | null
+          quick_ratio?: number | null
+          quote_type?: string | null
+          recommendation_key?: string | null
+          recommendation_mean?: number | null
+          return_on_assets?: number | null
+          return_on_equity?: number | null
+          revenue_growth?: number | null
+          revenue_per_share?: number | null
+          sand_p_52_week_change?: number | null
+          sector?: string | null
+          share_holder_rights_risk?: number | null
+          short_name?: string | null
+          symbol: string
+          target_high_price?: number | null
+          target_low_price?: number | null
+          target_mean_price?: number | null
+          target_median_price?: number | null
+          total_cash?: number | null
+          total_cash_per_share?: number | null
+          total_debt?: number | null
+          total_revenue?: number | null
+          trailing_annual_dividend_rate?: number | null
+          trailing_annual_dividend_yield?: number | null
+          trailing_eps?: number | null
+          trailing_pe?: number | null
+          trailing_peg_ratio?: number | null
+          two_hundred_day_average?: number | null
+          updated_at?: string | null
+          website?: string | null
+          week_change_52?: number | null
+        }
+        Update: {
+          address?: string | null
+          audit_risk?: number | null
+          beta?: number | null
+          board_risk?: number | null
+          book_value?: number | null
+          compensation_risk?: number | null
+          created_at?: string | null
+          current_ratio?: number | null
+          debt_to_equity?: number | null
+          dividend_rate?: number | null
+          dividend_yield?: number | null
+          earnings_growth?: number | null
+          earnings_quarterly_growth?: number | null
+          ebitda?: number | null
+          ebitda_margins?: number | null
+          enterprise_to_ebitda?: number | null
+          enterprise_to_revenue?: number | null
+          ex_dividend_date?: string | null
+          exchange?: string | null
+          fifty_day_average?: number | null
+          five_year_avg_dividend_yield?: number | null
+          forward_eps?: number | null
+          forward_pe?: number | null
+          free_cashflow?: number | null
+          full_time_employees?: number | null
+          gross_margins?: number | null
+          gross_profits?: number | null
+          held_percent_insiders?: number | null
+          held_percent_institutions?: number | null
+          id?: number
+          industry?: string | null
+          last_dividend_date?: string | null
+          last_dividend_value?: number | null
+          last_fiscal_year_end?: string | null
+          long_business_summary?: string | null
+          net_income_to_common?: number | null
+          number_of_analyst_opinions?: number | null
+          operating_cashflow?: number | null
+          operating_margins?: number | null
+          overall_risk?: number | null
+          payout_ratio?: number | null
+          phone?: string | null
+          price_to_book?: number | null
+          price_to_sales_trailing_12_months?: number | null
+          profit_margins?: number | null
+          quick_ratio?: number | null
+          quote_type?: string | null
+          recommendation_key?: string | null
+          recommendation_mean?: number | null
+          return_on_assets?: number | null
+          return_on_equity?: number | null
+          revenue_growth?: number | null
+          revenue_per_share?: number | null
+          sand_p_52_week_change?: number | null
+          sector?: string | null
+          share_holder_rights_risk?: number | null
+          short_name?: string | null
           symbol?: string
+          target_high_price?: number | null
+          target_low_price?: number | null
+          target_mean_price?: number | null
+          target_median_price?: number | null
+          total_cash?: number | null
+          total_cash_per_share?: number | null
+          total_debt?: number | null
+          total_revenue?: number | null
+          trailing_annual_dividend_rate?: number | null
+          trailing_annual_dividend_yield?: number | null
+          trailing_eps?: number | null
+          trailing_pe?: number | null
+          trailing_peg_ratio?: number | null
+          two_hundred_day_average?: number | null
+          updated_at?: string | null
+          website?: string | null
+          week_change_52?: number | null
+        }
+        Relationships: []
+      }
+      dividend: {
+        Row: {
+          annualrate: number | null
+          buy_date: string | null
+          currentprice: number | null
+          dividenddate: string | null
+          dividendrate: number | null
+          dividendyield: number | null
+          earningsdate: string | null
+          exdividenddate: string | null
+          hist: string | null
+          id: number
+          insight: string | null
+          lastdividendvalue: number | null
+          message: string | null
+          payoutdate: string | null
+          payoutratio: number | null
+          previousclose: number | null
+          quotetype: string | null
+          shortname: string | null
+          symbol: string | null
+          trailingannualdividendrate: number | null
+          trailingannualdividendyield: number | null
+        }
+        Insert: {
+          annualrate?: number | null
+          buy_date?: string | null
+          currentprice?: number | null
+          dividenddate?: string | null
+          dividendrate?: number | null
+          dividendyield?: number | null
+          earningsdate?: string | null
+          exdividenddate?: string | null
+          hist?: string | null
+          id?: number
+          insight?: string | null
+          lastdividendvalue?: number | null
+          message?: string | null
+          payoutdate?: string | null
+          payoutratio?: number | null
+          previousclose?: number | null
+          quotetype?: string | null
+          shortname?: string | null
+          symbol?: string | null
+          trailingannualdividendrate?: number | null
+          trailingannualdividendyield?: number | null
+        }
+        Update: {
+          annualrate?: number | null
+          buy_date?: string | null
+          currentprice?: number | null
+          dividenddate?: string | null
+          dividendrate?: number | null
+          dividendyield?: number | null
+          earningsdate?: string | null
+          exdividenddate?: string | null
+          hist?: string | null
+          id?: number
+          insight?: string | null
+          lastdividendvalue?: number | null
+          message?: string | null
+          payoutdate?: string | null
+          payoutratio?: number | null
+          previousclose?: number | null
+          quotetype?: string | null
+          shortname?: string | null
+          symbol?: string | null
+          trailingannualdividendrate?: number | null
+          trailingannualdividendyield?: number | null
         }
         Relationships: []
       }
@@ -180,81 +534,6 @@ export type Database = {
         }
         Relationships: []
       }
-      dividends: {
-        Row: {
-          annual_rate: number | null
-          buy_date: string | null
-          created_at: string
-          current_price: number | null
-          dividend_date: string | null
-          dividend_rate: number | null
-          dividend_yield: number | null
-          earnings_date: string | null
-          ex_dividend_date: string | null
-          hist: string | null
-          id: number
-          insight: string | null
-          last_dividend_value: number | null
-          message: string | null
-          payout_date: string | null
-          payout_ratio: number | null
-          previous_close: number | null
-          quote_type: string | null
-          short_name: string | null
-          symbol: string
-          trailing_annual_dividend_rate: number | null
-          trailing_annual_dividend_yield: number | null
-        }
-        Insert: {
-          annual_rate?: number | null
-          buy_date?: string | null
-          created_at?: string
-          current_price?: number | null
-          dividend_date?: string | null
-          dividend_rate?: number | null
-          dividend_yield?: number | null
-          earnings_date?: string | null
-          ex_dividend_date?: string | null
-          hist?: string | null
-          id?: number
-          insight?: string | null
-          last_dividend_value?: number | null
-          message?: string | null
-          payout_date?: string | null
-          payout_ratio?: number | null
-          previous_close?: number | null
-          quote_type?: string | null
-          short_name?: string | null
-          symbol: string
-          trailing_annual_dividend_rate?: number | null
-          trailing_annual_dividend_yield?: number | null
-        }
-        Update: {
-          annual_rate?: number | null
-          buy_date?: string | null
-          created_at?: string
-          current_price?: number | null
-          dividend_date?: string | null
-          dividend_rate?: number | null
-          dividend_yield?: number | null
-          earnings_date?: string | null
-          ex_dividend_date?: string | null
-          hist?: string | null
-          id?: number
-          insight?: string | null
-          last_dividend_value?: number | null
-          message?: string | null
-          payout_date?: string | null
-          payout_ratio?: number | null
-          previous_close?: number | null
-          quote_type?: string | null
-          short_name?: string | null
-          symbol?: string
-          trailing_annual_dividend_rate?: number | null
-          trailing_annual_dividend_yield?: number | null
-        }
-        Relationships: []
-      }
       earnings: {
         Row: {
           created_at: string
@@ -327,6 +606,39 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_history: {
+        Row: {
+          created_at: string | null
+          date: string
+          dividends: number
+          eps: number | null
+          id: number
+          payout: number | null
+          quarter_year: string | null
+          symbol: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          dividends: number
+          eps?: number | null
+          id?: number
+          payout?: number | null
+          quarter_year?: string | null
+          symbol: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          dividends?: number
+          eps?: number | null
+          id?: number
+          payout?: number | null
+          quarter_year?: string | null
+          symbol?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -345,6 +657,54 @@ export type Database = {
           id?: string
           updated_at?: string
           username?: string | null
+        }
+        Relationships: []
+      }
+      quarterly_dividend_history: {
+        Row: {
+          created_at: string | null
+          date: string
+          dividends: number
+          id: number
+          symbol: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          dividends: number
+          id?: number
+          symbol: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          dividends?: number
+          id?: number
+          symbol?: string
+        }
+        Relationships: []
+      }
+      quarterly_dividends: {
+        Row: {
+          created_at: string | null
+          date: string
+          dividends: number
+          id: number
+          symbol: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          dividends: number
+          id?: number
+          symbol: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          dividends?: number
+          id?: number
+          symbol?: string
         }
         Relationships: []
       }
@@ -389,21 +749,30 @@ export type Database = {
       }
       similar_companies: {
         Row: {
+          company_name: string | null
           created_at: string | null
-          id: string
-          similar_symbols: string[]
+          description: string | null
+          id: number
+          revenue_2024: string | null
+          similar_symbol: string
           symbol: string
         }
         Insert: {
+          company_name?: string | null
           created_at?: string | null
-          id?: string
-          similar_symbols: string[]
+          description?: string | null
+          id?: number
+          revenue_2024?: string | null
+          similar_symbol: string
           symbol: string
         }
         Update: {
+          company_name?: string | null
           created_at?: string | null
-          id?: string
-          similar_symbols?: string[]
+          description?: string | null
+          id?: number
+          revenue_2024?: string | null
+          similar_symbol?: string
           symbol?: string
         }
         Relationships: []
@@ -471,6 +840,39 @@ export type Database = {
           sector?: string | null
           sub_sector?: string | null
           symbol?: string
+        }
+        Relationships: []
+      }
+      stock_rankings: {
+        Row: {
+          created_at: string | null
+          id: number
+          industry: string | null
+          rank: number
+          score: number
+          sector: string | null
+          symbol: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          industry?: string | null
+          rank: number
+          score: number
+          sector?: string | null
+          symbol: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          industry?: string | null
+          rank?: number
+          score?: number
+          sector?: string | null
+          symbol?: string
+          updated_at?: string | null
         }
         Relationships: []
       }

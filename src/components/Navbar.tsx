@@ -1,4 +1,5 @@
-import { Search, Sun, Moon, LogOut, Home, ChevronDown, CalendarDays, DollarSign, User, LayoutDashboard, Shield } from "lucide-react";
+
+import { Search, Sun, Moon, LogOut, Home, ChevronDown, CalendarDays, DollarSign, User, LayoutDashboard, Shield, Bell, Settings, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +27,9 @@ const Navbar = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [username, setUsername] = useState<string>("");
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
     // Load and parse the CSV file
@@ -156,113 +159,97 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="border-b">
+      <nav className="border-b border-white/10 backdrop-blur-md bg-black/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+          {/* Logo & Brand */}
           <div className="flex items-center space-x-8">
             <a href="/" className="flex items-center space-x-2 text-xl font-bold text-primary">
               <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-              <span>IntelligentInvestor+</span>
+              <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">IntelligentInvestor+</span>
             </a>
 
-            <div className="hidden md:flex space-x-6">
-              
-
-              <a href="/news" className="relative text-gray-600 hover:text-primary px-1 py-1 rounded-full border-2 border-transparent hover:border-primary 
-             before:absolute before:inset-0 before:scale-0 before:bg-[#040273]/20 before:rounded-full before:transition-transform before:duration-300 before:content-['']
-             after:absolute after:-bottom-1 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#040273] after:transition-all after:duration-300 after:content-['']
-             hover:before:scale-100 hover:after:w-full hover:after:left-0
-             hover:shadow-lg hover:shadow-green-500">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex space-x-1">
+              <a href="/news" className="nav-item">
                 News
               </a>
               
-              <a href="/education" className="relative text-gray-600 hover:text-primary px-1 py-1 rounded-full border-2 border-transparent hover:border-primary 
-             before:absolute before:inset-0 before:scale-0 before:bg-[#040273]/20 before:rounded-full before:transition-transform before:duration-300 before:content-['']
-             after:absolute after:-bottom-1 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#040273] after:transition-all after:duration-300 after:content-['']
-             hover:before:scale-100 hover:after:w-full hover:after:left-0
-             hover:shadow-lg hover:shadow-green-500">
+              <a href="/education" className="nav-item">
                 Education
               </a>
+              
               <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="relative text-gray-700 dark:text-gray-300 hover:text-primary px-4 py-2 rounded-lg border-2 border-transparent hover:border-primary flex items-center space-x-2 transition-all duration-300"
-        aria-expanded={isOpen}
-      >
-        <span className="font-medium">Dividend</span>
-        <ChevronDown
-          className={`w-4 h-4 transition-transform duration-300 ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
-      </button>
-
-      {isOpen && (
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 w-64 opacity-100 scale-100 translate-y-0 transition-all duration-300">
-          <div className="p-1 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 shadow-xl">
-            <div className="bg-white dark:bg-gray-900 rounded-lg">
-              <div className="p-2 space-y-1">
-                <a
-                  href="/dividend?type=buy"
-                  className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
+                <button
+                  onClick={() => setIsOpen(!isOpen)}
+                  className="nav-item flex items-center"
+                  aria-expanded={isOpen}
                 >
-                  <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 group-hover:bg-purple-200 dark:group-hover:bg-purple-900/50 transition-colors">
-                    <CalendarDays className="w-4 h-4" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      When should I buy?
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Find the best time to invest
-                    </span>
-                  </div>
-                </a>
+                  <span>Dividend</span>
+                  <ChevronDown
+                    className={`ml-1 w-4 h-4 transition-transform duration-300 ${
+                      isOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
 
-                <a
-                  href="/dividend?type=paid"
-                  className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group"
-                >
-                  <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 group-hover:bg-blue-200 dark:group-hover:bg-blue-900/50 transition-colors">
-                    <DollarSign className="w-4 h-4" />
+                {isOpen && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 w-64 opacity-100 scale-100 translate-y-0 transition-all duration-300">
+                    <div className="p-1 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 shadow-xl">
+                      <div className="bg-gray-900 rounded-lg">
+                        <div className="p-2 space-y-1">
+                          <a
+                            href="/dividend?type=buy"
+                            className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                          >
+                            <div className="p-2 rounded-full bg-purple-900/30 text-purple-400 group-hover:bg-purple-900/50 transition-colors">
+                              <CalendarDays className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-100">
+                                When should I buy?
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                Find the best time to invest
+                              </span>
+                            </div>
+                          </a>
+
+                          <a
+                            href="/dividend?type=paid"
+                            className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                          >
+                            <div className="p-2 rounded-full bg-blue-900/30 text-blue-400 group-hover:bg-blue-900/50 transition-colors">
+                              <DollarSign className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-100">
+                                When will I get paid?
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                Track your dividend payments
+                              </span>
+                            </div>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                      When will I get paid?
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Track your dividend payments
-                    </span>
-                  </div>
-                </a>
+                )}
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
 
-              <a href="/reporting" className="relative text-gray-600 hover:text-primary px-1 py-1 rounded-full border-2 border-transparent hover:border-primary 
-             before:absolute before:inset-0 before:scale-0 before:bg-[#040273]/20 before:rounded-full before:transition-transform before:duration-300 before:content-['']
-             after:absolute after:-bottom-1 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#040273] after:transition-all after:duration-300 after:content-['']
-             hover:before:scale-100 hover:after:w-full hover:after:left-0
-             hover:shadow-lg hover:shadow-green-500">
+              <a href="/reporting" className="nav-item">
                 Reporting
               </a>
 
-
-              <a
-                href="/market-data"
-                className="relative text-gray-600 hover:text-primary px-1 py-1 rounded-full border-2 border-transparent hover:border-primary 
-               before:absolute before:inset-0 before:scale-0 before:bg-[#040273]/20 before:rounded-full before:transition-transform before:duration-300 before:content-['']
-               after:absolute after:-bottom-1 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#040273] after:transition-all after:duration-300 after:content-['']
-               hover:before:scale-100 hover:after:w-full hover:after:left-0
-               hover:shadow-lg hover:shadow-green-500"
-              >
+              <a href="/market-data" className="nav-item">
                 Market Data
               </a>
             </div>
           </div>
+          
+          {/* Right section */}
           <div className="flex items-center space-x-4">
+            {/* Search */}
             <div className="flex items-center gap-4">
               <div ref={searchRef} className="relative">
                 <form onSubmit={handleSearch}>
@@ -273,77 +260,203 @@ const Navbar = () => {
                       placeholder="Search stocks..."
                       value={searchTerm}
                       onChange={handleSearchChange}
-                      className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background w-[300px]"
+                      className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/50 w-[220px] md:w-[300px] placeholder-gray-500 text-sm"
                     />
                   </div>
                 </form>
                 
                 {showSuggestions && filteredStocks.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-background border rounded-lg shadow-lg">
+                  <div className="absolute z-50 mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
                     {filteredStocks.map((stock) => (
                       <div
                         key={stock.Symbol}
-                        className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+                        className="px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
                         onClick={() => handleStockSelect(stock)}
                       >
-                        <div className="font-medium">{stock.Symbol}</div>
-                        <div className="text-sm text-gray-500">{stock.title}</div>
+                        <div className="font-medium text-white">{stock.Symbol}</div>
+                        <div className="text-sm text-gray-400 truncate">{stock.title}</div>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
             </div>
+            
+            {/* Theme toggle */}
+            <button
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5 text-yellow-400" />
+              ) : (
+                <Moon className="h-5 w-5 text-blue-400" />
+              )}
+            </button>
+            
+            {/* Notifications */}
             <div className="relative">
-      <button
-        className="relative flex items-center text-gray-600 hover:text-primary px-3 py-2 rounded-full border-2 border-transparent hover:border-primary
-          before:absolute before:inset-0 before:scale-0 before:bg-[#040273]/20 before:rounded-full before:transition-transform before:duration-300 before:content-['']
-          after:absolute after:-bottom-1 after:left-1/2 after:w-0 after:h-[2px] after:bg-[#040273] after:transition-all after:duration-300 after:content-['']
-          hover:before:scale-100 hover:after:w-full hover:after:left-0
-          hover:shadow-lg hover:shadow-green-500"
-        onClick={() => setDropdownOpen(!dropdownOpen)}
-      >
-        {username ? (
-          <div className="flex items-center space-x-2">
-            <User className="h-5 w-5" />
-            <span className="font-medium">{username}</span>
-            <ChevronDown className="h-4 w-4" />
-          </div>
-        ) : (
-          <Button onClick={() => navigate("/auth")}>Log In</Button>
-        )}
-      </button>
+              <button 
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors relative"
+              >
+                <Bell className="h-5 w-5 text-gray-300" />
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">3</span>
+              </button>
+              
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+                  <div className="p-4 border-b border-gray-700">
+                    <h3 className="text-lg font-medium text-white">Notifications</h3>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    <div className="p-4 border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
+                      <p className="text-blue-400 text-sm font-medium">Dividend Alert</p>
+                      <p className="text-gray-300 text-sm">AAPL is paying a dividend soon!</p>
+                      <p className="text-gray-500 text-xs mt-1">2 hours ago</p>
+                    </div>
+                    <div className="p-4 border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
+                      <p className="text-green-400 text-sm font-medium">Price Alert</p>
+                      <p className="text-gray-300 text-sm">MSFT has increased by 5%</p>
+                      <p className="text-gray-500 text-xs mt-1">5 hours ago</p>
+                    </div>
+                    <div className="p-4 hover:bg-gray-700 cursor-pointer">
+                      <p className="text-yellow-400 text-sm font-medium">News Alert</p>
+                      <p className="text-gray-300 text-sm">New market analysis available</p>
+                      <p className="text-gray-500 text-xs mt-1">1 day ago</p>
+                    </div>
+                  </div>
+                  <div className="p-2 flex justify-center border-t border-gray-700">
+                    <button className="w-full text-center text-blue-400 text-sm hover:underline">View all notifications</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* User Menu */}
+            <div className="relative">
+              <button
+                className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-all"
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+              >
+                {username ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+                        {username.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="hidden md:block">
+                        <p className="text-sm font-medium text-white">{username}</p>
+                        <p className="text-xs text-gray-400">Premium User</p>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                    </div>
+                  </>
+                ) : (
+                  <Button onClick={() => navigate("/auth")} className="bg-blue-600 hover:bg-blue-700 text-white">
+                    Log In
+                  </Button>
+                )}
+              </button>
 
-      {dropdownOpen && username && (
-        <div className="absolute right-0 mt-2 w-44 bg-black ml-[200px] border border-gray-600 rounded-lg shadow-xl z-50">
-        <a
-          href="/dashboard"
-          className="flex items-center px-4 py-3 text-white hover:bg-gray-800 transition-all rounded-md space-x-3"
-        >
-          <LayoutDashboard className="h-5 w-5 text-gray-300" />
-          <span className="text-sm">Dashboard</span>
-        </a>
-        <a
-          href="/policy"
-          className="flex items-center px-4 py-3 text-white hover:bg-gray-800 transition-all rounded-md space-x-3"
-        >
-          <Shield className="h-5 w-5 text-gray-300" />
-          <span className="text-sm">Privacy Policy</span>
-        </a>
-        <button
-          onClick={handleLogout}
-          className="flex w-full items-center px-4 py-3 text-white hover:bg-red-700 transition-all rounded-md space-x-3"
-        >
-          <LogOut className="h-5 w-5 text-gray-300" />
-          <span className="text-sm">Logout</span>
-        </button>
-      </div>
-      
-      )}
-    </div>
-
+              {dropdownOpen && username && (
+                <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+                  <div className="p-4 border-b border-gray-700">
+                    <p className="text-sm font-medium text-white">{username}</p>
+                    <p className="text-xs text-gray-400">Premium Member</p>
+                  </div>
+                  
+                  <div className="py-2">
+                    <a
+                      href="/dashboard"
+                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
+                    >
+                      <LayoutDashboard className="h-5 w-5 text-blue-400" />
+                      <span className="text-sm">Dashboard</span>
+                    </a>
+                    
+                    <a
+                      href="/settings"
+                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
+                    >
+                      <Settings className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">Settings</span>
+                    </a>
+                    
+                    <a
+                      href="/help"
+                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
+                    >
+                      <HelpCircle className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">Help & Support</span>
+                    </a>
+                    
+                    <a
+                      href="/policy"
+                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
+                    >
+                      <Shield className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm">Privacy Policy</span>
+                    </a>
+                    
+                    <div className="border-t border-gray-700 mt-2 pt-2">
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center px-4 py-3 text-red-400 hover:bg-red-900/30 transition-all space-x-3"
+                      >
+                        <LogOut className="h-5 w-5" />
+                        <span className="text-sm">Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Mobile Menu Toggle */}
+            <button 
+              className="md:hidden p-2 rounded-lg border border-gray-700 hover:bg-gray-700"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-6 w-6 text-white" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                {mobileMenuOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-gray-900 border-t border-gray-800 shadow-xl">
+            <div className="px-4 py-2 space-y-1">
+              <a href="/news" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                News
+              </a>
+              <a href="/education" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                Education
+              </a>
+              <a href="/dividend" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                Dividend
+              </a>
+              <a href="/reporting" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                Reporting
+              </a>
+              <a href="/market-data" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                Market Data
+              </a>
+            </div>
+          </div>
+        )}
       </nav>
 
       {selectedStock && (

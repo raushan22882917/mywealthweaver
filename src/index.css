@@ -1,3 +1,4 @@
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
@@ -79,10 +80,98 @@
   animation: marquee-rtl 10s linear infinite;
 }
 
-.nav-link {
-  @apply relative text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors;
-  @apply before:absolute before:inset-0 before:scale-0 before:bg-blue-100 dark:before:bg-blue-900/20 before:rounded-lg before:transition-transform before:duration-300 before:content-[''];
-  @apply after:absolute after:-bottom-1 after:left-1/2 after:w-0 after:h-0.5 after:bg-blue-600 dark:after:bg-blue-400 after:transition-all after:duration-300 after:content-[''];
-  @apply hover:before:scale-100 hover:after:w-full hover:after:left-0;
-  @apply px-3 py-2;
+/* Navigation styling */
+.nav-item {
+  @apply relative text-gray-400 hover:text-blue-400 flex items-center px-3 py-2 rounded-lg transition-all duration-300;
+  @apply after:absolute after:bottom-0 after:left-1/2 after:w-0 after:h-[2px] after:bg-blue-400 after:transform after:-translate-x-1/2 after:transition-all after:duration-300;
+  @apply hover:after:w-3/4 hover:bg-gray-800/50;
+}
+
+/* Add any custom animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 3s ease-in-out infinite;
+}
+
+/* Add animated staggered fade-in */
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.stagger-2 {
+  animation-delay: 0.3s;
+}
+
+.stagger-3 {
+  animation-delay: 0.5s;
+}
+
+.stagger-4 {
+  animation-delay: 0.7s;
+}
+
+/* Button hover effects */
+.hover-scale {
+  @apply transition-all duration-300;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Gradient Borders */
+.gradient-border {
+  position: relative;
+  border-radius: 0.5rem;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 0.6rem;
+  background: linear-gradient(to right, #4f46e5, #06b6d4);
+  z-index: -1;
+}
+
+/* Glass effect */
+.glass-effect {
+  @apply backdrop-blur-md bg-white/10 border border-white/20;
 }
