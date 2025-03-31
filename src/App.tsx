@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -21,6 +22,7 @@ import Education from "./pages/Education";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import Reporting from "./pages/Reporting";
 import Dashboard from "./pages/dashboard";
+import Settings from "./pages/Settings";
 import PrivacyPolicy from "./pages/policy";
 import UpDown from "./pages/UpDown";
 import { Session } from '@supabase/supabase-js';
@@ -164,6 +166,14 @@ const App = () => {
                   ) : (
                     <Navigate to="/auth" replace />
                   )
+                }
+              />
+              <Route 
+                path="/settings" 
+                element={
+                  <ProtectedRoute>
+                    <Settings />
+                  </ProtectedRoute>
                 }
               />
               <Route 
