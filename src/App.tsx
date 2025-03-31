@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/theme-provider";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -21,7 +21,6 @@ import Education from "./pages/Education";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import Reporting from "./pages/Reporting";
 import Dashboard from "./pages/dashboard";
-import Settings from "./pages/Settings";
 import PrivacyPolicy from "./pages/policy";
 import UpDown from "./pages/UpDown";
 import { Session } from '@supabase/supabase-js';
@@ -165,14 +164,6 @@ const App = () => {
                   ) : (
                     <Navigate to="/auth" replace />
                   )
-                }
-              />
-              <Route 
-                path="/settings" 
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
                 }
               />
               <Route 

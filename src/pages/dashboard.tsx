@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Heart, Trash2, Calendar, DollarSign, TrendingUp, Search, Filter, Settings, ChevronDown, Edit, CreditCard, User, Bell, LogOut } from 'lucide-react';
+import { Heart, Trash2, Calendar, DollarSign, TrendingUp, Search, Filter } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -10,16 +9,6 @@ import Footer from '@/components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { Session } from '@supabase/supabase-js';
 import Papa from 'papaparse';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface CompanyLogo {
   Symbol: string;
@@ -92,7 +81,6 @@ export default function Dashboard({ session }: DashboardProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
-  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -231,19 +219,6 @@ export default function Dashboard({ session }: DashboardProps) {
     getProfile();
   }, []);
 
-  const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive",
-      });
-    } else {
-      navigate('/auth');
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -273,86 +248,40 @@ export default function Dashboard({ session }: DashboardProps) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* User Profile Section - Updated with better styling */}
-        <div className="mb-10 bg-gradient-to-br from-blue-600/10 via-purple-600/5 to-blue-600/10 dark:from-blue-900/20 dark:via-purple-900/15 dark:to-blue-900/20 rounded-2xl p-8 shadow-lg backdrop-blur-sm border border-gray-200 dark:border-gray-800">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div className="flex items-center gap-6">
-              <div className="relative group">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 animate-pulse-gentle blur-md opacity-70 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-purple-600 p-[2px] shadow-xl">
-                  <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
-                    {userProfile?.avatar_url ? (
-                      <img 
-                        src={userProfile.avatar_url} 
-                        alt="Profile" 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                        {username?.[0]?.toUpperCase() || 'U'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  Welcome back, {username}
-                </h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
-                  Manage your stock portfolio and track dividends
-                </p>
+        {/* User Profile Section - Updated with better spacing and gradient */}
+        <div className="mb-10 bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 p-[2px]">
+              <div className="w-full h-full rounded-full bg-white dark:bg-gray-800 flex items-center justify-center overflow-hidden">
+                {userProfile?.avatar_url ? (
+                  <img 
+                    src={userProfile.avatar_url} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {username?.[0]?.toUpperCase() || 'U'}
+                  </span>
+                )}
               </div>
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="border-blue-200 dark:border-blue-800 hover:bg-blue-50 dark:hover:bg-blue-900/50 transition-all duration-200 rounded-xl gap-2">
-                    <User size={16} />
-                    <span>Profile</span>
-                    <ChevronDown size={14} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/settings')}>
-                    <Settings className="mr-2 h-4 w-4" />
-                    <span>Settings</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <Bell className="mr-2 h-4 w-4" />
-                    <span>Notifications</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="cursor-pointer">
-                    <CreditCard className="mr-2 h-4 w-4" />
-                    <span>Billing</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem className="cursor-pointer text-red-500 dark:text-red-400" onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button 
-                onClick={() => navigate('/reporting')}
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200 rounded-xl"
-              >
-                View Reports
-              </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                Welcome back, {username}
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">
+                Manage your stock portfolio and track dividends
+              </p>
             </div>
           </div>
         </div>
 
         {/* Stats Cards - Updated with better gradients and hover effects */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-          <Card className="p-6 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative flex items-center gap-4">
-              <div className="p-4 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 group-hover:bg-blue-500/20 dark:group-hover:bg-blue-500/30 transition-colors duration-300">
+          <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-xl bg-blue-500/10 dark:bg-blue-500/20">
                 <TrendingUp className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
@@ -362,10 +291,9 @@ export default function Dashboard({ session }: DashboardProps) {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative flex items-center gap-4">
-              <div className="p-4 rounded-xl bg-red-500/10 dark:bg-red-500/20 group-hover:bg-red-500/20 dark:group-hover:bg-red-500/30 transition-colors duration-300">
+          <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-xl bg-red-500/10 dark:bg-red-500/20">
                 <Heart className="h-6 w-6 text-red-600 dark:text-red-400" />
               </div>
               <div>
@@ -377,10 +305,9 @@ export default function Dashboard({ session }: DashboardProps) {
             </div>
           </Card>
 
-          <Card className="p-6 hover:shadow-xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <div className="relative flex items-center gap-4">
-              <div className="p-4 rounded-xl bg-green-500/10 dark:bg-green-500/20 group-hover:bg-green-500/20 dark:group-hover:bg-green-500/30 transition-colors duration-300">
+          <Card className="p-6 hover:shadow-lg transition-shadow duration-200 bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-xl bg-green-500/10 dark:bg-green-500/20">
                 <DollarSign className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div>
@@ -406,18 +333,17 @@ export default function Dashboard({ session }: DashboardProps) {
               className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             />
           </div>
-          <Button
+          <button
             onClick={() => setFilterFavorites(!filterFavorites)}
-            variant="outline"
             className={`flex items-center gap-2 px-6 py-3 rounded-xl border transition-all duration-200 ${
               filterFavorites 
-                ? 'bg-red-50 border-red-200 text-red-600 dark:bg-red-900/20 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/30' 
+                ? 'bg-red-50 border-red-200 text-red-500 dark:bg-red-900/20 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/30' 
                 : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
             }`}
           >
             <Heart className={`h-5 w-5 ${filterFavorites ? 'fill-red-500' : ''}`} />
             <span className="font-medium">Favorites</span>
-          </Button>
+          </button>
         </div>
 
         {/* Stocks Grid - Updated with better card styling */}
@@ -425,34 +351,31 @@ export default function Dashboard({ session }: DashboardProps) {
           {filteredStocks.map((stock) => (
             <Card 
               key={stock.id} 
-              className="overflow-hidden hover:shadow-xl transition-all duration-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-800 rounded-xl group"
+              className="overflow-hidden hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800"
             >
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <div className="p-6 relative">
+              <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-white dark:bg-gray-700 p-2 shadow-sm overflow-hidden group-hover:scale-110 transition-transform duration-300">
+                    <div className="w-14 h-14 rounded-full bg-white dark:bg-gray-700 p-2 shadow-sm">
                       <img 
                         src={stock.logo_url}
                         alt={stock.company_name}
                         className="w-full h-full object-contain"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = '/stock.avif';
+                          target.src = '/fallback-stock-image.png';
                         }}
                       />
                     </div>
                     <div>
-                      <h3 className="font-bold text-xl text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">{stock.symbol}</h3>
+                      <h3 className="font-bold text-xl text-gray-900 dark:text-white">{stock.symbol}</h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
                         {stock.company_name}
                       </p>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    <button
                       onClick={async () => {
                         try {
                           const { error } = await supabase
@@ -467,11 +390,6 @@ export default function Dashboard({ session }: DashboardProps) {
                               s.id === stock.id ? { ...s, is_favorite: !s.is_favorite } : s
                             )
                           );
-                          
-                          toast({
-                            title: stock.is_favorite ? "Removed from favorites" : "Added to favorites",
-                            description: `${stock.symbol} ${stock.is_favorite ? "removed from" : "added to"} your favorites`,
-                          });
                         } catch (error) {
                           console.error('Error updating favorite:', error);
                           toast({
@@ -481,17 +399,15 @@ export default function Dashboard({ session }: DashboardProps) {
                           });
                         }
                       }}
-                      className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                     >
                       <Heart 
                         className={`w-5 h-5 ${
                           stock.is_favorite ? 'fill-red-500 stroke-red-500' : 'stroke-current'
                         }`}
                       />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                    </button>
+                    <button
                       onClick={async () => {
                         try {
                           const { error } = await supabase
@@ -506,7 +422,7 @@ export default function Dashboard({ session }: DashboardProps) {
                           );
                           toast({
                             title: "Success",
-                            description: `${stock.symbol} removed from watchlist`,
+                            description: "Stock removed from watchlist",
                           });
                         } catch (error) {
                           console.error('Error removing stock:', error);
@@ -517,30 +433,30 @@ export default function Dashboard({ session }: DashboardProps) {
                           });
                         }
                       }}
-                      className="rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                     >
                       <Trash2 className="w-5 h-5 text-gray-400 hover:text-red-500 transition-colors duration-200" />
-                    </Button>
+                    </button>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-colors duration-300">
+                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Price</p>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                    <p className="text-lg font-bold text-gray-900 dark:text-white">
                       ${stock.price?.toFixed(2) || '0.00'}
                     </p>
                   </div>
-                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 group-hover:bg-green-50 dark:group-hover:bg-green-900/20 transition-colors duration-300">
+                  <div className="p-4 rounded-xl bg-gray-50 dark:bg-gray-900">
                     <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Dividend Yield</p>
-                    <p className="text-lg font-bold text-green-500 group-hover:text-green-600 transition-colors duration-300">
+                    <p className="text-lg font-bold text-green-500">
                       {stock.dividend_yield?.toFixed(2) || '0.00'}%
                     </p>
                   </div>
                 </div>
 
                 {stock.next_dividend_date && (
-                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors duration-300">
+                  <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20">
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-blue-500" />
                       <p className="text-sm font-medium text-blue-500">Next Dividend Date</p>
@@ -567,12 +483,6 @@ export default function Dashboard({ session }: DashboardProps) {
                     ? 'No stocks found matching your search.'
                     : 'No saved stocks yet. Start by adding stocks to your watchlist!'}
               </p>
-              <Button
-                onClick={() => navigate('/market-data')}
-                className="mt-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl"
-              >
-                Browse Stocks
-              </Button>
             </div>
           )}
         </div>
