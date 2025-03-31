@@ -1,19 +1,24 @@
 import pandas as pd
 
-def remove_duplicates(csv_file):
+def remove_duplicate_columns(file_path, output_file):
     # Read the CSV file
-    df = pd.read_csv(csv_file)
+    df = pd.read_csv(file_path)
     
-    # Count duplicates before removal
-    duplicate_count = df.duplicated(subset=['symbol', 'date']).sum()
+    # Identify duplicate columns
+    duplicate_columns = df.columns[df.columns.duplicated()]
     
-    # Drop duplicate rows based on 'symbol' and 'date' columns, keeping the first occurrence
-    df_unique = df.drop_duplicates(subset=['symbol', 'date'], keep='first')
+    # Drop duplicate columns
+    df = df.drop(columns=duplicate_columns)
     
-    # Save the cleaned data back to the same file
-    df_unique.to_csv(csv_file, index=False)
+    # Drop 'Symbol' and 'Symbol.1' columns if they exist
+    columns_to_remove = ['Symbol']
+    df = df.drop(columns=[col for col in columns_to_remove if col in df.columns], errors='ignore')
     
-    print(f"Removed {duplicate_count} duplicate rows based on 'symbol' and 'date'. Cleaned file saved as: {csv_file}")
+    # Save the cleaned CSV
+    df.to_csv(output_file, index=False)
+    print(f"Duplicate and specified columns removed along with their values. Cleaned file saved as: {output_file}")
 
 # Example usage
-remove_duplicates('C:/Users/raush/Desktop/mywealthweaver/public/quatarly_dividend/quater_dividend.csv')
+input_file = "output33.csv"  # Change to your input file path
+output_file = "output33.csv"  # Change to your desired output file path
+remove_duplicate_columns(input_file, output_file)

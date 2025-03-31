@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowUpIcon, ArrowDownIcon, SearchIcon, BarChartIcon, FilterIcon, RefreshCwIcon,  BuildingIcon, BanIcon } from "lucide-react";
+import { ArrowUpIcon, ArrowDownIcon, SearchIcon, BarChartIcon, FilterIcon, RefreshCwIcon,  BuildingIcon, BanIcon, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -37,6 +37,7 @@ interface StockUpgrade {
   firm: string;
   to_grade: string;
   from_grade: string;
+  grade_date: string;
   action: string;
   symbol: string;
   created_at: string;
@@ -205,7 +206,7 @@ const UpDown: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background w-full">
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Stock Upgrades & Downgrades</h1>
@@ -289,6 +290,11 @@ const UpDown: React.FC = () => {
       </TableHead>
       <TableHead className="px-4 py-2">
         <div className="flex items-center gap-1">
+          <Calendar className="h-4 w-4 text-gray-500" /> Date
+        </div>
+      </TableHead>
+      <TableHead className="px-4 py-2">
+        <div className="flex items-center gap-1">
           <BuildingIcon className="h-4 w-4 text-yellow-500" /> Action
         </div>
       </TableHead>
@@ -314,6 +320,7 @@ const UpDown: React.FC = () => {
           <TableCell className="px-4 py-2">{upgrade.firm}</TableCell>
           <TableCell className="px-4 py-2 text-red-500">{upgrade.from_grade}</TableCell>
           <TableCell className="px-4 py-2 text-green-500">{upgrade.to_grade}</TableCell>
+          <TableCell className="px-4 py-2">{upgrade.grade_date}</TableCell>
           <TableCell className="px-4 py-2">
             <div className="flex items-center gap-2">
               {getActionIcon(upgrade.action)}

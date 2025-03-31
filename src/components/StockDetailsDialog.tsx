@@ -48,7 +48,7 @@ interface CompanyProfile {
   website: string;
   industry: string;
   sector: string;
-  longBusinessSummary: string;
+  long_business_summary: string;
   fullTimeEmployees: string;
   auditRisk: number;
   boardRisk: number;
@@ -443,13 +443,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
           .select('*')
-          .in('symbol', similarData.map(company => company.symbol));
+          .in('symbol', similarData.map(company => company.Symbol));
 
         if (logoError) throw logoError;
 
         const combinedData = similarData.map(company => ({
           ...company,
-          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.logo_url
+          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.LogoURL
         }));
 
         setSimilarCompanies(combinedData);
@@ -797,7 +797,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                 {/* Right Column - Company Description & Dividends */}
                 <div className="space-y-4">
                   <div className="text-sm text-gray-600 leading-relaxed">
-                    {companyProfile?.longBusinessSummary || 'No description available.'}
+                    {companyProfile?.long_business_summary || 'No description available.'}
                   </div>
                   
                  
