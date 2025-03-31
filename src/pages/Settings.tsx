@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from '@/components/ui/use-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -39,12 +39,71 @@ import {
 interface UserProfile {
   id: string;
   username: string;
-  email?: string;
-  avatar_url?: string;
-  bio?: string;
-  notifications_enabled?: boolean;
-  email_frequency?: string;
 }
+
+// First, let's update the SQL schema to match our needs with a migration
+const runProfilesMigration = async () => {
+  try {
+    // Check if columns already exist to avoid errors
+    const { data: columns, error: columnsError } = await supabase
+      .from('profiles')
+      .select('username')
+      .limit(1);
+    
+    if (columnsError) {
+      console.error('Error checking profiles table:', columnsError);
+      return;
+    }
+    
+    // These are the migrations to run, wrapped in error handling
+    const migrations = [
+      supabase.rpc('add_column_if_not_exists', { 
+        table_name: 'profiles', 
+        column_name: 'email', 
+        column_type: 'text' 
+      }),
+      supabase.rpc('add_column_if_not_exists', { 
+        table_name: 'profiles', 
+        column_name: 'bio', 
+        column_type: 'text' 
+      }),
+      supabase.rpc('add_column_if_not_exists', { 
+        table_name: 'profiles', 
+        column_name: 'avatar_url', 
+        column_type: 'text' 
+      }),
+      supabase.rpc('add_column_if_not_exists', { 
+        table_name: 'profiles', 
+        column_name: 'notifications_enabled', 
+        column_type: 'boolean' 
+      }),
+      supabase.rpc('add_column_if_not_exists', { 
+        table_name: 'profiles', 
+        column_name: 'email_notifications_enabled', 
+        column_type: 'boolean' 
+      }),
+      supabase.rpc('add_column_if_not_exists', { 
+        table_name: 'profiles', 
+        column_name: 'email_frequency', 
+        column_type: 'text' 
+      })
+    ];
+    
+    // Execute all migrations and handle any errors
+    for (const migrationPromise of migrations) {
+      try {
+        const { error } = await migrationPromise;
+        if (error) console.error('Migration error:', error);
+      } catch (e) {
+        console.error('Migration execution error:', e);
+      }
+    }
+    
+    console.log('Migrations completed');
+  } catch (error) {
+    console.error('Error in runProfilesMigration:', error);
+  }
+};
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -52,6 +111,7 @@ const Settings = () => {
   const { theme, setTheme } = useTheme();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isStorageBucketCreated, setIsStorageBucketCreated] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
@@ -68,9 +128,41 @@ const Settings = () => {
   const [accentColor, setAccentColor] = useState('purple');
 
   useEffect(() => {
-    const getProfile = async () => {
+    const initializeProfile = async () => {
       try {
         setIsLoading(true);
+        
+        // Run the migrations to ensure the profile table has all needed columns
+        await runProfilesMigration();
+        
+        // Set up storage bucket for avatars if it doesn't exist
+        if (!isStorageBucketCreated) {
+          const { data: buckets, error: bucketsError } = await supabase
+            .storage
+            .listBuckets();
+            
+          const bucketExists = buckets?.some(bucket => bucket.name === 'user-avatars');
+          
+          if (!bucketExists && !bucketsError) {
+            try {
+              const { error: createBucketError } = await supabase
+                .storage
+                .createBucket('user-avatars', { public: true });
+                
+              if (createBucketError) {
+                console.error('Error creating storage bucket:', createBucketError);
+              } else {
+                setIsStorageBucketCreated(true);
+              }
+            } catch (e) {
+              console.error('Error creating bucket:', e);
+            }
+          } else {
+            setIsStorageBucketCreated(true);
+          }
+        }
+        
+        // Get current user
         const { data: { user } } = await supabase.auth.getUser();
         
         if (!user) {
@@ -93,10 +185,8 @@ const Settings = () => {
               .from('profiles')
               .insert([{ 
                 id: user.id, 
-                username: user.email?.split('@')[0],
-                email: user.email,
-                notifications_enabled: true,
-                email_frequency: 'weekly'
+                username: user.email?.split('@')[0] || '',
+                email: user.email || ''
               }]);
             
             if (insertError) {
@@ -105,15 +195,12 @@ const Settings = () => {
             
             setProfile({
               id: user.id,
-              username: user.email?.split('@')[0] || '',
-              email: user.email || '',
-              notifications_enabled: true,
-              email_frequency: 'weekly'
+              username: user.email?.split('@')[0] || ''
             });
             
             setUsername(user.email?.split('@')[0] || '');
             setEmail(user.email || '');
-            setNotificationsEnabled(true);
+            setNotificationsEnabled(false);
             setEmailFrequency('weekly');
           } else {
             throw error;
@@ -121,6 +208,8 @@ const Settings = () => {
         } else {
           setProfile(profileData);
           setUsername(profileData.username || '');
+          
+          // These fields might not exist in older profiles
           setEmail(profileData.email || user.email || '');
           setBio(profileData.bio || '');
           setAvatarUrl(profileData.avatar_url || '');
@@ -140,8 +229,8 @@ const Settings = () => {
       }
     };
 
-    getProfile();
-  }, [navigate, toast]);
+    initializeProfile();
+  }, [navigate, toast, isStorageBucketCreated]);
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -163,6 +252,15 @@ const Settings = () => {
     try {
       const fileExt = avatarFile.name.split('.').pop();
       const filePath = `avatars/${profile.id}-${Date.now()}.${fileExt}`;
+      
+      // Check if bucket exists and create if needed
+      if (!isStorageBucketCreated) {
+        const { data: buckets } = await supabase.storage.listBuckets();
+        if (!buckets?.some(bucket => bucket.name === 'user-avatars')) {
+          await supabase.storage.createBucket('user-avatars', { public: true });
+        }
+        setIsStorageBucketCreated(true);
+      }
       
       const { error: uploadError } = await supabase.storage
         .from('user-avatars')
@@ -246,7 +344,10 @@ const Settings = () => {
         })
         .eq('id', profile.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Update error:', error);
+        throw error;
+      }
       
       toast({
         title: 'Profile Updated',
@@ -256,12 +357,7 @@ const Settings = () => {
       // Update local state
       setProfile({
         ...profile,
-        username,
-        email,
-        bio,
-        avatar_url: newAvatarUrl,
-        notifications_enabled: notificationsEnabled,
-        email_frequency: emailFrequency,
+        username
       });
       
       setAvatarUrl(newAvatarUrl);
@@ -271,7 +367,7 @@ const Settings = () => {
       console.error('Error updating profile:', error);
       toast({
         title: 'Update Failed',
-        description: 'Failed to update profile',
+        description: 'Failed to update profile: ' + (error as Error).message,
         variant: 'destructive',
       });
     } finally {
@@ -319,7 +415,7 @@ const Settings = () => {
       console.error('Error updating password:', error);
       toast({
         title: 'Update Failed',
-        description: 'Failed to update password',
+        description: 'Failed to update password: ' + (error as Error).message,
         variant: 'destructive',
       });
     } finally {
