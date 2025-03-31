@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, X, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, X, ExternalLink, Expand, Minimize } from "lucide-react";
 import { format, isSameDay, parseISO, getDaysInMonth, getDay, setDate } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,7 +19,37 @@ interface DividendEvent {
   company_name?: string;
 }
 
+interface Stock {
+  cik_str: string;
+  Symbol: string;
+  title: string;
+}
+
 const dayNames = ["MON", "TUE", "WED", "THU", "FRI"];
+
+const monthBackgrounds = [
+  "/calendar-backgrounds/january.jpg",
+  "/calendar-backgrounds/february.jpg",
+  "/calendar-backgrounds/march.jpg",
+  "/calendar-backgrounds/april.jpg",
+  "/calendar-backgrounds/may.jpg",
+  "/calendar-backgrounds/june.jpg",
+  "/calendar-backgrounds/july.jpg",
+  "/calendar-backgrounds/august.jpg",
+  "/calendar-backgrounds/september.jpg",
+  "/calendar-backgrounds/october.jpg",
+  "/calendar-backgrounds/november.jpg",
+  "/calendar-backgrounds/december.jpg"
+];
+
+const formatDate = (date: Date): string => {
+  return format(date, 'yyyy-MM-dd');
+};
+
+const getFirstDayOfMonth = (date: Date): number => {
+  const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+  return firstDay.getDay();
+};
 
 const DividendCalendar = () => {
   const [date, setCalendarDate] = useState<Date>(new Date());
@@ -35,9 +65,8 @@ const DividendCalendar = () => {
     stocks: any[];
   } | null>(null);
   const [showPopup, setShowPopup] = useState<{ [key: string]: boolean }>({});
-  const [holidayData, setHolidayData] = useState([]);
+  const [holidayData, setHolidayData] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>("");
@@ -45,35 +74,55 @@ const DividendCalendar = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [companyLogos, setCompanyLogos] = useState<Map<string, string>>(new Map());
-  const [hoveredStockDetails, setHoveredStockDetails: any] = useState<{
+  const [hoveredStockDetails, setHoveredStockDetails] = useState<{
     stock: any;
     exDividendDate: string;
     dividendDate: string;
     position: { x: number; y: number };
   } | null>(null);
   const [expandedStock, setExpandedStock] = useState<any | null>(null);
-  const [hoveredStock, setHoveredStock: any] = useState<any | null>(null);
+  const [hoveredStock, setHoveredStock] = useState<any | null>(null);
   const [expandedCells, setExpandedCells] = useState<Set<string>>(new Set());
   const [selectedStock, setSelectedStock] = useState<any | null>(null);
+  
+  const currentMonth = month;
+  const viewMode = view === "Weekly View" ? "weekly" : "monthly";
+
+  const yearOptions = Array.from(
+    { length: 5 }, 
+    (_, i) => new Date().getFullYear() - 2 + i
+  );
+  
+  const monthOptions = [
+    { value: 0, label: 'January' },
+    { value: 1, label: 'February' },
+    { value: 2, label: 'March' },
+    { value: 3, label: 'April' },
+    { value: 4, label: 'May' },
+    { value: 5, label: 'June' },
+    { value: 6, label: 'July' },
+    { value: 7, label: 'August' },
+    { value: 8, label: 'September' },
+    { value: 9, label: 'October' },
+    { value: 10, label: 'November' },
+    { value: 11, label: 'December' },
+  ];
 
   useEffect(() => {
     const fetchDividendData = async () => {
       try {
-        // Fetch dividend reports
         const { data: dividendData, error: dividendError } = await supabase
           .from("dividend_reports")
           .select("*");
 
         if (dividendError) throw dividendError;
 
-        // Fetch company logos
         const { data: logosData, error: logosError } = await supabase
           .from("company_logos")
           .select("*");
 
         if (logosError) throw logosError;
 
-        // Map logos to dividend data
         const eventsWithLogos = dividendData.map((event: any) => {
           const matchingLogo = logosData.find((logo: any) => logo.Symbol === event.symbol);
           return {
@@ -84,8 +133,11 @@ const DividendCalendar = () => {
         });
 
         setDividendEvents(eventsWithLogos);
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching dividend data:", error);
+        setError("Failed to load dividend data");
+        setIsLoading(false);
       }
     };
 
@@ -139,18 +191,15 @@ const DividendCalendar = () => {
     const daysInMonth = getDaysInMonth(month);
     const calendarDays = [];
 
-    // Filter out weekends (0 = Sunday, 6 = Saturday)
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
       const dayOfWeek = getDay(currentDate);
       
-      // Skip weekends
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         calendarDays.push(day);
       }
     }
 
-    // Group days into weeks
     const weeks = [];
     let week = [];
     
@@ -159,7 +208,6 @@ const DividendCalendar = () => {
       const dayOfWeek = getDay(currentDate);
       const adjustedDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust to start from Monday (0)
       
-      // If we need to start a new week
       if (week.length === 5 || (week.length === 0 && adjustedDayOfWeek > 0)) {
         if (week.length > 0) {
           weeks.push(week);
@@ -170,27 +218,23 @@ const DividendCalendar = () => {
       week.push(day);
     });
     
-    // Add the last week
     if (week.length > 0) {
       weeks.push(week);
     }
 
     return (
       <div className="grid grid-cols-5 gap-4">
-        {/* Header Row */}
         {dayNames.map(day => (
           <div key={day} className="text-center py-2 font-semibold text-gray-400 bg-gray-900 rounded">
             {day}
           </div>
         ))}
         
-        {/* Calendar Days */}
         {Array.from({ length: daysInMonth }).map((_, index) => {
           const day = index + 1;
           const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
           const dayOfWeek = getDay(currentDate);
           
-          // Skip weekends
           if (dayOfWeek === 0 || dayOfWeek === 6) {
             return null;
           }
@@ -444,62 +488,57 @@ const DividendCalendar = () => {
   const filteredDividendData = dividendEvents.filter(stock => 
     stock && (
       (stock.symbol?.toLowerCase().includes(searchTerm) || false) ||
-      (stock.title?.toLowerCase().includes(searchTerm) || false)
+      (stock.company_name?.toLowerCase().includes(searchTerm) || false)
     )
   );
 
   const renderStockCard = (stock: any, borderColorClass: string) => (
     <div 
-    className="relative group stock-element w-[50px] h-[50px] mt-2"
-    onMouseEnter={(e) => handleStockHover(stock, e)}
-  >
-    <div
-      className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
+      className="relative group stock-element w-[50px] h-[50px] mt-2"
+      onMouseEnter={(e) => handleStockHover(stock, e)}
     >
-      {/* Stock Logo Container */}
-      <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
-        <img
-          src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
-          alt={stock.Symbol}
-          className="object-contain"
-          loading="lazy"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = 'stock.avif';
-          }}
-        />
-      </div>
-  
-      {/* Stock Symbol Container */}
-      <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-        <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
-          {stock.Symbol.length > 8 
-            ? `${stock.Symbol.slice(0, 8)}..`
-            : stock.Symbol
-          }
-        </span>
-      </div>
-    </div>
-    
-    {/* Add danger triangle for unsafe statuses */}
-    {(stock.status === 'This stock may have a risky dividend.' || 
-      stock.status === 'This stock does not pay a dividend.') && (
-      <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          viewBox="0 0 24 24" 
-          fill="currentColor" 
-          className="w-4 h-4"
-        >
-          <path 
-            fillRule="evenodd" 
-            d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+      <div
+        className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
+      >
+        <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
+          <img
+            src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
+            alt={stock.Symbol}
+            className="object-contain"
+            loading="lazy"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = 'stock.avif';
+            }}
           />
-        </svg>
+        </div>
+    
+        <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+          <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+            {stock.Symbol?.length > 8 
+              ? `${stock.Symbol.slice(0, 8)}..`
+              : stock.Symbol
+            }
+          </span>
+        </div>
       </div>
-    )}
-  </div>
-  
-  
+      
+      {(stock.status === 'This stock may have a risky dividend.' || 
+        stock.status === 'This stock does not pay a dividend.') && (
+        <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            viewBox="0 0 24 24" 
+            fill="currentColor" 
+            className="w-4 h-4"
+          >
+            <path 
+              fillRule="evenodd" 
+              d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+            />
+          </svg>
+        </div>
+      )}
+    </div>
   );
   
   const isDateInCurrentWeek = (date: Date): boolean => {
@@ -520,11 +559,10 @@ const DividendCalendar = () => {
     const dateString = formatDate(date);
     const isExpanded = expandedCells.has(dateString);
 
-    // Find holiday for this date
-    const holiday = holidayData.find(h => h.date === dateString);
+    const holiday = holidayData.find((h: any) => h.date === dateString);
 
     const stocksForDate = filteredDividendData.filter(
-      (stock) => stock && stock[dateType] === dateString
+      (stock) => stock && stock[dateType as keyof DividendEvent] === dateString
     );
     const hasMoreStocks = stocksForDate.length > 6;
     const displayStocks = hasMoreStocks && !isExpanded ? stocksForDate.slice(0, 6) : stocksForDate;
@@ -544,9 +582,6 @@ const DividendCalendar = () => {
           }
         }}
       >
-       
-
-        {/* Content Layer with backdrop filter */}
         <div className={`relative z-10 h-full rounded-lg backdrop-blur-sm ${
           isToday ? 'bg-blue-50/70 dark:bg-blue-900/30' : 
           holiday ? 'bg-red-50/70 dark:bg-red-900/30' :
@@ -564,10 +599,9 @@ const DividendCalendar = () => {
               </span>
               {holiday && (
                 <div className="w-[200px] h-[150px] ml-2 mt-2 p-3 rounded-lg bg-red-100/90 dark:bg-red-900/50 border border-red-300 dark:border-red-700 shadow-sm">
-                <p className="text-sm font-semibold text-red-800 dark:text-red-200">{holiday.name}</p>
-                <p className="text-xs text-red-700 dark:text-red-400 mt-1">{holiday.description}</p>
-              </div>
-              
+                  <p className="text-sm font-semibold text-red-800 dark:text-red-200">{holiday.name}</p>
+                  <p className="text-xs text-red-700 dark:text-red-400 mt-1">{holiday.description}</p>
+                </div>
               )}
             </div>
             {stocksForDate.length > 0 && (
@@ -625,7 +659,6 @@ const DividendCalendar = () => {
                 className="relative bg-white/90 dark:bg-gray-900/90 p-6 rounded-xl shadow-xl border border-gray-300 dark:border-gray-700 overflow-hidden" 
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Background for popup */}
                 <div 
                   className="absolute inset-0 bg-cover bg-center opacity-5"
                   style={{ 
@@ -633,9 +666,7 @@ const DividendCalendar = () => {
                   }}
                 />
                 
-                {/* Popup content with relative positioning */}
                 <div className="relative z-10">
-                  {/* Date with Icon */}
                   <div className="flex items-center justify-center mb-4 text-gray-900 dark:text-gray-100">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -643,10 +674,8 @@ const DividendCalendar = () => {
                     <h3 className="text-xl font-bold">{dateString}</h3>
                   </div>
               
-                  {/* Horizontal Line */}
                   <hr className="mb-6 border-gray-400/50" />
               
-                  {/* Stock Grid */}
                   <div className="grid grid-cols-4 gap-6">
                     {stocksForDate.map((stock, index) => (
                       <div 
@@ -667,7 +696,6 @@ const DividendCalendar = () => {
                     ))}
                   </div>
               
-                  {/* Close Button */}
                   <Button
                     className="mt-6 mx-auto block bg-transparent border border-blue-500 text-blue-500 font-semibold py-2 px-6 rounded-lg hover:bg-blue-500 hover:text-white transition-all duration-300"
                     onClick={() => togglePopup(dateString)}
@@ -691,7 +719,7 @@ const DividendCalendar = () => {
     let adjustedFirstDay = firstDay;
     if (firstDay >= 5) {
       adjustedFirstDay = firstDay - 5;
-    }// Adjust offset to start from Monday
+    }
     for (let i = 0; i < adjustedFirstDay; i++) {
       days.push(null);
     }
@@ -759,4 +787,73 @@ const DividendCalendar = () => {
                 <SelectItem value="Monthly View" className="text-white hover:bg-gray-700">Monthly View</SelectItem>
                 <SelectItem value="Weekly View" className="text-white hover:bg-gray-700">Weekly View</SelectItem>
               </SelectContent>
-            </
+            </Select>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePreviousMonth}
+              className="bg-gray-800 border-gray-700 hover:bg-gray-700 hover:text-white"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNextMonth}
+              className="bg-gray-800 border-gray-700 hover:bg-gray-700 hover:text-white"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+      
+      {isLoading ? (
+        <div className="flex justify-center items-center h-[400px]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+        </div>
+      ) : error ? (
+        <div className="flex justify-center items-center h-[400px] text-red-500">
+          <p>{error}</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {renderCalendarGrid()}
+        </div>
+      )}
+      
+      {expandedPopup && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50" 
+          onClick={() => setExpandedPopup(null)}
+        >
+          <div className="bg-white dark:bg-gray-900 rounded-lg p-6 max-w-3xl max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Stock Details</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {expandedPopup.stocks.map((stock, index) => (
+                <div 
+                  key={index} 
+                  className="flex justify-center"
+                  onClick={() => handleStockClick(stock)}
+                >
+                  {renderStockCard(stock, getStatusBorderColor(stock.status))}
+                </div>
+              ))}
+            </div>
+            <Button 
+              className="mt-6 w-full" 
+              onClick={() => setExpandedPopup(null)}
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default DividendCalendar;
