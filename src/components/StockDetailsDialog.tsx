@@ -23,12 +23,10 @@ import {
 } from "recharts";
 import { useTheme } from "next-themes";
 import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, Heart } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import Papa, { ParseResult } from 'papaparse';
 import { filterDividendData, type DividendHistoryData } from '@/utils/dividend';
-import UpDown from "@/pages/UpDown";
 
 interface Stock {
   cik_str: string;
@@ -44,77 +42,77 @@ interface StockDetailsDialogProps {
 
 interface CompanyProfile {
   symbol: string;
-  phone: string;
-  website: string;
-  industry: string;
-  sector: string;
-  longBusinessSummary: string;
-  fullTimeEmployees: string;
-  auditRisk: number;
-  boardRisk: number;
-  compensationRisk: number;
-  shareHolderRightsRisk: number;
-  overallRisk: number;
-  dividendRate: string;
-  dividendYield: string;
-  exDividendDate: string;
-  payoutRatio: string;
-  fiveYearAvgDividendYield: number;
-  beta: number;
-  trailingPE: number;
-  forwardPE: number;
-  priceToSalesTrailing12Months: number;
-  fiftyDayAverage: number;
-  twoHundredDayAverage: number;
-  trailingAnnualDividendRate: number;
-  trailingAnnualDividendYield: number;
-  profitMargins: number;
-  heldPercentInsiders: number;
-  heldPercentInstitutions: number;
-  bookValue: number;
-  priceToBook: number;
-  lastFiscalYearEnd: string;
-  earningsQuarterlyGrowth: number;
-  netIncomeToCommon: number;
-  trailingEps: number;
-  forwardEps: number;
-  enterpriseToRevenue: number;
-  enterpriseToEbitda: number;
-  weekChange52: number;
-  sandP52WeekChange: number;
-  lastDividendValue: number;
-  lastDividendDate: string;
-  exchange: string;
-  quoteType: string;
-  shortName: string;
-  targetHighPrice: number;
-  targetLowPrice: number;
-  targetMeanPrice: number;
-  targetMedianPrice: number;
-  recommendationMean: number;
-  recommendationKey: string;
-  numberOfAnalystOpinions: number;
-  totalCash: number;
-  totalCashPerShare: number;
-  ebitda: number;
-  totalDebt: number;
-  quickRatio: number;
-  currentRatio: number;
-  totalRevenue: number;
-  debtToEquity: number;
-  revenuePerShare: number;
-  returnOnAssets: number;
-  returnOnEquity: number;
-  grossProfits: number;
-  freeCashflow: number;
-  operatingCashflow: number;
-  earningsGrowth: number;
-  revenueGrowth: number;
-  grossMargins: number;
-  ebitdaMargins: number;
-  operatingMargins: number;
-  trailingPegRatio: number;
-  address: string;
+  phone?: string;
+  website?: string;
+  industry?: string;
+  sector?: string;
+  longBusinessSummary?: string;
+  fullTimeEmployees?: string;
+  auditRisk?: number;
+  boardRisk?: number;
+  compensationRisk?: number;
+  shareHolderRightsRisk?: number;
+  overallRisk?: number;
+  dividendRate?: string;
+  dividendYield?: string;
+  exDividendDate?: string;
+  payoutRatio?: string;
+  fiveYearAvgDividendYield?: number;
+  beta?: number;
+  trailingPE?: number;
+  forwardPE?: number;
+  priceToSalesTrailing12Months?: number;
+  fiftyDayAverage?: number;
+  twoHundredDayAverage?: number;
+  trailingAnnualDividendRate?: number;
+  trailingAnnualDividendYield?: number;
+  profitMargins?: number;
+  heldPercentInsiders?: number;
+  heldPercentInstitutions?: number;
+  bookValue?: number;
+  priceToBook?: number;
+  lastFiscalYearEnd?: string;
+  earningsQuarterlyGrowth?: number;
+  netIncomeToCommon?: number;
+  trailingEps?: number;
+  forwardEps?: number;
+  enterpriseToRevenue?: number;
+  enterpriseToEbitda?: number;
+  weekChange52?: number;
+  sandP52WeekChange?: number;
+  lastDividendValue?: number;
+  lastDividendDate?: string;
+  exchange?: string;
+  quoteType?: string;
+  shortName?: string;
+  targetHighPrice?: number;
+  targetLowPrice?: number;
+  targetMeanPrice?: number;
+  targetMedianPrice?: number;
+  recommendationMean?: number;
+  recommendationKey?: string;
+  numberOfAnalystOpinions?: number;
+  totalCash?: number;
+  totalCashPerShare?: number;
+  ebitda?: number;
+  totalDebt?: number;
+  quickRatio?: number;
+  currentRatio?: number;
+  totalRevenue?: number;
+  debtToEquity?: number;
+  revenuePerShare?: number;
+  returnOnAssets?: number;
+  returnOnEquity?: number;
+  grossProfits?: number;
+  freeCashflow?: number;
+  operatingCashflow?: number;
+  earningsGrowth?: number;
+  revenueGrowth?: number;
+  grossMargins?: number;
+  ebitdaMargins?: number;
+  operatingMargins?: number;
+  trailingPegRatio?: number;
+  address?: string;
 }
 
 interface DividendHistory {
@@ -134,11 +132,11 @@ interface RankingData {
 interface RankingDisplayData {
   rank: string;
   score: string;
-  industryRank: string;
-  totalStocks: string;
-  totalIndustryStocks: string;
-  industry: string;
-  sector: string;
+  industryRank?: string;
+  totalStocks?: string;
+  totalIndustryStocks?: string;
+  industry?: string;
+  sector?: string;
 }
 
 interface RankingCSVData {
@@ -179,6 +177,12 @@ interface SavedStock {
   is_favorite: boolean;
 }
 
+interface DividendDates {
+  symbol: string;
+  buy_date?: string;
+  payout_date?: string;
+}
+
 const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
   const [timeLeft, setTimeLeft] = useState<{
     buyDays: number;
@@ -207,15 +211,15 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     const fetchDates = async () => {
       try {
         const { data, error } = await supabase
-          .from('dividend_dates')
-          .select('*')
+          .from('dividend')
+          .select('buy_date, payoutdate')
           .eq('symbol', symbol)
           .single();
 
         if (error) throw error;
         setDates({
-          buyDate: data.buy_date,
-          payoutDate: data.payout_date
+          buyDate: data.buy_date || '',
+          payoutDate: data.payoutdate || ''
         });
       } catch (error) {
         console.error('Error fetching dates:', error);
@@ -231,12 +235,10 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     const calculateTimeLeft = () => {
       const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
       
-      // Calculate buy date countdown
       const buyExDate = new Date(dates.buyDate);
       buyExDate.setHours(16, 0, 0, 0);
       const buyDifference = buyExDate.getTime() - now.getTime();
 
-      // Calculate payout date countdown
       const payoutExDate = new Date(dates.payoutDate);
       payoutExDate.setHours(16, 0, 0, 0);
       const payoutDifference = payoutExDate.getTime() - now.getTime();
@@ -315,7 +317,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const [dividendHistory, setDividendHistory] = useState<DividendHistory[]>([]);
   const [timeRange, setTimeRange] = useState('5Y');
   const [isHidden, setIsHidden] = useState(false);
-  const [similarCompanies, setSimilarCompanies] = useState<string[]>([]);
+  const [similarCompanies, setSimilarCompanies] = useState<Array<{
+    symbol: string;
+    similar_symbol: string;
+    company_name?: string;
+    description?: string;
+    logo?: string;
+  }>>([]);
   const [activeDividendTab, setActiveDividendTab] = useState('quarterly');
   const [dividendHistoryData, setDividendHistoryData] = useState<DividendHistoryData[]>([]);
   const [rankingCSVData, setRankingCSVData] = useState<RankingDisplayData | null>(null);
@@ -372,7 +380,22 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .single();
 
         if (error) throw error;
-        setCompanyProfile(data);
+        
+        const profileData: CompanyProfile = {
+          symbol: data.symbol,
+          website: data.website,
+          industry: data.industry,
+          sector: data.sector,
+          longBusinessSummary: data.long_business_summary,
+          fullTimeEmployees: data.full_time_employees?.toString(),
+          dividendRate: data.dividend_rate?.toString(),
+          dividendYield: data.dividend_yield?.toString(),
+          exDividendDate: data.ex_dividend_date,
+          payoutRatio: data.payout_ratio?.toString(),
+          beta: data.beta,
+        };
+        
+        setCompanyProfile(profileData);
       } catch (error) {
         console.error('Error fetching company profile:', error);
       }
@@ -393,7 +416,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .order('date', { ascending: false });
 
         if (error) throw error;
-        setDividendHistory(data);
+        
+        const dividendData: DividendHistory[] = data.map(item => ({
+          date: item.date,
+          dividend: item.dividends
+        }));
+        
+        setDividendHistory(dividendData);
       } catch (error) {
         console.error('Error fetching dividend history:', error);
       }
@@ -415,8 +444,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
         if (error) throw error;
         setRankingCSVData({
-          rank: data.rank,
-          score: data.score,
+          rank: data.rank.toString(),
+          score: data.score.toString(),
           sector: data.sector,
           industry: data.industry
         });
@@ -443,13 +472,16 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
           .select('*')
-          .in('symbol', similarData.map(company => company.symbol));
+          .in('Symbol', similarData.map(company => company.similar_symbol));
 
         if (logoError) throw logoError;
 
         const combinedData = similarData.map(company => ({
-          ...company,
-          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.logo_url
+          symbol: company.symbol,
+          similar_symbol: company.similar_symbol,
+          company_name: company.company_name,
+          description: company.description,
+          logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
         }));
 
         setSimilarCompanies(combinedData);
@@ -510,11 +542,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           const { data, error } = await supabase
             .from('company_logos')
             .select('*')
-            .eq('symbol', stock.Symbol)
+            .eq('Symbol', stock.Symbol)
             .single();
 
           if (error) throw error;
-          setLogoURL(data.logo_url);
+          setLogoURL(data.LogoURL);
         } catch (error) {
           console.error('Error fetching logo:', error);
         }
@@ -538,16 +570,18 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           const { data: logoData, error: logoError } = await supabase
             .from('company_logos')
             .select('*')
-            .in('symbol', similarData.map(company => company.similar_symbol));
+            .in('Symbol', similarData.map(company => company.similar_symbol));
 
           if (logoError) throw logoError;
 
-          const combinedData = similarData.map(company => ({
-            ...company,
-            logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.logo_url
+          const transformedStocks = similarData.map(item => ({
+            symbol: item.similar_symbol,
+            company: item.company_name || item.similar_symbol,
+            description: item.description || '',
+            logoUrl: logoData.find(logo => logo.Symbol === item.similar_symbol)?.LogoURL || ''
           }));
 
-          setSimilarStocks(combinedData);
+          setSimilarStocks(transformedStocks);
         } catch (error) {
           console.error('Error fetching similar stocks:', error);
         }
@@ -564,8 +598,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       "10Y": 120
     };
     
-    const monthsToShow = periodMap[period];
-    return yieldData.slice(0, Math.ceil(monthsToShow / 3)); // Since data is quarterly
+    return [];
   };
 
   const currentYield = yieldData[0]?.value || 0;
@@ -658,7 +691,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     return data.filter(item => new Date(item.date) >= yearsAgo);
   };
 
-  // Check if stock is already saved when dialog opens
   useEffect(() => {
     if (stock?.Symbol) {
       checkIfStockIsSaved(stock.Symbol);
@@ -705,7 +737,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       }
 
       if (isSaved) {
-        // Remove stock if it's already saved
         const { error } = await supabase
           .from('saved_stocks')
           .delete()
@@ -720,7 +751,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           description: "Stock removed from watchlist",
         });
       } else {
-        // Save new stock
         const stockData: SavedStock = {
           user_id: user.id,
           symbol: stock.Symbol,
@@ -836,7 +866,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     ))}
                     <Button variant="outline" size="sm">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </Button>
                   </div>
@@ -863,13 +893,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   <div className="flex space-x-1">
                     <Button variant="outline" size="icon">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
                     </Button>
                     <Button variant="outline" size="icon">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2h2a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </Button>
                     <Button variant="outline" size="icon">
@@ -1178,7 +1208,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     }
   };
 
-  // Create mini chart data from yield data
   const miniChartData = yieldData.slice(0, 3).map(item => ({
     date: item.date,
     value: item.value
@@ -1186,141 +1215,23 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className={`max-w-6xl mx-auto mt-6 mb-6 p-5 rounded-lg shadow-lg text-sm overflow-y-auto max-h-[80vh] ${theme === "dark" ? ' text-white' : ' text-white'}`}>
-      <DialogHeader>
-  <DialogTitle className="text-2xl font-bold flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
-    <div className="flex items-center gap-6 flex-wrap">
-      {/* Logo and Stock Info */}
-      <div className="flex items-center gap-4">
-        <div
-          className="w-16 h-16 bg-center bg-no-repeat bg-contain rounded-lg border border-gray-300 dark:border-gray-700 shadow-md"
-          style={{
-            backgroundImage: `url(${logoURL || 'stock.avif'})`,
-            backgroundColor: theme === 'dark' ? '#1f2937' : '#f3f4f6'
-          }}
-        />
-        <div className="flex flex-col">
-  {/* Symbol & Save Button on the Same Row */}
-  <div className="flex items-center gap-[2px]">
-    <div className="text-lg text-gray-600 dark:text-gray-300">{stock.Symbol}</div>
-    <button
-      onClick={handleSaveStock}
-      disabled={isLoading}
-      className={`flex items-center gap-2 px-4 ml-4 py-2 rounded-full transition ${
-        isLoading ? 'opacity-50 cursor-not-allowed ' : ''
-      } ${
-        isSaved
-          ? 'bg-red-50 dark:bg-red-900/20 text-red-500'
-          : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500'
-      }`}
-    >
-      {isLoading ? (
-        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-      ) : (
-        <Heart
-          className={`w-5 h-5 transition ${
-            isSaved ? 'fill-red-500 stroke-red-500' : 'stroke-current'
-          }`}
-        />
-      )}
-      <span className="text-sm font-medium">
-        {isLoading ? 'Processing...' : isSaved ? 'Saved' : 'Save'}
-      </span>
-    </button>
-  </div>
-
-  {/* Short Name Below Symbol & Save Button */}
-  <div className="text-sm font-bold text-gray-700 dark:text-gray-300">
-    {stock?.title}
-  </div>
-</div>
-
-        
-      </div>
-
-      {/* Ranking Section */}
-      {rankingCSVData && (
-        <div className="flex gap-6 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-sm">
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500">Score</span>
-            <span className={`text-lg font-bold ${
-              Number(rankingCSVData.score) >= 0.7 ? 'text-green-500' : 
-              Number(rankingCSVData.score) >= 0.4 ? 'text-yellow-500' : 
-              'text-red-500'
-            }`}>
-              {(Number(rankingCSVData.score) * 100).toFixed(1)}%
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500">Sector</span>
-            <span className="text-sm font-medium text-blue-400">
-              {rankingCSVData.sector || 'N/A'}
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500">Industry</span>
-            <span className="text-sm font-medium text-purple-400">
-              {rankingCSVData.industry || 'N/A'}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Mini Chart */}
-      <div className="h-14 w-28">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={miniChartData}>
-            <Line type="monotone" dataKey="value" stroke="#2563eb" dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="text-xs text-gray-500 text-center">Last quarter data</div>
-      </div>
-    </div>
-
-    {/* Right Section */}
-    <div className="text-right flex flex-col items-end gap-3">
-      <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
-
-      {/* Similar Companies */}
-      <div className="relative flex flex-col items-end space-y-3 mt-2">
-        <div className="flex items-center space-x-2 mb-2">
-          <div className="text-sm font-medium">Similar Companies</div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-500 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <AlertCircle className="w-4 h-4" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-4 text-sm rounded-xl shadow-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              <p className="font-semibold text-lg">📈 Similar Stocks</p>
-              <p className="mt-2">Click on any company to view more details.</p>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Similar Companies Grid */}
-        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {similarStocks.map((similarStock) => (
-            <div
-              key={similarStock.symbol}
-              onClick={() => setSelectedStock(similarStock)}
-              className="w-12 h-16 flex flex-col items-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition cursor-pointer"
-            >
-              <div
-                className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                style={{ backgroundImage: `url(${similarStock.logoUrl})` }}
-              />
-              <div className="text-sm font-semibold text-center">{similarStock.symbol}</div>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold flex items-center gap-3">
+            <img 
+              src={logoURL || "stock.avif"} 
+              alt={stock.Symbol} 
+              className="w-10 h-10 rounded-lg"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "stock.avif";
+              }}
+            />
+            <div>
+              {stock.Symbol} {stock.title && <span className="text-gray-500 text-lg">({stock.title})</span>}
             </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </DialogTitle>
-</DialogHeader>
-
-
-
+          </DialogTitle>
+        </DialogHeader>
+        
         <div className="mt-6">
           {stock && (
             <DividendCountdown symbol={stock.Symbol} />
@@ -1399,8 +1310,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             </Card>
           </div>
 
-         
-
           <div className={`relative border rounded-lg p-4 ${theme === "dark" ? 'border-gray-700' : 'border-gray-200'}`}>
   {/* Notification Box in Top Right Corner */}
   <div className="absolute top-2 right-2 flex flex-col items-start gap-2 p-4 rounded-md shadow-md w-[500px]">
@@ -1453,41 +1362,36 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 </div>
 
 
-         
+          </div>
 
-          
-        </div>
-
-        {/* Stock Details Dialog */}
-        <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3">
-                <div 
-                  className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                  style={{ backgroundImage: `url(${selectedStock?.logoUrl})` }}
-                />
-                <div>
-                  <div className="text-lg font-bold">{selectedStock?.symbol}</div>
-                  <div className="text-sm text-gray-500">{selectedStock?.company}</div>
-                </div>
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="p-4">
-              <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                {selectedStock?.description || 'No description available'}
-              </div>
+          <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  <div 
+                    className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
+                    style={{ backgroundImage: `url(${selectedStock?.logoUrl})` }}
+                  />
+                  <div>
+                    {selectedStock?.symbol} {selectedStock?.company && <span className="text-gray-500 text-lg">({selectedStock?.company})</span>}
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
               
-              <div className="mt-4 text-xs text-gray-500">
-                Estimated Revenue 2024: ${selectedStock?.revenue}B
+              <div className="p-4">
+                <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                  {selectedStock?.description || 'No description available'}
+                </div>
+                
+                <div className="mt-4 text-xs text-gray-500">
+                  Estimated Revenue 2024: ${selectedStock?.revenue}B
+                </div>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      </DialogContent>
-    </Dialog>
-  );
-};
+            </DialogContent>
+          </Dialog>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
 export default StockDetailsDialog;
