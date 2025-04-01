@@ -9,6 +9,52 @@ export interface DividendHistoryData {
   created_at?: string;
 }
 
+export interface DividendData {
+  Symbol: string;
+  title?: string;
+  company_name?: string;
+  dividendRate?: string;
+  previousClose?: string;
+  currentPrice?: string;
+  dividendYield?: string;
+  payoutRatio?: string;
+  AnnualRate?: string;
+  message?: string;
+  ExDividendDate?: string;
+  buy_date?: string;
+  DividendDate?: string;
+  EarningsDate?: string;
+  payoutdate?: string;
+  hist?: string;
+  insight?: string;
+  LogoURL?: string;
+  industry?: string;
+  employees?: string;
+  founded?: string;
+  address?: string;
+  ceo?: string;
+  website?: string;
+  description?: string;
+  marketCap?: string;
+  peRatio?: string;
+  weekRange?: string;
+  volume?: string;
+  yieldRange?: string;
+  status?: string;
+  payout_ratio?: string;
+  fcf_coverage?: string;
+  debt_to_equity?: string;
+  domain?: string;
+}
+
+export interface Announcement {
+  symbol: string;
+  header: string;
+  message: string;
+  date: string;
+  amount: number;
+}
+
 export const filterDividendData = (
   data: DividendHistoryData[],
   range: 'annual' | 'quarterly' | '1Y' | '3Y' | '5Y' | '10Y' | 'MAX' = 'MAX'

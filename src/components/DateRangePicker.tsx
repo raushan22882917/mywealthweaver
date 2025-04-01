@@ -1,7 +1,6 @@
 
 import * as React from "react";
 import { CalendarIcon } from "lucide-react";
-import { DateRange } from "react-day-picker";
 import { format } from "date-fns";
 
 import {
@@ -12,9 +11,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 
+export interface DateRange {
+  from: Date;
+  to?: Date;
+}
+
 interface DateRangePickerProps {
-  date: DateRange;
-  onDateChange: (date: DateRange) => void;
+  date: DateRange | undefined;
+  onDateChange: (date: DateRange | undefined) => void;
   className?: string;
 }
 

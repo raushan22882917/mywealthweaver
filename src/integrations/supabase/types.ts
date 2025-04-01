@@ -387,6 +387,36 @@ export type Database = {
         }
         Relationships: []
       }
+      dividend_announcements: {
+        Row: {
+          amount: number
+          created_at: string | null
+          date: string
+          header: string
+          id: string
+          message: string
+          symbol: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          date: string
+          header: string
+          id?: string
+          message: string
+          symbol: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          date?: string
+          header?: string
+          id?: string
+          message?: string
+          symbol?: string
+        }
+        Relationships: []
+      }
       dividend_payout: {
         Row: {
           created_at: string
