@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from "react";
-import { Calendar } from "@/components/ui/calendar";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, X, ExternalLink } from "lucide-react";
-import { format, isSameDay, parseISO, getDaysInMonth, getDay, setDate } from "date-fns";
+import { format, isSameDay, parseISO, getDaysInMonth, getDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface DividendEvent {
   id: string;
@@ -57,13 +57,13 @@ const DividendCalendar = () => {
         // Fetch company logos - using correct column name "Symbol"
         const { data: logosData, error: logosError } = await supabase
           .from("company_logos")
-          .select("Symbol, LogoURL");  // Updated column names
+          .select("Symbol, LogoURL");
 
         if (logosError) throw logosError;
 
         // Create a Map of symbols to logo URLs
         const logoMap = new Map(
-          logosData.map((logo: { Symbol: string; LogoURL: string }) => [  // Updated types
+          logosData.map((logo: { Symbol: string; LogoURL: string }) => [
             logo.Symbol.toUpperCase(),
             logo.LogoURL
           ])
@@ -166,129 +166,133 @@ const DividendCalendar = () => {
       const hasEvents = events.length > 0;
 
       return (
-        <div 
+        <Card 
           key={dateKey}
           className={`
-            relative p-3 min-h-[180px] rounded-lg transition-all
-            ${isToday ? 'bg-purple-900/20 border-purple-500' : 'bg-gray-900'}
-            ${hasEvents ? 'border-2 border-blue-500/50' : 'border border-gray-800'}
-            hover:border-blue-400 hover:shadow-lg
+            relative overflow-hidden h-full min-h-[180px] transition-all duration-200
+            ${isToday ? 'bg-purple-900/20 border-purple-500/70' : 'bg-gray-900/80 border-gray-800'}
+            ${hasEvents ? 'shadow-md shadow-purple-500/5' : ''}
+            hover:shadow-lg hover:shadow-purple-500/10 group
           `}
         >
-          <div className={`
-            absolute top-2 right-2 flex items-center justify-center
-            ${isToday ? 'text-purple-400' : 'text-gray-400'}
-            text-sm font-medium
-          `}>
-            {format(currentDate, 'EEE')}
-          </div>
-          
-          <div className={`
-            h-8 w-8 flex items-center justify-center rounded-full
-            ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
-            ${hasEvents ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900' : ''}
-          `}>
-            {day}
-          </div>
-
-          {hasEvents && (
-            <div className="mt-4">
-              {/* Grid of first 6 stocks */}
-              <div className="grid grid-cols-3 gap-3">
-                {events.slice(0, 6).map((event, index) => (
-                  <div
-                    key={`${event.id}-${index}`}
-                    onClick={() => handleEventClick(event)}
-                    className="flex flex-col items-center p-2 rounded-lg bg-gray-800/50 
-                             hover:bg-blue-500/20 cursor-pointer transition-all"
-                  >
-                    <div className="w-10 h-10 bg-white rounded-full flex-shrink-0 overflow-hidden mb-2">
-                      <img
-                        src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
-                        alt={event.symbol}
-                        className="w-full h-full object-contain p-1"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/stock.avif';
-                        }}
-                      />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-100 text-center">
-                      {event.symbol}
-                    </p>
-                    
-                  </div>
-                ))}
+          <CardContent className="p-3 h-full">
+            <div className="flex justify-between items-center mb-3">
+              <div className={`
+                h-8 w-8 flex items-center justify-center rounded-full font-medium
+                ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-200'}
+                ${hasEvents ? 'ring-2 ring-purple-500/40 ring-offset-1 ring-offset-gray-900' : ''}
+              `}>
+                {day}
               </div>
+              
+              <span className={`
+                text-xs font-medium px-2 py-1 rounded-full
+                ${isToday ? 'bg-purple-500/20 text-purple-300' : 'bg-gray-800 text-gray-400'}
+              `}>
+                {format(currentDate, 'EEE')}
+              </span>
+            </div>
 
-              {/* Show More button if there are more than 6 stocks */}
-              {events.length > 6 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePopup(dateKey);
-                  }}
-                  className="mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors w-full text-center flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Show {events.length - 6} more stocks
-                </button>
-              )}
-
-              {showPopup[dateKey] && (
-                <div 
-                  className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePopup(dateKey);
-                  }}
-                >
-                  <div 
-                    className="bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold text-white">
-                        All Stocks for {format(currentDate, 'MMMM d, yyyy')}
-                      </h3>
-                      <button
-                        onClick={() => togglePopup(dateKey)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
+            {hasEvents && (
+              <div className="space-y-3">
+                {/* Grid of first 6 stocks */}
+                <div className="grid grid-cols-3 gap-2">
+                  {events.slice(0, 6).map((event, index) => (
+                    <div
+                      key={`${event.id}-${index}`}
+                      onClick={() => handleEventClick(event)}
+                      className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
+                               hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
+                    >
+                      <div className="w-10 h-10 bg-white rounded-full flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
+                        <img
+                          src={event.LogoURL || '/stock.avif'}
+                          alt={event.symbol}
+                          className="w-full h-full object-contain p-1"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/stock.avif';
+                          }}
+                        />
+                      </div>
+                      <p className="text-xs font-semibold text-gray-100 text-center">
+                        {event.symbol}
+                      </p>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                      {events.map((stock, index) => (
-                        <div 
-                          key={index}
-                          className="flex flex-col items-center p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                {/* Show More button if there are more than 6 stocks */}
+                {events.length > 6 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePopup(dateKey);
+                    }}
+                    className="mt-2 text-xs text-purple-400 hover:text-purple-300 transition-colors w-full text-center flex items-center justify-center gap-1 py-1 px-2 rounded-md bg-gray-800/50 hover:bg-gray-800"
+                  >
+                    <Plus className="w-3 h-3" />
+                    Show {events.length - 6} more
+                  </button>
+                )}
+
+                {showPopup[dateKey] && (
+                  <div 
+                    className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in-0 duration-300"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      togglePopup(dateKey);
+                    }}
+                  >
+                    <div 
+                      className="bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4 border border-purple-500/30 shadow-xl shadow-purple-500/10"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                          <CalendarIcon className="h-5 w-5 text-purple-500" />
+                          All Stocks for {format(currentDate, 'MMMM d, yyyy')}
+                        </h3>
+                        <button
+                          onClick={() => togglePopup(dateKey)}
+                          className="text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 p-1"
                         >
-                          <div className="w-12 h-12 bg-white rounded-full overflow-hidden mb-2">
-                            <img
-                              src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
-                              alt={stock.symbol}
-                              className="w-full h-full object-contain p-1"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/stock.avif';
-                              }}
-                            />
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+                        {events.map((stock, index) => (
+                          <div 
+                            key={index}
+                            className="flex flex-col items-center p-3 rounded-lg bg-gray-800/80 hover:bg-gray-700/80 transition-colors cursor-pointer"
+                            onClick={() => handleEventClick(stock)}
+                          >
+                            <div className="w-12 h-12 bg-white rounded-full overflow-hidden mb-2 border border-gray-300">
+                              <img
+                                src={stock.LogoURL || '/stock.avif'}
+                                alt={stock.symbol}
+                                className="w-full h-full object-contain p-1"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = '/stock.avif';
+                                }}
+                              />
+                            </div>
+                            <p className="text-sm font-semibold text-white text-center">
+                              {stock.symbol}
+                            </p>
+                            <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
+                              {stock.company_name}
+                            </p>
                           </div>
-                          <p className="text-sm font-semibold text-white text-center">
-                            {stock.symbol}
-                          </p>
-                          <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
-                            {stock.company_name}
-                          </p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       );
     };
 
@@ -307,7 +311,7 @@ const DividendCalendar = () => {
         {/* Header Row */}
         {dayNames.map(day => (
           <div key={day} className="text-center py-2 font-semibold text-gray-400 
-                                  bg-gray-900/50 rounded-lg backdrop-blur-sm">
+                                  bg-gray-900/70 rounded-lg backdrop-blur-sm border border-gray-800">
             {day}
           </div>
         ))}
@@ -320,8 +324,8 @@ const DividendCalendar = () => {
 
   return (
     <div className="p-4 h-full bg-gray-950 text-white">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-purple-400">{`${selectedMonth} ${year}`}</h2>
+      <div className="flex items-center justify-between mb-6 bg-gray-900/70 p-4 rounded-xl border border-gray-800 shadow-md">
+        <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">{`${selectedMonth} ${year}`}</h2>
         <div className="flex items-center space-x-2">
           <div className="flex items-center space-x-2">
             <Select value={year} onValueChange={setYear}>
@@ -380,7 +384,7 @@ const DividendCalendar = () => {
       {renderCalendarGrid()}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg bg-gray-900 text-white border-gray-800">
+        <DialogContent className="sm:max-w-lg bg-gray-900 text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
           {selectedEvent && (
             <>
               <DialogHeader>
@@ -388,40 +392,45 @@ const DividendCalendar = () => {
                   <img 
                     src={selectedEvent.LogoURL || "/stock.avif"} 
                     alt={selectedEvent.symbol} 
-                    className="w-10 h-10 rounded-full bg-gray-800 p-1"
+                    className="w-12 h-12 rounded-full bg-white p-1 border border-gray-300"
                   />
                   <div>
-                    <DialogTitle className="text-xl">{selectedEvent.symbol}</DialogTitle>
-                    <DialogDescription className="text-gray-400">{selectedEvent.company_name || selectedEvent.symbol}</DialogDescription>
+                    <DialogTitle className="text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+                      {selectedEvent.symbol}
+                    </DialogTitle>
+                    <DialogDescription className="text-gray-400">
+                      {selectedEvent.company_name || selectedEvent.symbol}
+                    </DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-4 mt-4">
+              
+              <div className="grid grid-cols-2 gap-4 mt-4 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm text-gray-400">Dividend Date</h4>
-                  <p className="font-medium">
+                  <p className="font-medium text-white">
                     {selectedEvent.dividend_date ? format(parseISO(selectedEvent.dividend_date), 'MMMM d, yyyy') : 'N/A'}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm text-gray-400">Ex-Dividend Date</h4>
-                  <p className="font-medium">
+                  <p className="font-medium text-white">
                     {selectedEvent.ex_dividend_date ? format(parseISO(selectedEvent.ex_dividend_date), 'MMMM d, yyyy') : 'N/A'}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm text-gray-400">Earnings Date</h4>
-                  <p className="font-medium">
+                  <p className="font-medium text-white">
                     {selectedEvent.earnings_date ? format(parseISO(selectedEvent.earnings_date), 'MMMM d, yyyy') : 'N/A'}
                   </p>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm text-gray-400">Earnings (EPS)</h4>
-                  <p className="font-medium">${selectedEvent.earnings_average?.toFixed(2) || 'N/A'}</p>
+                  <p className="font-medium text-white">${selectedEvent.earnings_average?.toFixed(2) || 'N/A'}</p>
                 </div>
                 <div className="col-span-2 space-y-2">
                   <h4 className="font-medium text-sm text-gray-400">Revenue</h4>
-                  <p className="font-medium">
+                  <p className="font-medium text-white">
                     {selectedEvent.revenue_average
                       ? new Intl.NumberFormat('en-US', {
                           style: 'currency',
@@ -433,6 +442,16 @@ const DividendCalendar = () => {
                   </p>
                 </div>
               </div>
+              
+              <div className="mt-4 flex justify-end">
+                <Button 
+                  variant="outline" 
+                  className="bg-gray-800 border-gray-700 hover:bg-purple-900/30 hover:text-purple-300 transition-all"
+                >
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View Details
+                </Button>
+              </div>
             </>
           )}
         </DialogContent>
@@ -442,19 +461,3 @@ const DividendCalendar = () => {
 };
 
 export default DividendCalendar;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

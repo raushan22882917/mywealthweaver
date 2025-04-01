@@ -1,3 +1,4 @@
+
 import * as React from "react";
 import { CalendarIcon } from "lucide-react";
 import { DateRange } from "react-day-picker";
@@ -28,9 +29,9 @@ export function DateRangePicker({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700"
+            className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50"
           >
-            <CalendarIcon className="mr-2 h-4 w-4" />
+            <CalendarIcon className="mr-2 h-4 w-4 text-purple-400" />
             {date?.from ? (
               date.to ? (
                 <>
@@ -45,7 +46,7 @@ export function DateRangePicker({
             )}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0 bg-gray-900 border-gray-800" align="start">
+        <PopoverContent className="w-auto p-0 bg-gray-900 border-gray-800 shadow-lg shadow-purple-500/10" align="start">
           <Calendar
             initialFocus
             mode="range"
@@ -53,7 +54,7 @@ export function DateRangePicker({
             selected={date}
             onSelect={onDateChange}
             numberOfMonths={2}
-            className="text-white"
+            className="text-white pointer-events-auto"
           />
         </PopoverContent>
       </Popover>

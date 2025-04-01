@@ -1,13 +1,61 @@
+
 import { supabase } from '../lib/supabase';
 import * as fs from 'fs';
 import * as path from 'path';
 import Papa from 'papaparse';
 
+interface CompanyProfile {
+  symbol: string;
+  website: string;
+  industry: string;
+  sector: string;
+  longBusinessSummary: string;
+  fullTimeEmployees: string;
+  dividendRate: string;
+  dividendYield: string;
+  exDividendDate: string;
+  payoutRatio: string;
+  previousClose: string;
+  open: string;
+  dayLow: string;
+  dayHigh: string;
+  volume: string;
+  marketCap: string;
+  trailingPE: string;
+  forwardPE: string;
+  beta: string;
+  address: string;
+}
+
+interface DividendData {
+  symbol: string;
+  date: string;
+  dividends: string;
+}
+
+interface RankingData {
+  Symbol: string;
+  Rank: string;
+  Score: string;
+  sector: string;
+  industry: string;
+}
+
+interface SimilarCompanyData {
+  symbol: string;
+  similarcompanies: string;
+}
+
+interface LogoData {
+  Symbol: string;
+  LogoURL: string;
+}
+
 async function importData() {
   try {
     // Import company profiles
     const profilesCSV = fs.readFileSync(path.join(__dirname, '../../public/profile/company_profile.csv'), 'utf-8');
-    const profiles = Papa.parse(profilesCSV, { header: true, delimiter: '|' }).data;
+    const profiles = Papa.parse<CompanyProfile>(profilesCSV, { header: true, delimiter: '|' }).data;
     
     for (const profile of profiles) {
       const { error } = await supabase
@@ -39,7 +87,7 @@ async function importData() {
 
     // Import annual dividends
     const annualDivCSV = fs.readFileSync(path.join(__dirname, '../../public/Annual_dividend/annual_dividend.csv'), 'utf-8');
-    const annualDivs = Papa.parse(annualDivCSV, { header: true, delimiter: '|' }).data;
+    const annualDivs = Papa.parse<DividendData>(annualDivCSV, { header: true, delimiter: '|' }).data;
     
     for (const div of annualDivs) {
       const { error } = await supabase
@@ -54,7 +102,7 @@ async function importData() {
 
     // Import quarterly dividends
     const quarterlyDivCSV = fs.readFileSync(path.join(__dirname, '../../public/quatarly_dividend/quater_dividend.csv'), 'utf-8');
-    const quarterlyDivs = Papa.parse(quarterlyDivCSV, { header: true, delimiter: '|' }).data;
+    const quarterlyDivs = Papa.parse<DividendData>(quarterlyDivCSV, { header: true, delimiter: '|' }).data;
     
     for (const div of quarterlyDivs) {
       const { error } = await supabase
@@ -69,7 +117,7 @@ async function importData() {
 
     // Import stock rankings
     const rankingsCSV = fs.readFileSync(path.join(__dirname, '../../public/ranking/ranking.csv'), 'utf-8');
-    const rankings = Papa.parse(rankingsCSV, { header: true, delimiter: '|' }).data;
+    const rankings = Papa.parse<RankingData>(rankingsCSV, { header: true, delimiter: '|' }).data;
     
     for (const rank of rankings) {
       const { error } = await supabase
@@ -86,7 +134,7 @@ async function importData() {
 
     // Import similar companies
     const similarCSV = fs.readFileSync(path.join(__dirname, '../../public/profile/similarcompany.csv'), 'utf-8');
-    const similar = Papa.parse(similarCSV, { header: true, delimiter: '|' }).data;
+    const similar = Papa.parse<SimilarCompanyData>(similarCSV, { header: true, delimiter: '|' }).data;
     
     for (const comp of similar) {
       const similarSymbols = comp.similarcompanies.split(',');
@@ -105,7 +153,7 @@ async function importData() {
 
     // Import company logos
     const logosCSV = fs.readFileSync(path.join(__dirname, '../../public/sp500_company_logos.csv'), 'utf-8');
-    const logos = Papa.parse(logosCSV, { header: true, delimiter: ',' }).data;
+    const logos = Papa.parse<LogoData>(logosCSV, { header: true, delimiter: ',' }).data;
     
     for (const logo of logos) {
       const { error } = await supabase
