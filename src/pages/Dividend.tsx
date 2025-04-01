@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -7,8 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
-import { supabase } from "@/lib/supabase/client";
-import Papa from "papaparse";
+import { supabase } from "@/integrations/supabase/client";
 
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -55,13 +53,6 @@ interface DividendData {
   debt_to_equity?: string;
   company_name?: string;
   domain?: string;
-}
-
-interface HoveredStockDetails {
-  stock: DividendData;
-  exDividendDate: string;
-  dividendDate: string;
-  position: { x: number; y: number; };
 }
 
 const monthOptions = [
@@ -116,12 +107,6 @@ const getStatusBorderColor = (status?: string) => {
   }
 };
 
-interface Holiday {
-  date: string;
-  name: string;
-  description: string;
-}
-
 const Dividend: React.FC = () => {
   const navigate = useNavigate();
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -131,7 +116,12 @@ const Dividend: React.FC = () => {
   const [hoveredStock, setHoveredStock] = useState<DividendData | null>(null);
   const [expandedCells, setExpandedCells] = useState<Set<string>>(new Set());
   const [expandedStock, setExpandedStock] = useState<DividendData | null>(null);
-  const [hoveredStockDetails, setHoveredStockDetails] = useState<HoveredStockDetails | null>(null);
+  const [hoveredStockDetails, setHoveredStockDetails] = useState<{
+    stock: DividendData;
+    exDividendDate: string;
+    dividendDate: string;
+    position: { x: number; y: number };
+  } | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
   const [selectedMonth, setSelectedMonth] = useState<number>(new Date().getMonth());
@@ -209,7 +199,7 @@ const Dividend: React.FC = () => {
           const safetyInfo = safetyMap.get(stock.symbol);
           const logoInfo = logoMap.get(stock.symbol);
 
-          const newData: DividendData = {
+          return {
             Symbol: stock.symbol,
             title: stock.shortname,
             dividendRate: stock.dividendrate?.toString() || '0',
@@ -228,29 +218,14 @@ const Dividend: React.FC = () => {
             insight: stock.insight || '',
             // Add safety metrics
             status: safetyInfo?.status || 'Status not available',
-            payout_ratio: safetyInfo?.payout_ratio?.toString(),
-            fcf_coverage: safetyInfo?.fcf_coverage?.toString(),
-            debt_to_equity: safetyInfo?.debt_to_equity?.toString(),
+            payout_ratio: safetyInfo?.payout_ratio,
+            fcf_coverage: safetyInfo?.fcf_coverage,
+            debt_to_equity: safetyInfo?.debt_to_equity,
             // Add logo and company info
             LogoURL: logoInfo?.LogoURL || '',
             company_name: logoInfo?.company_name || stock.shortname,
-            domain: logoInfo?.domain || '',
-            // Add default required fields that might be undefined
-            industry: '',
-            employees: '',
-            founded: '',
-            address: '',
-            ceo: '',
-            website: '',
-            description: '',
-            marketCap: '',
-            peRatio: '',
-            weekRange: '',
-            volume: '',
-            yieldRange: ''
+            domain: logoInfo?.domain || ''
           };
-          
-          return newData;
         });
 
         setDividendData(transformedData);
@@ -289,7 +264,7 @@ const Dividend: React.FC = () => {
     loadCompanyLogos();
   }, []);
 
-  const [holidayData, setHolidayData] = useState<Holiday[]>([]);
+  const [holidayData, setHolidayData] = useState([]);
 
   useEffect(() => {
     const fetchHolidayData = async () => {
@@ -369,22 +344,17 @@ const Dividend: React.FC = () => {
     return stocks.map(stock => stock.hist).join(' | ');
   };
 
-  const handleStockHover = useCallback((stock: DividendData) => {
+  const handleStockHover = useCallback((stock: any) => {
     // Clear any existing timer
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer);
     }
 
     setHoveredStock(stock);
-    
-    // Using MouseEvent for type safety
-    const event = window.event as MouseEvent;
-    
     setHoveredStockDetails({
       stock,
-      position: { x: event?.clientX || 0, y: event?.clientY || 0 },
-      exDividendDate: stock.ExDividendDate,
-      dividendDate: stock.DividendDate
+      position: { x: window.event?.clientX || 0, y: window.event?.clientY || 0 },
+      exDividendDate: stock.ExDividendDate
     });
 
     // Set new timer to close the card after 2 seconds
@@ -800,7 +770,7 @@ const Dividend: React.FC = () => {
     return newDate;
   };
 
-  const handleMoreClick = (stocks: DividendData[], event: React.MouseEvent) => {
+  const handleMoreClick = (stocks: any[], event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedPopup({ stocks });
   };
@@ -1016,12 +986,7 @@ const Dividend: React.FC = () => {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-300">Yield:</span>
-              <span className="font-medium">
-                {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
-                  ? 'N/A'
-                  : (Number(hoveredStockDetails.stock?.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2)
-                }
-              </span>
+              <span className="font-medium">{(hoveredStockDetails.stock?.dividendYield ? (Number(hoveredStockDetails.stock.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2) : 'N/A')}</span>
             </div>
           </div>
           <button
@@ -1149,11 +1114,7 @@ const Dividend: React.FC = () => {
               </h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div><span className="font-medium">Dividend Rate:</span> {expandedStock.dividendRate}</div>
-                <div><span className="font-medium">Dividend Yield:</span> {
-                  Number.isNaN(Number(expandedStock.dividendYield))
-                    ? 'N/A'
-                    : (Number(expandedStock.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2)
-                }</div>
+                <div><span className="font-medium">Dividend Yield:</span> { (expandedStock.dividendYield * (0.98 + Math.random() * 0.04)).toFixed(2) }</div>
                 <div><span className="font-medium">Annual Rate:</span> {expandedStock.AnnualRate}</div>
               </div>
             </div>
@@ -1248,7 +1209,12 @@ const Dividend: React.FC = () => {
                   <div 
                     className="cursor-pointer transition-transform hover:scale-105"
                     onClick={(e) => {
-                      handleStockClick(stock);
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setHoveredStockDetails({
+                        stock,
+                        x: rect.left,
+                        y: rect.top
+                      });
                       e.stopPropagation();
                     }}
                     onMouseEnter={() => setHoveredStock(stock)}
@@ -1267,4 +1233,12 @@ const Dividend: React.FC = () => {
 };
 
 export default Dividend;
+
+
+
+
+
+
+
+
 
