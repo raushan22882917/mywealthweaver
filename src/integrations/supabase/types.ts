@@ -320,18 +320,19 @@ export type Database = {
       }
       dividend: {
         Row: {
-          annualrate: number | null
           buy_date: string | null
           currentprice: number | null
+          date: string | null
+          dividend: number | null
           dividenddate: string | null
           dividendrate: number | null
           dividendyield: number | null
           earningsdate: string | null
+          "Ex-Dividend": string | null
           exdividenddate: string | null
           hist: string | null
           id: number
           insight: string | null
-          lastdividendvalue: number | null
           message: string | null
           payoutdate: string | null
           payoutratio: number | null
@@ -339,22 +340,21 @@ export type Database = {
           quotetype: string | null
           shortname: string | null
           symbol: string | null
-          trailingannualdividendrate: number | null
-          trailingannualdividendyield: number | null
         }
         Insert: {
-          annualrate?: number | null
           buy_date?: string | null
           currentprice?: number | null
+          date?: string | null
+          dividend?: number | null
           dividenddate?: string | null
           dividendrate?: number | null
           dividendyield?: number | null
           earningsdate?: string | null
+          "Ex-Dividend"?: string | null
           exdividenddate?: string | null
           hist?: string | null
           id?: number
           insight?: string | null
-          lastdividendvalue?: number | null
           message?: string | null
           payoutdate?: string | null
           payoutratio?: number | null
@@ -362,22 +362,21 @@ export type Database = {
           quotetype?: string | null
           shortname?: string | null
           symbol?: string | null
-          trailingannualdividendrate?: number | null
-          trailingannualdividendyield?: number | null
         }
         Update: {
-          annualrate?: number | null
           buy_date?: string | null
           currentprice?: number | null
+          date?: string | null
+          dividend?: number | null
           dividenddate?: string | null
           dividendrate?: number | null
           dividendyield?: number | null
           earningsdate?: string | null
+          "Ex-Dividend"?: string | null
           exdividenddate?: string | null
           hist?: string | null
           id?: number
           insight?: string | null
-          lastdividendvalue?: number | null
           message?: string | null
           payoutdate?: string | null
           payoutratio?: number | null
@@ -385,8 +384,36 @@ export type Database = {
           quotetype?: string | null
           shortname?: string | null
           symbol?: string | null
-          trailingannualdividendrate?: number | null
-          trailingannualdividendyield?: number | null
+        }
+        Relationships: []
+      }
+      dividend_announcements: {
+        Row: {
+          amount: number
+          created_at: string | null
+          date: string
+          header: string
+          id: string
+          message: string
+          symbol: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          date: string
+          header: string
+          id?: string
+          message: string
+          symbol: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          date?: string
+          header?: string
+          id?: string
+          message?: string
+          symbol?: string
         }
         Relationships: []
       }
@@ -921,6 +948,7 @@ export type Database = {
           created_at: string
           firm: string
           from_grade: string
+          grade_date: string | null
           id: string
           symbol: string
           to_grade: string
@@ -930,6 +958,7 @@ export type Database = {
           created_at?: string
           firm: string
           from_grade: string
+          grade_date?: string | null
           id?: string
           symbol: string
           to_grade: string
@@ -939,6 +968,7 @@ export type Database = {
           created_at?: string
           firm?: string
           from_grade?: string
+          grade_date?: string | null
           id?: string
           symbol?: string
           to_grade?: string
