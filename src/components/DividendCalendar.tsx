@@ -16,7 +16,7 @@ interface DividendEvent {
   earnings_date: string;
   earnings_average: number;
   revenue_average: number;
-  LogoURL?: string;
+  LogoURL?: string;  // Changed from logo_url to LogoURL to match Supabase schema
   company_name?: string;
 }
 
@@ -57,13 +57,13 @@ const DividendCalendar = () => {
         // Fetch company logos - using correct column name "Symbol"
         const { data: logosData, error: logosError } = await supabase
           .from("company_logos")
-          .select("Symbol, LogoURL");  // Updated column names
+          .select("Symbol, LogoURL");  // Using correct column names
 
         if (logosError) throw logosError;
 
         // Create a Map of symbols to logo URLs
         const logoMap = new Map(
-          logosData.map((logo: { Symbol: string; LogoURL: string }) => [  // Updated types
+          logosData.map((logo: { Symbol: string; LogoURL: string }) => [  // Using correct types
             logo.Symbol.toUpperCase(),
             logo.LogoURL
           ])
@@ -171,8 +171,8 @@ const DividendCalendar = () => {
           className={`
             relative p-3 min-h-[180px] rounded-lg transition-all
             ${isToday ? 'bg-purple-900/20 border-purple-500' : 'bg-gray-900'}
-            ${hasEvents ? 'border-2 border-blue-500/50' : 'border border-gray-800'}
-            hover:border-blue-400 hover:shadow-lg
+            ${hasEvents ? 'border-2 border-purple-500/50' : 'border border-gray-800'}
+            hover:border-purple-400 hover:shadow-lg
           `}
         >
           <div className={`
@@ -186,7 +186,7 @@ const DividendCalendar = () => {
           <div className={`
             h-8 w-8 flex items-center justify-center rounded-full
             ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
-            ${hasEvents ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900' : ''}
+            ${hasEvents ? 'ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-900' : ''}
           `}>
             {day}
           </div>
@@ -200,7 +200,7 @@ const DividendCalendar = () => {
                     key={`${event.id}-${index}`}
                     onClick={() => handleEventClick(event)}
                     className="flex flex-col items-center p-2 rounded-lg bg-gray-800/50 
-                             hover:bg-blue-500/20 cursor-pointer transition-all"
+                             hover:bg-purple-500/20 cursor-pointer transition-all"
                   >
                     <div className="w-10 h-10 bg-white rounded-full flex-shrink-0 overflow-hidden mb-2">
                       <img
@@ -227,7 +227,7 @@ const DividendCalendar = () => {
                     e.stopPropagation();
                     togglePopup(dateKey);
                   }}
-                  className="mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors w-full text-center flex items-center justify-center gap-2"
+                  className="mt-3 text-sm text-purple-400 hover:text-purple-300 transition-colors w-full text-center flex items-center justify-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Show {events.length - 6} more stocks
@@ -236,23 +236,24 @@ const DividendCalendar = () => {
 
               {showPopup[dateKey] && (
                 <div 
-                  className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                  className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in"
                   onClick={(e) => {
                     e.stopPropagation();
                     togglePopup(dateKey);
                   }}
                 >
                   <div 
-                    className="bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4"
+                    className="bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4 border border-purple-500/20 shadow-xl shadow-purple-500/10"
                     onClick={e => e.stopPropagation()}
                   >
                     <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold text-white">
+                      <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                        <CalendarIcon className="h-5 w-5 text-purple-500" />
                         All Stocks for {format(currentDate, 'MMMM d, yyyy')}
                       </h3>
                       <button
                         onClick={() => togglePopup(dateKey)}
-                        className="text-gray-400 hover:text-white transition-colors"
+                        className="text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 p-1"
                       >
                         <X className="w-5 h-5" />
                       </button>
@@ -263,6 +264,7 @@ const DividendCalendar = () => {
                         <div 
                           key={index}
                           className="flex flex-col items-center p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                          onClick={() => handleEventClick(stock)}
                         >
                           <div className="w-12 h-12 bg-white rounded-full overflow-hidden mb-2">
                             <img
@@ -380,7 +382,7 @@ const DividendCalendar = () => {
       {renderCalendarGrid()}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg bg-gray-900 text-white border-gray-800">
+        <DialogContent className="sm:max-w-lg bg-gray-900 text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-scale-in">
           {selectedEvent && (
             <>
               <DialogHeader>
@@ -442,19 +444,3 @@ const DividendCalendar = () => {
 };
 
 export default DividendCalendar;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
