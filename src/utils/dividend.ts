@@ -1,6 +1,41 @@
+
 export interface DividendHistoryData {
   date: string;
   dividends: number;
+}
+
+export interface DividendData {
+  Symbol: string;
+  title: string;
+  dividendRate: number;
+  previousClose: number;
+  currentPrice: number;
+  dividendYield: number;
+  payoutRatio: number;
+  AnnualRate: number;
+  amount: number;
+  message: string;
+  ExDividendDate: string;
+  DividendDate: string;
+  EarningsDate: string;
+  adjustedClosePrice: number[];
+  DeclaredDate: string;
+  logo: string;
+  historicalData: DividendHistoryData[];
+  data: number[];
+  labels: string[];
+  payable: boolean;
+  yield: number;
+  avgYield: number;
+  yearlyYield: number;
+  totalYield: number;
+  projectedYield: number;
+  paymentFrequency: string;
+  announcementDate: string;
+  recordDate: string;
+  yieldRange: string;
+  companyName?: string;
+  announcements?: string[];
 }
 
 export const filterDividendData = (data: DividendHistoryData[], range: string) => {

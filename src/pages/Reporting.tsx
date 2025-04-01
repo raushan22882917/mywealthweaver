@@ -70,6 +70,11 @@ interface DividendReport {
   price_status?: 'high' | 'low' | 'medium';
 }
 
+interface DateRange {
+  from: Date;
+  to: Date;
+}
+
 const Reporting: React.FC = () => {
   const [reports, setReports] = useState<DividendReport[]>([]);
   const [filteredReports, setFilteredReports] = useState<DividendReport[]>([]);
@@ -256,19 +261,21 @@ const Reporting: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-200">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900 text-gray-200">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2 text-white">Dividend Reporting Dashboard</h1>
+          <h1 className="text-3xl font-bold mb-2 text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">
+            Dividend Reporting Dashboard
+          </h1>
           <p className="text-gray-400">
             Comprehensive analysis and visualization of dividend data
           </p>
         </div>
 
-        {/* Price Status Alert - Similar to the image */}
-        <Card className="mb-8 bg-gray-900 border-gray-800">
-          <CardContent className="p-4">
+        {/* Price Status Alert with improved design */}
+        <Card className="mb-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg hover:shadow-xl transition-all">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="flex space-x-1">
@@ -335,21 +342,23 @@ const Reporting: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Price Tracking Controls */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 bg-gray-900 p-4 rounded-lg border border-gray-800">
-          <div className="flex items-center gap-3">
-            <LineChartIcon className="h-5 w-5 text-blue-500" />
-            <span className="text-white font-medium">Track prices</span>
-            <Switch 
-              checked={trackPrices} 
-              onCheckedChange={setTrackPrices} 
-              className="data-[state=checked]:bg-blue-600"
-            />
+        {/* Price Tracking Controls with improved UI */}
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 bg-gray-900/80 backdrop-blur-sm p-5 rounded-lg border border-gray-800 shadow-md">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3 bg-gray-800/70 p-2 rounded-lg border border-gray-700">
+              <LineChartIcon className="h-5 w-5 text-blue-500" />
+              <span className="text-white font-medium">Track prices</span>
+              <Switch 
+                checked={trackPrices} 
+                onCheckedChange={setTrackPrices} 
+                className="data-[state=checked]:bg-blue-600"
+              />
+            </div>
             
             <DateRangePicker
               date={dateRange}
               onDateChange={setDateRange}
-              className="ml-4"
+              className="bg-gray-800/70 rounded-lg border border-gray-700"
             />
           </div>
           
@@ -380,16 +389,16 @@ const Reporting: React.FC = () => {
           </div>
         </div>
 
-        {/* Add the price graph view */}
+        {/* Add the price graph view with improved UI */}
         {viewMode === "graph" && (
-          <Card className="bg-gray-900 border-gray-800 mb-6">
-            <CardHeader>
+          <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-800 mb-6 shadow-lg">
+            <CardHeader className="border-b border-gray-800">
               <CardTitle className="text-white">Price History</CardTitle>
               <CardDescription className="text-gray-400">
                 {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
               </CardDescription>
             </CardHeader>
-            <CardContent className="h-[400px]">
+            <CardContent className="h-[400px] p-5">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={getFilteredPriceData(priceHistoryData)}>
                   <XAxis 
@@ -426,11 +435,13 @@ const Reporting: React.FC = () => {
         )}
 
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left side - Calendar (75%) */}
+          {/* Left side - Calendar (75%) with improved styling */}
           <div className="lg:w-3/4">
-            <Card className="h-full bg-gray-900 border-gray-800">
+            <Card className="h-full bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg">
               <CardHeader className="border-b border-gray-800">
-                <CardTitle className="text-xl text-white">Dividend Calendar</CardTitle>
+                <CardTitle className="text-xl text-gradient bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Dividend Calendar
+                </CardTitle>
                 <CardDescription className="text-gray-400">
                   View upcoming dividend events with company logos
                 </CardDescription>
@@ -441,23 +452,23 @@ const Reporting: React.FC = () => {
             </Card>
           </div>
 
-          {/* Right side - Analysis (25%) */}
+          {/* Right side - Analysis (25%) with improved UI */}
           <div className="lg:w-1/4">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-              <TabsList className="grid grid-cols-3 mb-4 bg-gray-800">
+              <TabsList className="grid grid-cols-3 mb-4 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-gray-700">Overview</TabsTrigger>
                 <TabsTrigger value="stats" className="data-[state=active]:bg-gray-700">Stats</TabsTrigger>
                 <TabsTrigger value="search" className="data-[state=active]:bg-gray-700">Search</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview" className="space-y-4">
-                {/* Dashboard Metrics */}
-                <Card className="bg-gray-900 border-gray-800">
-                  <CardHeader className="pb-2">
+                {/* Dashboard Metrics with improved styling */}
+                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 hover:border-gray-600 transition-all shadow-md hover:shadow-lg">
+                  <CardHeader className="pb-2 border-b border-gray-800">
                     <CardTitle className="text-lg font-medium text-white">Upcoming Dividends</CardTitle>
                     <CardDescription className="text-gray-400">Next 30 days</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Calendar className="h-5 w-5 text-blue-500" />
@@ -476,12 +487,12 @@ const Reporting: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gray-900 border-gray-800">
-                  <CardHeader className="pb-2">
+                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 hover:border-gray-600 transition-all shadow-md hover:shadow-lg">
+                  <CardHeader className="pb-2 border-b border-gray-800">
                     <CardTitle className="text-lg font-medium text-white">Average EPS</CardTitle>
                     <CardDescription className="text-gray-400">Across portfolio</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <DollarSign className="h-5 w-5 text-green-500" />
@@ -496,12 +507,12 @@ const Reporting: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gray-900 border-gray-800">
-                  <CardHeader className="pb-2">
+                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 hover:border-gray-600 transition-all shadow-md hover:shadow-lg">
+                  <CardHeader className="pb-2 border-b border-gray-800">
                     <CardTitle className="text-lg font-medium text-white">Total Revenue</CardTitle>
                     <CardDescription className="text-gray-400">All companies</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <BarChart3 className="h-5 w-5 text-purple-500" />
@@ -518,12 +529,12 @@ const Reporting: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="stats" className="space-y-4">
-                <Card className="bg-gray-900 border-gray-800">
-                  <CardHeader>
+                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 shadow-md">
+                  <CardHeader className="border-b border-gray-800">
                     <CardTitle className="text-white">Earnings Distribution</CardTitle>
                     <CardDescription className="text-gray-400">Top 5 companies by EPS</CardDescription>
                   </CardHeader>
-                  <CardContent className="h-[300px]">
+                  <CardContent className="h-[300px] pt-4">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={earningsChartData.slice(0, 5)}>
                         <XAxis dataKey="symbol" tick={{fill: '#9ca3af'}} />
@@ -539,12 +550,12 @@ const Reporting: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-gray-900 border-gray-800">
-                  <CardHeader>
+                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 shadow-md">
+                  <CardHeader className="border-b border-gray-800">
                     <CardTitle className="text-white">Revenue Summary</CardTitle>
                     <CardDescription className="text-gray-400">Billion USD</CardDescription>
                   </CardHeader>
-                  <CardContent className="h-[300px]">
+                  <CardContent className="h-[300px] pt-4">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={revenueChartData.slice(0, 5)}>
                         <XAxis dataKey="symbol" tick={{fill: '#9ca3af'}} />
@@ -562,12 +573,12 @@ const Reporting: React.FC = () => {
               </TabsContent>
               
               <TabsContent value="search" className="space-y-4">
-                <Card className="bg-gray-900 border-gray-800">
-                  <CardHeader>
+                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 shadow-md">
+                  <CardHeader className="border-b border-gray-800">
                     <CardTitle className="text-white">Find Report</CardTitle>
                     <CardDescription className="text-gray-400">Search for a specific company</CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-4">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                       <Input
@@ -583,7 +594,7 @@ const Reporting: React.FC = () => {
                         <p className="text-center py-4 text-gray-400">No matching companies found</p>
                       ) : (
                         filteredReports.slice(0, 10).map(report => (
-                          <div key={report.id} className="flex items-center py-2 border-b border-gray-800">
+                          <div key={report.id} className="flex items-center py-2 border-b border-gray-800 hover:bg-gray-800/30 px-2 rounded-md cursor-pointer">
                             <div className="font-medium text-white">{report.symbol}</div>
                             <div className="ml-auto text-sm text-gray-400">
                               {formatDate(report.dividend_date)}
@@ -599,10 +610,12 @@ const Reporting: React.FC = () => {
           </div>
         </div>
 
-        {/* Report Table - Full width below the split layout */}
-        <Card className="mt-8 bg-gray-900 border-gray-800">
+        {/* Report Table with improved UI */}
+        <Card className="mt-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-white">Dividend & Earnings Reports</CardTitle>
+            <CardTitle className="text-gradient bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Dividend & Earnings Reports
+            </CardTitle>
             <CardDescription className="text-gray-400">
               {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''} found
             </CardDescription>
@@ -650,75 +663,78 @@ const Reporting: React.FC = () => {
                 <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
               </div>
             ) : error ? (
-              <div className="text-center py-8 text-red-500">{error}</div>
+              <div className="text-center py-8 text-red-500 flex items-center justify-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                {error}
+              </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
-                  <TableHeader className="bg-gray-800">
+                  <TableHeader className="bg-gray-800/70 backdrop-blur-sm sticky top-0 z-10">
                     <TableRow>
                       <TableHead 
-                        className="cursor-pointer text-gray-300"
+                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
                         onClick={() => handleSort('symbol')}
                       >
                         <div className="flex items-center gap-1">
                           Symbol
                           {sortField === 'symbol' && (
-                            <ArrowUpDown size={16} className="text-gray-400" />
+                            <ArrowUpDown size={16} className="text-blue-400" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="cursor-pointer text-gray-300"
+                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
                         onClick={() => handleSort('ex_dividend_date')}
                       >
                         <div className="flex items-center gap-1">
                           Ex-Dividend Date
                           {sortField === 'ex_dividend_date' && (
-                            <ArrowUpDown size={16} className="text-gray-400" />
+                            <ArrowUpDown size={16} className="text-blue-400" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="cursor-pointer text-gray-300"
+                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
                         onClick={() => handleSort('dividend_date')}
                       >
                         <div className="flex items-center gap-1">
                           Dividend Date
                           {sortField === 'dividend_date' && (
-                            <ArrowUpDown size={16} className="text-gray-400" />
+                            <ArrowUpDown size={16} className="text-blue-400" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="cursor-pointer text-gray-300"
+                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
                         onClick={() => handleSort('earnings_date')}
                       >
                         <div className="flex items-center gap-1">
                           Earnings Date
                           {sortField === 'earnings_date' && (
-                            <ArrowUpDown size={16} className="text-gray-400" />
+                            <ArrowUpDown size={16} className="text-blue-400" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="cursor-pointer text-right text-gray-300"
+                        className="cursor-pointer text-right text-gray-300 hover:text-white transition-colors"
                         onClick={() => handleSort('earnings_average')}
                       >
                         <div className="flex items-center gap-1 justify-end">
                           Earnings (EPS)
                           {sortField === 'earnings_average' && (
-                            <ArrowUpDown size={16} className="text-gray-400" />
+                            <ArrowUpDown size={16} className="text-blue-400" />
                           )}
                         </div>
                       </TableHead>
                       <TableHead 
-                        className="cursor-pointer text-right text-gray-300"
+                        className="cursor-pointer text-right text-gray-300 hover:text-white transition-colors"
                         onClick={() => handleSort('revenue_average')}
                       >
                         <div className="flex items-center gap-1 justify-end">
                           Revenue
                           {sortField === 'revenue_average' && (
-                            <ArrowUpDown size={16} className="text-gray-400" />
+                            <ArrowUpDown size={16} className="text-blue-400" />
                           )}
                         </div>
                       </TableHead>
@@ -749,13 +765,13 @@ const Reporting: React.FC = () => {
                           <TableCell className="text-gray-300">{formatDate(report.dividend_date)}</TableCell>
                           <TableCell className="text-gray-300">{formatDate(report.earnings_date)}</TableCell>
                           <TableCell className="text-right">
-                            <span className="text-green-400">${formatNumber(report.earnings_average)}</span>
+                            <span className="text-green-400 font-medium">${formatNumber(report.earnings_average)}</span>
                             <div className="text-xs text-gray-400">
                               Range: ${formatNumber(report.earnings_low)} - ${formatNumber(report.earnings_high)}
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <span className="text-blue-400">{formatCurrency(report.revenue_average)}</span>
+                            <span className="text-blue-400 font-medium">{formatCurrency(report.revenue_average)}</span>
                             <div className="text-xs text-gray-400">
                               Range: {formatCurrency(report.revenue_low)} - {formatCurrency(report.revenue_high)}
                             </div>
@@ -778,9 +794,9 @@ const Reporting: React.FC = () => {
                     )}
                   </TableBody>
                 </Table>
-                {/* Add pagination controls */}
+                {/* Add pagination controls with improved UI */}
                 {!loading && !error && filteredReports.length > 0 && (
-                  <div className="flex items-center justify-between mt-6 bg-gray-800 p-4 rounded-lg border border-gray-700">
+                  <div className="flex items-center justify-between mt-6 bg-gray-800/70 backdrop-blur-sm p-4 rounded-lg border border-gray-700 shadow-md">
                     <Button
                       variant="outline"
                       size="sm"
@@ -821,12 +837,3 @@ const Reporting: React.FC = () => {
 };
 
 export default Reporting;
-
-
-
-
-
-
-
-
-
