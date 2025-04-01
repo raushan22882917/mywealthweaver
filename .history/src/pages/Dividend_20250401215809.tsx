@@ -55,7 +55,6 @@ interface DividendData {
   debt_to_equity?: string;
   company_name?: string;
   domain?: string;
-  amount: string;
 }
 
 interface HoveredStockDetails {
@@ -1147,7 +1146,6 @@ const Dividend: React.FC = () => {
               <span className="font-semibold text-blue-800 dark:text-blue-100">Important</span>
             </div>
             <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.insight}</p>
-            <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.amount}</p>
           </div>
       
           {/* Scrollable Content */}

@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon,Bell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import { supabase } from "@/lib/supabase/client";
 import Papa from "papaparse";
@@ -55,7 +55,6 @@ interface DividendData {
   debt_to_equity?: string;
   company_name?: string;
   domain?: string;
-  amount: string;
 }
 
 interface HoveredStockDetails {
@@ -304,32 +303,6 @@ const Dividend: React.FC = () => {
     };
 
     fetchHolidayData();
-  }, []);
-
-  const [dividendAnnouncements, setDividendAnnouncements] = useState<{[key: string]: string}>({});
-
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('dividend_announcements')
-          .select('symbol, message');
-        
-        if (error) throw error;
-        
-        // Create a map of symbol to message
-        const announcements = data.reduce((acc: {[key: string]: string}, curr) => {
-          acc[curr.symbol] = curr.message;
-          return acc;
-        }, {});
-        
-        setDividendAnnouncements(announcements);
-      } catch (error) {
-        console.error('Error fetching dividend announcements:', error);
-      }
-    };
-
-    fetchAnnouncements();
   }, []);
 
   useEffect(() => {
@@ -942,25 +915,9 @@ const Dividend: React.FC = () => {
             setAutoCloseTimer(timer);
           }}
         >
-          {/* Announcement Message */}
-          {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2 mb-2">
-                <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  Dividend Announcement
-                </span>
-              </div>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}
-              </p>
-            </div>
-          )}
-
           <div 
             className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700"
           />
-          
           {hoveredStockDetails.stock?.insight && (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-b-lg border border-blue-200 dark:border-blue-800">
               <div className="flex flex-col gap-2">
@@ -1088,21 +1045,9 @@ const Dividend: React.FC = () => {
           className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] flex flex-col relative"
           onClick={e => e.stopPropagation()}
         >
-          {/* Announcement Section */}
-          {dividendAnnouncements[expandedStock.Symbol] && (
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2 mb-2">
-                <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <h4 className="font-semibold text-blue-600 dark:text-blue-400">
-                  Dividend Announcement
-                </h4>
-              </div>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                {dividendAnnouncements[expandedStock.Symbol]}
-              </p>
-            </div>
-          )}
+          
 
+      
           {/* Header Section */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -1147,7 +1092,6 @@ const Dividend: React.FC = () => {
               <span className="font-semibold text-blue-800 dark:text-blue-100">Important</span>
             </div>
             <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.insight}</p>
-            <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.amount}</p>
           </div>
       
           {/* Scrollable Content */}
@@ -1323,6 +1267,5 @@ const Dividend: React.FC = () => {
 };
 
 export default Dividend;
-
 
 

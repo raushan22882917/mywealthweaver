@@ -55,7 +55,6 @@ interface DividendData {
   debt_to_equity?: string;
   company_name?: string;
   domain?: string;
-  amount: string;
 }
 
 interface HoveredStockDetails {
@@ -1088,21 +1087,9 @@ const Dividend: React.FC = () => {
           className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] flex flex-col relative"
           onClick={e => e.stopPropagation()}
         >
-          {/* Announcement Section */}
-          {dividendAnnouncements[expandedStock.Symbol] && (
-            <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2 mb-2">
-                <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <h4 className="font-semibold text-blue-600 dark:text-blue-400">
-                  Dividend Announcement
-                </h4>
-              </div>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                {dividendAnnouncements[expandedStock.Symbol]}
-              </p>
-            </div>
-          )}
+          
 
+      
           {/* Header Section */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
@@ -1147,7 +1134,6 @@ const Dividend: React.FC = () => {
               <span className="font-semibold text-blue-800 dark:text-blue-100">Important</span>
             </div>
             <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.insight}</p>
-            <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.amount}</p>
           </div>
       
           {/* Scrollable Content */}
