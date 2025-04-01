@@ -223,66 +223,76 @@ const DividendCalendar = () => {
               {/* Show More button if there are more than 6 stocks */}
               {events.length > 6 && (
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePopup(dateKey);
-                  }}
-                  className="mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors w-full text-center flex items-center justify-center gap-2"
+                  onClick={() => togglePopup(dateKey)}
+                  className="mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors w-full text-center"
                 >
-                  <Plus className="w-4 h-4" />
                   Show {events.length - 6} more stocks
                 </button>
               )}
 
-              {showPopup[dateKey] && (
+              {/* Popup Dialog for showing all stocks */}
+              {expandedDay === dateKey && (
                 <div 
                   className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePopup(dateKey);
-                  }}
+                  onClick={() => togglePopup(dateKey)}
                 >
                   <div 
-                    className="bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4"
+                    className="bg-gray-900 rounded-xl p-6 max-w-3xl w-full max-h-[90vh] overflow-y-auto"
                     onClick={e => e.stopPropagation()}
                   >
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-xl font-semibold text-white">
                         All Stocks for {format(currentDate, 'MMMM d, yyyy')}
                       </h3>
-                      <button
-                        onClick={() => togglePopup(dateKey)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
+                    <hr className="mb-6 border-gray-400/50" />
+
+                    {/* Stock Grid */}
+                    <div className="grid grid-cols-4 gap-6">
                       {events.map((stock, index) => (
                         <div 
-                          key={index}
-                          className="flex flex-col items-center p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
+                          key={index} 
+                          className="flex justify-center"
+                          onMouseEnter={() => setHoveredStock(stock)}
+                          onMouseLeave={() => setHoveredStock(null)}
                         >
-                          <div className="w-12 h-12 bg-white rounded-full overflow-hidden mb-2">
-                            <img
-                              src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
-                              alt={stock.symbol}
-                              className="w-full h-full object-contain p-1"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/stock.avif';
-                              }}
-                            />
+                          <div 
+                            className="cursor-pointer flex flex-col items-center"
+                            onClick={() => {
+                              handleStockClick(stock);
+                              togglePopup(dateKey);
+                            }}
+                          >
+                            <div className="w-12 h-12 bg-white rounded-full overflow-hidden mb-2">
+                              <img
+                                src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
+                                alt={stock.symbol}
+                                className="w-full h-full object-contain p-1"
+                                onError={(e) => {
+                                  (e.target as HTMLImageElement).src = '/stock.avif';
+                                }}
+                              />
+                            </div>
+                            <p className="text-sm font-semibold text-center text-white">
+                              {stock.symbol}
+                            </p>
+                            <p className="text-xs text-gray-400 text-center truncate w-full">
+                              {stock.company_name}
+                            </p>
                           </div>
-                          <p className="text-sm font-semibold text-white text-center">
-                            {stock.symbol}
-                          </p>
-                          <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
-                            {stock.company_name}
-                          </p>
                         </div>
                       ))}
                     </div>
+
+                    <button
+                      className="mt-6 mx-auto block bg-transparent border border-blue-500 text-blue-500 
+                               font-semibold py-2 px-6 rounded-lg hover:bg-blue-500 hover:text-white 
+                               transition-all duration-300"
+                      onClick={() => togglePopup(dateKey)}
+                    >
+                      Close
+                    </button>
                   </div>
                 </div>
               )}
@@ -442,8 +452,6 @@ const DividendCalendar = () => {
 };
 
 export default DividendCalendar;
-
-
 
 
 

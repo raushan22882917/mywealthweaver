@@ -90,6 +90,8 @@ const Reporting: React.FC = () => {
   const [priceHistoryData, setPriceHistoryData] = useState<{date: string, price: number}[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const [showDetailedGraph, setShowDetailedGraph] = useState(false);
+  const [selectedStockData, setSelectedStockData] = useState<any>(null);
 
   // Add pagination logic here
   const paginatedReports = filteredReports.slice(
@@ -255,6 +257,40 @@ const Reporting: React.FC = () => {
     });
   };
 
+  const prepareDetailedGraphData = (report: any) => {
+    if (!report) return [];
+    
+    // Create an array of dates between ex_dividend_date and current date
+    const startDate = new Date(report.ex_dividend_date);
+    const endDate = new Date();
+    const dateArray = [];
+    let currentDate = startDate;
+    
+    while (currentDate <= endDate) {
+      dateArray.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    return dateArray.map(date => ({
+      date: format(date, 'yyyy-MM-dd'),
+      price: report.price_history.find((ph: any) => ph.date === format(date, 'yyyy-MM-dd'))?.price || null,
+      earnings_high: report.earnings_high,
+      earnings_average: report.earnings_average,
+      earnings_low: report.earnings_low,
+    }));
+  };
+
+  const handleGraphClick = (symbol: string) => {
+    const report = reports.find(r => r.symbol === symbol);
+    if (report) {
+      setSelectedStockData({
+        ...report,
+        detailedData: prepareDetailedGraphData(report)
+      });
+      setShowDetailedGraph(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-950 text-gray-200">
       <Navbar />
@@ -391,33 +427,40 @@ const Reporting: React.FC = () => {
             </CardHeader>
             <CardContent className="h-[400px]">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={getFilteredPriceData(priceHistoryData)}>
+                <LineChart 
+                  data={getFilteredPriceData(priceHistoryData)}
+                  onClick={(data) => data && handleGraphClick(data.activeLabel)}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.4} />
                   <XAxis 
                     dataKey="date" 
                     tick={{fill: '#9ca3af'}}
                     tickFormatter={(date) => format(new Date(date), 'MMM d')}
+                    stroke="#4b5563"
                   />
                   <YAxis 
                     tick={{fill: '#9ca3af'}}
                     domain={['auto', 'auto']}
                     tickFormatter={(value) => `$${value}`}
+                    stroke="#4b5563"
                   />
                   <Tooltip
                     contentStyle={{ 
                       backgroundColor: '#1f2937', 
                       borderColor: '#374151', 
-                      color: '#e5e7eb' 
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                     }}
                     formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Price']}
                     labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy')}
                   />
-                  <CartesianGrid stroke="#374151" strokeDasharray="3 3" />
                   <Line 
                     type="monotone" 
                     dataKey="price" 
                     stroke="#3b82f6" 
                     strokeWidth={2}
                     dot={false}
+                    activeDot={{ r: 8, fill: "#3b82f6" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -822,11 +865,158 @@ const Reporting: React.FC = () => {
 
 export default Reporting;
 
+{showDetailedGraph && selectedStockData && (
+  <div 
+    className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+    onClick={() => setShowDetailedGraph(false)}
+  >
+    <div 
+      className="bg-gray-900 rounded-xl p-6 max-w-[90vw] w-[1200px] max-h-[90vh] overflow-y-auto"
+      onClick={e => e.stopPropagation()}
+    >
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h3 className="text-2xl font-bold text-white mb-2">
+            {selectedStockData.symbol} - Detailed Analysis
+          </h3>
+          <p className="text-gray-400">
+            Ex-Dividend Date: {format(new Date(selectedStockData.ex_dividend_date), 'MMM d, yyyy')}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowDetailedGraph(false)}
+          className="text-gray-400 hover:text-white transition-colors"
+        >
+          <X className="w-6 h-6" />
+        </button>
+      </div>
 
+      <div className="h-[600px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart
+            data={selectedStockData.detailedData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          >
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke="#374151" 
+              opacity={0.4} 
+            />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: '#9ca3af' }}
+              tickFormatter={(date) => format(new Date(date), 'MMM d')}
+              stroke="#4b5563"
+            />
+            <YAxis
+              yAxisId="left"
+              tick={{ fill: '#9ca3af' }}
+              stroke="#4b5563"
+              tickFormatter={(value) => `$${value}`}
+            />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={{ fill: '#9ca3af' }}
+              stroke="#4b5563"
+              tickFormatter={(value) => `$${value}`}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: '#1f2937',
+                borderColor: '#374151',
+                borderRadius: '8px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+              }}
+              formatter={(value) => [`$${Number(value).toFixed(2)}`, '']}
+              labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy')}
+            />
+            <Legend 
+              verticalAlign="top" 
+              height={36}
+              wrapperStyle={{
+                paddingBottom: '20px',
+                color: '#e5e7eb'
+              }}
+            />
+            <ReferenceLine
+              x={selectedStockData.ex_dividend_date}
+              stroke="#ef4444"
+              strokeDasharray="3 3"
+              label={{
+                value: 'Ex-Dividend Date',
+                fill: '#ef4444',
+                position: 'insideTop'
+              }}
+            />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="price"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={false}
+              name="Price"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="earnings_high"
+              stroke="#22c55e"
+              strokeWidth={2}
+              dot={false}
+              name="Earnings High"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="earnings_average"
+              stroke="#eab308"
+              strokeWidth={2}
+              dot={false}
+              name="Earnings Average"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="earnings_low"
+              stroke="#ef4444"
+              strokeWidth={2}
+              dot={false}
+              name="Earnings Low"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
 
-
-
-
-
+      <div className="grid grid-cols-4 gap-4 mt-6">
+        <div className="bg-gray-800 p-4 rounded-lg">
+          <p className="text-gray-400 text-sm">Current Price</p>
+          <p className="text-2xl font-bold text-white">
+            {formatCurrency(selectedStockData.current_price)}
+          </p>
+        </div>
+        <div className="bg-gray-800 p-4 rounded-lg">
+          <p className="text-gray-400 text-sm">Earnings High</p>
+          <p className="text-2xl font-bold text-green-500">
+            {formatCurrency(selectedStockData.earnings_high)}
+          </p>
+        </div>
+        <div className="bg-gray-800 p-4 rounded-lg">
+          <p className="text-gray-400 text-sm">Earnings Average</p>
+          <p className="text-2xl font-bold text-yellow-500">
+            {formatCurrency(selectedStockData.earnings_average)}
+          </p>
+        </div>
+        <div className="bg-gray-800 p-4 rounded-lg">
+          <p className="text-gray-400 text-sm">Earnings Low</p>
+          <p className="text-2xl font-bold text-red-500">
+            {formatCurrency(selectedStockData.earnings_low)}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
 

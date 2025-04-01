@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -137,28 +137,6 @@ const Dividend: React.FC = () => {
   const [expandedPopup, setExpandedPopup] = useState<{
     stocks: any[];
   } | null>(null);
-
-  const [autoCloseTimer, setAutoCloseTimer] = useState<NodeJS.Timeout | null>(null);
-
-  const handleCardTouch = useCallback(() => {
-    if (autoCloseTimer) {
-      clearTimeout(autoCloseTimer);
-    }
-    
-    const timer = setTimeout(() => {
-      setHoveredStockDetails(null);
-    }, 1000);
-    
-    setAutoCloseTimer(timer);
-  }, [autoCloseTimer]);
-
-  useEffect(() => {
-    return () => {
-      if (autoCloseTimer) {
-        clearTimeout(autoCloseTimer);
-      }
-    };
-  }, [autoCloseTimer]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -344,27 +322,18 @@ const Dividend: React.FC = () => {
     return stocks.map(stock => stock.hist).join(' | ');
   };
 
-  const handleStockHover = useCallback((stock: any) => {
-    // Clear any existing timer
-    if (autoCloseTimer) {
-      clearTimeout(autoCloseTimer);
-    }
-
-    setHoveredStock(stock);
+  const handleStockHover = (stock: DividendData, event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
     setHoveredStockDetails({
       stock,
-      position: { x: window.event?.clientX || 0, y: window.event?.clientY || 0 },
-      exDividendDate: stock.ExDividendDate
+      exDividendDate: stock['ExDividendDate'],
+      dividendDate: stock['DividendDate'],
+      position: { 
+        x: rect.left + (rect.width / 2), 
+        y: rect.top
+      }
     });
-
-    // Set new timer to close the card after 2 seconds
-    const timer = setTimeout(() => {
-      setHoveredStock(null);
-      setHoveredStockDetails(null);
-    }, 2000);
-
-    setAutoCloseTimer(timer);
-  }, [autoCloseTimer]);
+  };
 
   const handleStockLeave = () => {
     // Don't clear the hover state anymore
@@ -420,62 +389,56 @@ const Dividend: React.FC = () => {
 
   const renderStockCard = (stock: DividendData, borderColorClass: string) => (
     <div 
-      className="relative group stock-element w-[50px] h-[50px] mt-2"
-      onMouseEnter={() => handleStockHover(stock)}
-      onMouseLeave={() => {
-        // Start the close timer when mouse leaves
-        const timer = setTimeout(() => {
-          setHoveredStock(null);
-          setHoveredStockDetails(null);
-        }, 2000);
-        setAutoCloseTimer(timer);
-      }}
+    className="relative group stock-element w-[50px] h-[50px] mt-2"
+    onMouseEnter={(e) => handleStockHover(stock, e)}
+  >
+    <div
+      className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
     >
-      <div
-        className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
-      >
-        {/* Stock Logo Container */}
-        <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
-          <img
-            src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
-            alt={stock.Symbol}
-            className="object-contain"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'stock.avif';
-            }}
-          />
-        </div>
-  
-        {/* Stock Symbol Container */}
-        <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-          <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
-            {stock.Symbol.length > 8 
-              ? `${stock.Symbol.slice(0, 8)}..`
-              : stock.Symbol
-            }
-          </span>
-        </div>
+      {/* Stock Logo Container */}
+      <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
+        <img
+          src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
+          alt={stock.Symbol}
+          className="object-contain"
+          loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'stock.avif';
+          }}
+        />
       </div>
-      
-      {/* Add danger triangle for unsafe statuses */}
-      {(stock.status === 'This stock may have a risky dividend.' || 
-        stock.status === 'This stock does not pay a dividend.') && (
-        <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
-            fill="currentColor" 
-            className="w-4 h-4"
-          >
-            <path 
-              fillRule="evenodd" 
-              d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
-            />
-          </svg>
-        </div>
-      )}
+  
+      {/* Stock Symbol Container */}
+      <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+        <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+          {stock.Symbol.length > 8 
+            ? `${stock.Symbol.slice(0, 8)}..`
+            : stock.Symbol
+          }
+        </span>
+      </div>
     </div>
+    
+    {/* Add danger triangle for unsafe statuses */}
+    {(stock.status === 'This stock may have a risky dividend.' || 
+      stock.status === 'This stock does not pay a dividend.') && (
+      <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="currentColor" 
+          className="w-4 h-4"
+        >
+          <path 
+            fillRule="evenodd" 
+            d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+          />
+        </svg>
+      </div>
+    )}
+  </div>
+  
+  
   );
   
   const isDateInCurrentWeek = (date: Date): boolean => {
@@ -865,24 +828,12 @@ const Dividend: React.FC = () => {
       )}
       {hoveredStockDetails && (
         <div 
-          className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transform transition-all duration-200 hover-card w-[320px]"
+          className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transform transition-all duration-200 hover-card"
           style={{
             left: hoveredStockDetails.position.x,
             top: Math.max(hoveredStockDetails.position.y - 350, 10),
+            maxWidth: '300px',
             transform: 'translateX(-50%)',
-          }}
-          onMouseEnter={() => {
-            if (autoCloseTimer) {
-              clearTimeout(autoCloseTimer);
-            }
-          }}
-          onMouseLeave={() => {
-            // Start the close timer when mouse leaves
-            const timer = setTimeout(() => {
-              setHoveredStock(null);
-              setHoveredStockDetails(null);
-            }, 2000);
-            setAutoCloseTimer(timer);
           }}
         >
           <div 
@@ -1233,11 +1184,6 @@ const Dividend: React.FC = () => {
 };
 
 export default Dividend;
-
-
-
-
-
 
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -137,28 +137,6 @@ const Dividend: React.FC = () => {
   const [expandedPopup, setExpandedPopup] = useState<{
     stocks: any[];
   } | null>(null);
-
-  const [autoCloseTimer, setAutoCloseTimer] = useState<NodeJS.Timeout | null>(null);
-
-  const handleCardTouch = useCallback(() => {
-    if (autoCloseTimer) {
-      clearTimeout(autoCloseTimer);
-    }
-    
-    const timer = setTimeout(() => {
-      setHoveredStockDetails(null);
-    }, 1000);
-    
-    setAutoCloseTimer(timer);
-  }, [autoCloseTimer]);
-
-  useEffect(() => {
-    return () => {
-      if (autoCloseTimer) {
-        clearTimeout(autoCloseTimer);
-      }
-    };
-  }, [autoCloseTimer]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -344,27 +322,18 @@ const Dividend: React.FC = () => {
     return stocks.map(stock => stock.hist).join(' | ');
   };
 
-  const handleStockHover = useCallback((stock: any) => {
-    // Clear any existing timer
-    if (autoCloseTimer) {
-      clearTimeout(autoCloseTimer);
-    }
-
-    setHoveredStock(stock);
+  const handleStockHover = (stock: DividendData, event: React.MouseEvent) => {
+    const rect = (event.target as HTMLElement).getBoundingClientRect();
     setHoveredStockDetails({
       stock,
-      position: { x: window.event?.clientX || 0, y: window.event?.clientY || 0 },
-      exDividendDate: stock.ExDividendDate
+      exDividendDate: stock['ExDividendDate'],
+      dividendDate: stock['DividendDate'],
+      position: { 
+        x: rect.left + (rect.width / 2), 
+        y: rect.top
+      }
     });
-
-    // Set new timer to close the card after 2 seconds
-    const timer = setTimeout(() => {
-      setHoveredStock(null);
-      setHoveredStockDetails(null);
-    }, 2000);
-
-    setAutoCloseTimer(timer);
-  }, [autoCloseTimer]);
+  };
 
   const handleStockLeave = () => {
     // Don't clear the hover state anymore
@@ -420,62 +389,56 @@ const Dividend: React.FC = () => {
 
   const renderStockCard = (stock: DividendData, borderColorClass: string) => (
     <div 
-      className="relative group stock-element w-[50px] h-[50px] mt-2"
-      onMouseEnter={() => handleStockHover(stock)}
-      onMouseLeave={() => {
-        // Start the close timer when mouse leaves
-        const timer = setTimeout(() => {
-          setHoveredStock(null);
-          setHoveredStockDetails(null);
-        }, 2000);
-        setAutoCloseTimer(timer);
-      }}
+    className="relative group stock-element w-[50px] h-[50px] mt-2"
+    onMouseEnter={(e) => handleStockHover(stock, e)}
+  >
+    <div
+      className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
     >
-      <div
-        className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
-      >
-        {/* Stock Logo Container */}
-        <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
-          <img
-            src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
-            alt={stock.Symbol}
-            className="object-contain"
-            loading="lazy"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = 'stock.avif';
-            }}
-          />
-        </div>
-  
-        {/* Stock Symbol Container */}
-        <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-          <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
-            {stock.Symbol.length > 8 
-              ? `${stock.Symbol.slice(0, 8)}..`
-              : stock.Symbol
-            }
-          </span>
-        </div>
+      {/* Stock Logo Container */}
+      <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
+        <img
+          src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
+          alt={stock.Symbol}
+          className="object-contain"
+          loading="lazy"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'stock.avif';
+          }}
+        />
       </div>
-      
-      {/* Add danger triangle for unsafe statuses */}
-      {(stock.status === 'This stock may have a risky dividend.' || 
-        stock.status === 'This stock does not pay a dividend.') && (
-        <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
-            fill="currentColor" 
-            className="w-4 h-4"
-          >
-            <path 
-              fillRule="evenodd" 
-              d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
-            />
-          </svg>
-        </div>
-      )}
+  
+      {/* Stock Symbol Container */}
+      <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+        <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+          {stock.Symbol.length > 8 
+            ? `${stock.Symbol.slice(0, 8)}..`
+            : stock.Symbol
+          }
+        </span>
+      </div>
     </div>
+    
+    {/* Add danger triangle for unsafe statuses */}
+    {(stock.status === 'This stock may have a risky dividend.' || 
+      stock.status === 'This stock does not pay a dividend.') && (
+      <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="currentColor" 
+          className="w-4 h-4"
+        >
+          <path 
+            fillRule="evenodd" 
+            d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
+          />
+        </svg>
+      </div>
+    )}
+  </div>
+  
+  
   );
   
   const isDateInCurrentWeek = (date: Date): boolean => {
@@ -865,133 +828,102 @@ const Dividend: React.FC = () => {
       )}
       {hoveredStockDetails && (
         <div 
-          className="fixed z-50 bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transform transition-all duration-200 hover-card w-[320px]"
+          className="fixed z-50 bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transform transition-all duration-200 hover-card w-[320px]"
           style={{
             left: hoveredStockDetails.position.x,
             top: Math.max(hoveredStockDetails.position.y - 350, 10),
             transform: 'translateX(-50%)',
           }}
-          onMouseEnter={() => {
-            if (autoCloseTimer) {
-              clearTimeout(autoCloseTimer);
-            }
-          }}
-          onMouseLeave={() => {
-            // Start the close timer when mouse leaves
-            const timer = setTimeout(() => {
-              setHoveredStock(null);
-              setHoveredStockDetails(null);
-            }, 2000);
-            setAutoCloseTimer(timer);
-          }}
+          onMouseEnter={handleCardTouch}
+          onTouchStart={handleCardTouch}
         >
+          {/* Improved close button - now in top right corner */}
+          <button
+            onClick={handleCloseHover}
+            className="absolute top-2 right-2 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+          </button>
+
+          {/* Arrow indicator */}
           <div 
             className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700"
           />
-          {hoveredStockDetails.stock?.insight && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-b-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex flex-col gap-2">
-                <div className="mt-2">
-                <div
-  className={`mt-1 flex items-center gap-2 ${
-    hoveredStockDetails.stock.status === 'This stock has a safe dividend.'
-      ? 'text-green-600 dark:text-green-400'
-      : hoveredStockDetails.stock.status === 'This stock may have a risky dividend.'
-      ? 'text-yellow-600 dark:text-yellow-400'
-      : hoveredStockDetails.stock.status === 'This stock does not pay a dividend.'
-      ? 'text-red-600 dark:text-red-400'
-      : 'text-gray-600 dark:text-gray-400'
-  }`}
->
-  {/* Icon Selection Based on Status */}
-  {hoveredStockDetails.stock.status === 'This stock has a safe dividend.' && (
-    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-  )}
-  {hoveredStockDetails.stock.status === 'This stock may have a risky dividend.' && (
-    <AlertTriangle className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-  )}
-  {hoveredStockDetails.stock.status === 'This stock does not pay a dividend.' && (
-    <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-  )}
-  {!['This stock has a safe dividend.', 'This stock may have a risky dividend.', 'This stock does not pay a dividend.'].includes(
-    hoveredStockDetails.stock.status
-  ) && (
-    <Info className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-  )}
 
-  {/* Status Text */}
-  
-  <span>{hoveredStockDetails.stock.status}</span>
-</div>
-                </div>
+          {/* Stock Header */}
+          <div className="flex items-start gap-3 mb-4">
+            <div 
+              className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
+              style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'})` }}
+              onClick={() => {
+                handleStockClick(hoveredStockDetails.stock);
+                setHoveredStockDetails(null);
+              }}
+            />
+            <div className="flex-1">
+              <h3 
+                className="font-semibold text-lg cursor-pointer hover:text-blue-500 transition-colors"
+                onClick={() => {
+                  handleStockClick(hoveredStockDetails.stock);
+                  setHoveredStockDetails(null);
+                }}
+              >
+                {hoveredStockDetails.stock?.Symbol}
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
+                {hoveredStockDetails.stock?.title}
+              </p>
+            </div>
+          </div>
+
+          {/* Status Card */}
+          {hoveredStockDetails.stock?.insight && (
+            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className={`flex items-center gap-2 ${
+                hoveredStockDetails.stock.status === 'This stock has a safe dividend.'
+                  ? 'text-green-600 dark:text-green-400'
+                  : hoveredStockDetails.stock.status === 'This stock may have a risky dividend.'
+                  ? 'text-yellow-600 dark:text-yellow-400'
+                  : hoveredStockDetails.stock.status === 'This stock does not pay a dividend.'
+                  ? 'text-red-600 dark:text-red-400'
+                  : 'text-gray-600 dark:text-gray-400'
+              }`}>
+                {hoveredStockDetails.stock.status === 'This stock has a safe dividend.' && <CheckCircle className="h-5 w-5" />}
+                {hoveredStockDetails.stock.status === 'This stock may have a risky dividend.' && <AlertTriangle className="h-5 w-5" />}
+                {hoveredStockDetails.stock.status === 'This stock does not pay a dividend.' && <XCircle className="h-5 w-5" />}
+                {!['This stock has a safe dividend.', 'This stock may have a risky dividend.', 'This stock does not pay a dividend.'].includes(
+                  hoveredStockDetails.stock.status
+                ) && <Info className="h-5 w-5" />}
+                <span className="text-sm font-medium">{hoveredStockDetails.stock.status}</span>
               </div>
             </div>
           )}
-          <div className="flex justify-between items-end mb-2 w-[200px]">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <div 
-                  className="w-8 h-8 bg-center bg-no-repeat bg-contain aspect-square border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'})` }}
-                  onClick={() => {
-                    handleStockClick(hoveredStockDetails.stock);
-                    setHoveredStockDetails(null);
-                  }}
-                />
-                <div>
-                  <div 
-                    className="font-semibold cursor-pointer hover:text-blue-500 transition-colors"
-                    onClick={() => {
-                      handleStockClick(hoveredStockDetails.stock);
-                      setHoveredStockDetails(null);
-                    }}
-                  >
-                    {hoveredStockDetails.stock?.Symbol}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {hoveredStockDetails.stock?.title}
-                  </div>
-                </div>
-              </div>
+
+          {/* Dividend Details */}
+          <div className="space-y-3">
+            <div className="flex justify-between items-center py-2 border-b dark:border-gray-700">
+              <span className="text-gray-600 dark:text-gray-300">Ex-Dividend Date</span>
+              <span className="font-medium">{new Date(hoveredStockDetails.exDividendDate).toISOString().split('T')[0]}</span>
             </div>
-            <button
-              onClick={handleCloseHover}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Ex-Dividend Date:</span>
-              <span className="font-medium">
-                {new Date(hoveredStockDetails.exDividendDate)
-                .toISOString()
-                .split('T')[0]}
-              </span>
+            <div className="flex justify-between items-center py-2 border-b dark:border-gray-700">
+              <span className="text-gray-600 dark:text-gray-300">Payout Date</span>
+              <span className="font-medium">{new Date(hoveredStockDetails.stock?.payoutdate).toISOString().split('T')[0]}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Payout Date:</span>
-              <span className="font-medium">
-                {new Date(hoveredStockDetails.stock?.payoutdate)
-                .toISOString()
-                .split('T')[0]}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Dividend Rate:</span>
+            <div className="flex justify-between items-center py-2 border-b dark:border-gray-700">
+              <span className="text-gray-600 dark:text-gray-300">Dividend Rate</span>
               <span className="font-medium">${hoveredStockDetails.stock?.dividendRate}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Yield:</span>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-gray-600 dark:text-gray-300">Yield</span>
               <span className="font-medium">{(hoveredStockDetails.stock?.dividendYield ? (Number(hoveredStockDetails.stock.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2) : 'N/A')}</span>
             </div>
           </div>
+
+          {/* See More Button */}
           <button
             onClick={(e) => handleSeeMoreClick(e, hoveredStockDetails.stock)}
-            className="w-full mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-center py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+            className="w-full mt-4 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
           >
             See More Details
           </button>
@@ -1233,8 +1165,6 @@ const Dividend: React.FC = () => {
 };
 
 export default Dividend;
-
-
 
 
 

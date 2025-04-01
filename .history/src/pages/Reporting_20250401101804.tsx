@@ -28,27 +28,13 @@ import {
   LineChart as LineChartIcon
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  LineChart, 
-  Line,
-  CartesianGrid,
-  ReferenceLine
-} from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { format } from "date-fns";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import DividendCalendar from "@/components/DividendCalendar";
-import { DateRangePicker } from "@/components/DateRangePicker";
-import { addDays, subDays } from "date-fns";
 
 interface DividendReport {
   id: string;
@@ -80,28 +66,11 @@ const Reporting: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [activeTab, setActiveTab] = useState("overview");
   const [trackPrices, setTrackPrices] = useState(true);
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: subDays(new Date(), 30),
-    to: new Date(),
-  });
+  const [dateRange, setDateRange] = useState("Jul 20 - Aug 1");
   const [viewMode, setViewMode] = useState<"grid" | "graph">("grid");
   const [showPriceHistory, setShowPriceHistory] = useState(false);
   const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
   const [priceHistoryData, setPriceHistoryData] = useState<{date: string, price: number}[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
-
-  // Add pagination logic here
-  const paginatedReports = filteredReports.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-  const totalPages = Math.ceil(filteredReports.length / pageSize);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, sortField, sortDirection]);
 
   useEffect(() => {
     fetchDividendReports();
@@ -248,13 +217,6 @@ const Reporting: React.FC = () => {
     );
   };
 
-  const getFilteredPriceData = (data: any[]) => {
-    return data.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= dateRange.from && itemDate <= dateRange.to;
-    });
-  };
-
   return (
     <div className="min-h-screen bg-gray-950 text-gray-200">
       <Navbar />
@@ -346,11 +308,9 @@ const Reporting: React.FC = () => {
               className="data-[state=checked]:bg-blue-600"
             />
             
-            <DateRangePicker
-              date={dateRange}
-              onDateChange={setDateRange}
-              className="ml-4"
-            />
+            <div className="bg-gray-800 rounded px-3 py-1 ml-4 text-gray-300">
+              {dateRange}
+            </div>
           </div>
           
           <div className="flex items-center gap-3">
@@ -379,51 +339,6 @@ const Reporting: React.FC = () => {
             </Button>
           </div>
         </div>
-
-        {/* Add the price graph view */}
-        {viewMode === "graph" && (
-          <Card className="bg-gray-900 border-gray-800 mb-6">
-            <CardHeader>
-              <CardTitle className="text-white">Price History</CardTitle>
-              <CardDescription className="text-gray-400">
-                {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={getFilteredPriceData(priceHistoryData)}>
-                  <XAxis 
-                    dataKey="date" 
-                    tick={{fill: '#9ca3af'}}
-                    tickFormatter={(date) => format(new Date(date), 'MMM d')}
-                  />
-                  <YAxis 
-                    tick={{fill: '#9ca3af'}}
-                    domain={['auto', 'auto']}
-                    tickFormatter={(value) => `$${value}`}
-                  />
-                  <Tooltip
-                    contentStyle={{ 
-                      backgroundColor: '#1f2937', 
-                      borderColor: '#374151', 
-                      color: '#e5e7eb' 
-                    }}
-                    formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Price']}
-                    labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy')}
-                  />
-                  <CartesianGrid stroke="#374151" strokeDasharray="3 3" />
-                  <Line 
-                    type="monotone" 
-                    dataKey="price" 
-                    stroke="#3b82f6" 
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
 
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Left side - Calendar (75%) */}
@@ -735,14 +650,14 @@ const Reporting: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedReports.length === 0 ? (
+                    {filteredReports.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={8} className="text-center py-8 text-gray-400">
                           No reports found matching your search.
                         </TableCell>
                       </TableRow>
                     ) : (
-                      paginatedReports.map((report) => (
+                      filteredReports.map((report) => (
                         <TableRow key={report.id} className="hover:bg-gray-800/40 border-b border-gray-800">
                           <TableCell className="font-medium text-white">{report.symbol}</TableCell>
                           <TableCell className="text-gray-300">{formatDate(report.ex_dividend_date)}</TableCell>
@@ -778,38 +693,6 @@ const Reporting: React.FC = () => {
                     )}
                   </TableBody>
                 </Table>
-                {/* Add pagination controls */}
-                {!loading && !error && filteredReports.length > 0 && (
-                  <div className="flex items-center justify-between mt-6 bg-gray-800 p-4 rounded-lg border border-gray-700">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="text-gray-300 border-gray-700 hover:bg-gray-700 disabled:opacity-50"
-                    >
-                      Previous
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <span className="text-gray-600">•</span>
-                      <span className="text-sm text-gray-400">
-                        {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, filteredReports.length)} of {filteredReports.length}
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="text-gray-300 border-gray-700 hover:bg-gray-700 disabled:opacity-50"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
           </CardContent>
@@ -821,12 +704,4 @@ const Reporting: React.FC = () => {
 };
 
 export default Reporting;
-
-
-
-
-
-
-
-
 

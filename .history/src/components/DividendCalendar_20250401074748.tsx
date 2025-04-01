@@ -33,16 +33,6 @@ const DividendCalendar = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'MMMM'));
   const [view, setView] = useState<string>("Monthly View");
   const [showAll, setShowAll] = useState(false);
-  const [companyLogos, setCompanyLogos] = useState<Map<string, string>>(new Map());
-  const [hoveredStock, setHoveredStock] = useState<DividendEvent | null>(null);
-  const [showPopup, setShowPopup] = useState<Record<string, boolean>>({});
-
-  const togglePopup = (dateKey: string) => {
-    setShowPopup(prev => ({
-      ...prev,
-      [dateKey]: !prev[dateKey]
-    }));
-  };
 
   useEffect(() => {
     const fetchDividendData = async () => {
@@ -50,36 +40,30 @@ const DividendCalendar = () => {
         // Fetch dividend reports
         const { data: dividendData, error: dividendError } = await supabase
           .from("dividend_reports")
-          .select("*, ex_dividend_date");
+          .select("*");
 
         if (dividendError) throw dividendError;
 
-        // Fetch company logos - using correct column name "Symbol"
+        // Fetch company logos
         const { data: logosData, error: logosError } = await supabase
           .from("company_logos")
-          .select("Symbol, LogoURL");  // Updated column names
+          .select("*");
 
         if (logosError) throw logosError;
 
-        // Create a Map of symbols to logo URLs
-        const logoMap = new Map(
-          logosData.map((logo: { Symbol: string; LogoURL: string }) => [  // Updated types
-            logo.Symbol.toUpperCase(),
-            logo.LogoURL
-          ])
-        );
-        setCompanyLogos(logoMap);
-
         // Map logos to dividend data
-        const eventsWithLogos = dividendData.map((event: any) => ({
-          ...event,
-          LogoURL: logoMap.get(event.symbol.toUpperCase()) || null,
-          company_name: event.company_name || event.symbol
-        }));
+        const eventsWithLogos = dividendData.map((event: any) => {
+          const matchingLogo = logosData.find((logo: any) => logo.symbol === event.symbol);
+          return {
+            ...event,
+            LogoURL: matchingLogo?.LogoURL || null,
+            company_name: matchingLogo?.company_name || event.symbol
+          };
+        });
 
         setDividendEvents(eventsWithLogos);
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching dividend data:", error);
       }
     };
 
@@ -133,187 +117,146 @@ const DividendCalendar = () => {
     const daysInMonth = getDaysInMonth(month);
     const calendarDays = [];
 
-    // Get events for the current month and organize them by date
-    const eventsByDate = dividendEvents.reduce((acc, event) => {
-      if (!event.dividend_date) return acc;
-      
+    // Get events for the current month
+    const currentMonthEvents = dividendEvents.filter(event => {
+      if (!event.dividend_date) return false;
       const eventDate = new Date(event.dividend_date);
-      if (eventDate.getMonth() === month.getMonth() && 
-          eventDate.getFullYear() === month.getFullYear()) {
-        const dateKey = format(eventDate, 'yyyy-MM-dd');
-        if (!acc[dateKey]) {
-          acc[dateKey] = [];
-        }
-        acc[dateKey].push(event);
-      }
-      return acc;
-    }, {} as Record<string, DividendEvent[]>);
+      return eventDate.getMonth() === month.getMonth() && 
+             eventDate.getFullYear() === month.getFullYear();
+    });
 
-    // Helper function to get events for a specific date
-    const getEventsForDate = (date: string) => {
-      return eventsByDate[date] || [];
-    };
+    // Sort events by symbol
+    const sortedEvents = [...currentMonthEvents].sort((a, b) => 
+      a.symbol.localeCompare(b.symbol)
+    );
+    
+    // Get visible events based on showAll state
+    const visibleEvents = showAll ? sortedEvents : sortedEvents.slice(0, 6);
 
-    // Render calendar cell with improved UI
-    const renderCalendarCell = (day: number) => {
-      const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
-      const dateKey = format(currentDate, 'yyyy-MM-dd');
-      // Sort events alphabetically by symbol
-      const events = getEventsForDate(dateKey).sort((a, b) => 
-        a.symbol.localeCompare(b.symbol)
-      );
-      const isToday = isSameDay(currentDate, new Date());
-      const hasEvents = events.length > 0;
-
-      return (
-        <div 
-          key={dateKey}
-          className={`
-            relative p-3 min-h-[180px] rounded-lg transition-all
-            ${isToday ? 'bg-purple-900/20 border-purple-500' : 'bg-gray-900'}
-            ${hasEvents ? 'border-2 border-blue-500/50' : 'border border-gray-800'}
-            hover:border-blue-400 hover:shadow-lg
-          `}
-        >
-          <div className={`
-            absolute top-2 right-2 flex items-center justify-center
-            ${isToday ? 'text-purple-400' : 'text-gray-400'}
-            text-sm font-medium
-          `}>
-            {format(currentDate, 'EEE')}
-          </div>
-          
-          <div className={`
-            h-8 w-8 flex items-center justify-center rounded-full
-            ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
-            ${hasEvents ? 'ring-2 ring-blue-500 ring-offset-2 ring-offset-gray-900' : ''}
-          `}>
-            {day}
-          </div>
-
-          {hasEvents && (
-            <div className="mt-4">
-              {/* Grid of first 6 stocks */}
-              <div className="grid grid-cols-3 gap-3">
-                {events.slice(0, 6).map((event, index) => (
-                  <div
-                    key={`${event.id}-${index}`}
-                    onClick={() => handleEventClick(event)}
-                    className="flex flex-col items-center p-2 rounded-lg bg-gray-800/50 
-                             hover:bg-blue-500/20 cursor-pointer transition-all"
-                  >
-                    <div className="w-10 h-10 bg-white rounded-full flex-shrink-0 overflow-hidden mb-2">
-                      <img
-                        src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
-                        alt={event.symbol}
-                        className="w-full h-full object-contain p-1"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/stock.avif';
-                        }}
-                      />
-                    </div>
-                    <p className="text-sm font-semibold text-gray-100 text-center">
-                      {event.symbol}
-                    </p>
-                    
-                  </div>
-                ))}
-              </div>
-
-              {/* Show More button if there are more than 6 stocks */}
-              {events.length > 6 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePopup(dateKey);
-                  }}
-                  className="mt-3 text-sm text-blue-400 hover:text-blue-300 transition-colors w-full text-center flex items-center justify-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Show {events.length - 6} more stocks
-                </button>
-              )}
-
-              {showPopup[dateKey] && (
-                <div 
-                  className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePopup(dateKey);
-                  }}
-                >
-                  <div 
-                    className="bg-gray-900 rounded-xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <div className="flex justify-between items-center mb-4">
-                      <h3 className="text-xl font-semibold text-white">
-                        All Stocks for {format(currentDate, 'MMMM d, yyyy')}
-                      </h3>
-                      <button
-                        onClick={() => togglePopup(dateKey)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mt-4">
-                      {events.map((stock, index) => (
-                        <div 
-                          key={index}
-                          className="flex flex-col items-center p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors"
-                        >
-                          <div className="w-12 h-12 bg-white rounded-full overflow-hidden mb-2">
-                            <img
-                              src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
-                              alt={stock.symbol}
-                              className="w-full h-full object-contain p-1"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/stock.avif';
-                              }}
-                            />
-                          </div>
-                          <p className="text-sm font-semibold text-white text-center">
-                            {stock.symbol}
-                          </p>
-                          <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
-                            {stock.company_name}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    };
-
-    // Generate calendar days (excluding weekends)
+    // Filter out weekends (0 = Sunday, 6 = Saturday)
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
       const dayOfWeek = getDay(currentDate);
       
+      // Skip weekends
       if (dayOfWeek !== 0 && dayOfWeek !== 6) {
         calendarDays.push(day);
       }
+    }
+
+    // Group days into weeks
+    const weeks = [];
+    let week = [];
+    
+    calendarDays.forEach(day => {
+      const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
+      const dayOfWeek = getDay(currentDate);
+      const adjustedDayOfWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust to start from Monday (0)
+      
+      // If we need to start a new week
+      if (week.length === 5 || (week.length === 0 && adjustedDayOfWeek > 0)) {
+        if (week.length > 0) {
+          weeks.push(week);
+          week = [];
+        }
+      }
+      
+      week.push(day);
+    });
+    
+    // Add the last week
+    if (week.length > 0) {
+      weeks.push(week);
     }
 
     return (
       <div className="grid grid-cols-5 gap-4">
         {/* Header Row */}
         {dayNames.map(day => (
-          <div key={day} className="text-center py-2 font-semibold text-gray-400 
-                                  bg-gray-900/50 rounded-lg backdrop-blur-sm">
+          <div key={day} className="text-center py-2 font-semibold text-gray-400 bg-gray-900 rounded">
             {day}
           </div>
         ))}
         
         {/* Calendar Days */}
-        {calendarDays.map(day => renderCalendarCell(day))}
+        {Array.from({ length: daysInMonth }).map((_, index) => {
+          const day = index + 1;
+          const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
+          const dayOfWeek = getDay(currentDate);
+          
+          // Skip weekends
+          if (dayOfWeek === 0 || dayOfWeek === 6) {
+            return null;
+          }
+          
+          const formattedDay = format(currentDate, 'yyyy-MM-dd');
+          const events = getEventsForDate(day);
+          const isExpanded = expandedDay === formattedDay;
+          const displayEvents = isExpanded ? events : events.slice(0, 12);
+          
+          return (
+            <div 
+              key={formattedDay} 
+              className="bg-gray-900 border border-gray-800 rounded-md p-2 min-h-[180px] relative"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <div className="h-8 w-8 flex items-center justify-center bg-gray-800 rounded-full text-white">
+                  {day}
+                </div>
+                {events.length > 0 && (
+                  <button 
+                    onClick={() => toggleExpandDay(formattedDay)}
+                    className="h-6 w-6 flex items-center justify-center text-gray-400 hover:text-white"
+                  >
+                    {isExpanded ? <X size={16} /> : <X size={16} />}
+                  </button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-4 p-4">
+    {visibleEvents.map((event, eventIndex) => (
+      <div 
+        key={`${event.id}-${eventIndex}`}
+        className="flex flex-col items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 border border-gray-700 rounded-xl shadow-lg p-2 hover:scale-105 transition-transform cursor-pointer"
+        onClick={() => handleEventClick(event)}
+      >
+        <div className="w-12 h-12 flex items-center justify-center bg-white rounded-full">
+          <img 
+            src={event.LogoURL || '/stock.avif'} 
+            alt={event.symbol}
+            className="w-10 h-10 object-contain"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/stock.avif';
+            }}
+          />
+        </div>
+        <span className="text-sm font-bold text-white mt-1">{event.symbol}</span>
+      </div>
+    ))}
+
+    {sortedEvents.length > 6 && !showAll && (
+      <button 
+        onClick={() => setShowAll(true)} 
+        className="col-span-3 text-center text-blue-500 font-bold hover:underline mt-2"
+      >
+        See More
+      </button>
+    )}
+  </div>
+                
+                {!isExpanded && events.length > 12 && (
+                  <button 
+                    className="col-span-3 text-center text-sm text-blue-400 hover:text-blue-300 mt-2 flex items-center justify-center"
+                    onClick={() => toggleExpandDay(formattedDay)}
+                  >
+                    <Plus size={14} className="mr-1" /> {events.length - 12} more
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -442,19 +385,6 @@ const DividendCalendar = () => {
 };
 
 export default DividendCalendar;
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
