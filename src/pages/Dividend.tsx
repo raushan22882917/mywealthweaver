@@ -64,6 +64,12 @@ interface HoveredStockDetails {
   position: { x: number; y: number; };
 }
 
+interface Holiday {
+  date: string;
+  name: string;
+  description: string;
+}
+
 const monthOptions = [
   { value: 0, label: "January" },
   { value: 1, label: "February" },

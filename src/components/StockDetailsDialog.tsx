@@ -23,11 +23,11 @@ import {
 } from "recharts";
 import { useTheme } from "next-themes";
 import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, Heart, Bell } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Papa, { ParseResult } from 'papaparse';
-import { filterDividendData, type DividendHistoryData } from '@/utils/dividend';
+import { filterDividendData, type DividendHistoryData, type DividendHistory } from '@/utils/dividend';
 import UpDown from "@/pages/UpDown";
 
 interface Stock {
@@ -44,82 +44,78 @@ interface StockDetailsDialogProps {
 
 interface CompanyProfile {
   symbol: string;
-  phone: string;
-  website: string;
-  industry: string;
-  sector: string;
-  long_business_summary: string;
-  fullTimeEmployees: string;
-  auditRisk: number;
-  boardRisk: number;
-  compensationRisk: number;
-  shareHolderRightsRisk: number;
-  overallRisk: number;
-  dividendRate: string;
-  dividendYield: string;
-  exDividendDate: string;
-  payoutRatio: string;
-  fiveYearAvgDividendYield: number;
-  beta: number;
-  trailingPE: number;
-  forwardPE: number;
-  priceToSalesTrailing12Months: number;
-  fiftyDayAverage: number;
-  twoHundredDayAverage: number;
-  trailingAnnualDividendRate: number;
-  trailingAnnualDividendYield: number;
-  profitMargins: number;
-  heldPercentInsiders: number;
-  heldPercentInstitutions: number;
-  bookValue: number;
-  priceToBook: number;
-  lastFiscalYearEnd: string;
-  earningsQuarterlyGrowth: number;
-  netIncomeToCommon: number;
-  trailingEps: number;
-  forwardEps: number;
-  enterpriseToRevenue: number;
-  enterpriseToEbitda: number;
-  weekChange52: number;
-  sandP52WeekChange: number;
-  lastDividendValue: number;
-  lastDividendDate: string;
-  exchange: string;
-  quoteType: string;
-  shortName: string;
-  targetHighPrice: number;
-  targetLowPrice: number;
-  targetMeanPrice: number;
-  targetMedianPrice: number;
-  recommendationMean: number;
-  recommendationKey: string;
-  numberOfAnalystOpinions: number;
-  totalCash: number;
-  totalCashPerShare: number;
-  ebitda: number;
-  totalDebt: number;
-  quickRatio: number;
-  currentRatio: number;
-  totalRevenue: number;
-  debtToEquity: number;
-  revenuePerShare: number;
-  returnOnAssets: number;
-  returnOnEquity: number;
-  grossProfits: number;
-  freeCashflow: number;
-  operatingCashflow: number;
-  earningsGrowth: number;
-  revenueGrowth: number;
-  grossMargins: number;
-  ebitdaMargins: number;
-  operatingMargins: number;
-  trailingPegRatio: number;
-  address: string;
-}
-
-interface DividendHistory {
-  date: string;
-  dividend: number;
+  phone?: string;
+  website?: string;
+  industry?: string;
+  sector?: string;
+  long_business_summary?: string;
+  fullTimeEmployees?: string;
+  auditRisk?: number;
+  boardRisk?: number;
+  compensationRisk?: number;
+  shareHolderRightsRisk?: number;
+  overallRisk?: number;
+  dividendRate?: string;
+  dividendYield?: string;
+  exDividendDate?: string;
+  payoutRatio?: string;
+  fiveYearAvgDividendYield?: number;
+  beta?: number;
+  trailingPE?: number;
+  forwardPE?: number;
+  priceToSalesTrailing12Months?: number;
+  fiftyDayAverage?: number;
+  twoHundredDayAverage?: number;
+  trailingAnnualDividendRate?: number;
+  trailingAnnualDividendYield?: number;
+  profitMargins?: number;
+  heldPercentInsiders?: number;
+  heldPercentInstitutions?: number;
+  bookValue?: number;
+  priceToBook?: number;
+  lastFiscalYearEnd?: string;
+  earningsQuarterlyGrowth?: number;
+  netIncomeToCommon?: number;
+  trailingEps?: number;
+  forwardEps?: number;
+  enterpriseToRevenue?: number;
+  enterpriseToEbitda?: number;
+  weekChange52?: number;
+  sandP52WeekChange?: number;
+  lastDividendValue?: number;
+  lastDividendDate?: string;
+  exchange?: string;
+  quoteType?: string;
+  shortName?: string;
+  targetHighPrice?: number;
+  targetLowPrice?: number;
+  targetMeanPrice?: number;
+  targetMedianPrice?: number;
+  recommendationMean?: number;
+  recommendationKey?: string;
+  numberOfAnalystOpinions?: number;
+  totalCash?: number;
+  totalCashPerShare?: number;
+  ebitda?: number;
+  totalDebt?: number;
+  quickRatio?: number;
+  currentRatio?: number;
+  totalRevenue?: number;
+  debtToEquity?: number;
+  revenuePerShare?: number;
+  returnOnAssets?: number;
+  returnOnEquity?: number;
+  grossProfits?: number;
+  freeCashflow?: number;
+  operatingCashflow?: number;
+  earningsGrowth?: number;
+  revenueGrowth?: number;
+  grossMargins?: number;
+  ebitdaMargins?: number;
+  operatingMargins?: number;
+  trailingPegRatio?: number;
+  address?: string;
+  // Add any other fields from the database
 }
 
 interface RankingData {
@@ -134,11 +130,11 @@ interface RankingData {
 interface RankingDisplayData {
   rank: string;
   score: string;
-  industryRank: string;
-  totalStocks: string;
-  totalIndustryStocks: string;
-  industry: string;
-  sector: string;
+  industryRank?: string;
+  totalStocks?: string;
+  totalIndustryStocks?: string;
+  industry?: string;
+  sector?: string;
 }
 
 interface RankingCSVData {
@@ -154,7 +150,7 @@ interface SimilarStockData {
   Description: string;
   similarStock: string;
   Company: string;
-  'Revenue 2024 (USD billion)': string;
+  'Revenue 2024 (USD billion)'?: string;
 }
 
 interface LogoData {
@@ -162,10 +158,9 @@ interface LogoData {
   LogoURL: string;
 }
 
-interface DividendData {
-  symbol: string;
-  date: string;
-  dividends: string;
+interface DividendDates {
+  buy_date: string;
+  payout_date: string;
 }
 
 interface SavedStock {
@@ -177,6 +172,17 @@ interface SavedStock {
   dividend_yield: number;
   next_dividend_date?: string;
   is_favorite: boolean;
+}
+
+interface SimilarCompany {
+  symbol: string;
+  similar_symbol: string;
+  company_name?: string;
+  description?: string;
+  created_at?: string;
+  id?: number;
+  revenue_2024?: string;
+  logo?: string;
 }
 
 const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
@@ -327,7 +333,10 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     current: '0', 
     last: '0' 
   });
-  const [quarterlyDividend, setQuarterlyDividend] = useState<{ current: string; last: string }>({ 
+  const [quarterlyDividend, setQuarterlyDividend] = useState<{ 
+    current: string; 
+    last: string 
+  }>({ 
     current: '0', 
     last: '0' 
   });
@@ -353,6 +362,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const [isLoading, setIsLoading] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -374,7 +384,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .single();
 
         if (error) throw error;
-        setCompanyProfile(data);
+        setCompanyProfile(data as CompanyProfile);
       } catch (error) {
         console.error('Error fetching company profile:', error);
       }
@@ -395,7 +405,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .order('date', { ascending: false });
 
         if (error) throw error;
-        setDividendHistory(data);
+        setDividendHistory(data as DividendHistory[]);
       } catch (error) {
         console.error('Error fetching dividend history:', error);
       }
@@ -416,12 +426,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .single();
 
         if (error) throw error;
-        setRankingCSVData({
-          rank: data.rank,
-          score: data.score,
-          sector: data.sector,
-          industry: data.industry
-        });
+        setRankingCSVData(data as RankingDisplayData);
       } catch (error) {
         console.error('Error fetching ranking data:', error);
       }
@@ -445,13 +450,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
           .select('*')
-          .in('symbol', similarData.map(company => company.Symbol));
+          .in('symbol', similarData.map(company => company.similar_symbol));
 
         if (logoError) throw logoError;
 
         const combinedData = similarData.map(company => ({
           ...company,
-          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.LogoURL
+          logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
         }));
 
         setSimilarCompanies(combinedData);
@@ -496,7 +501,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .order('date', { ascending: true });
 
         if (error) throw error;
-        setDividendHistoryData(data);
+        setDividendHistoryData(data as DividendHistoryData[]);
       } catch (error) {
         console.error('Error fetching dividend history data:', error);
       }
@@ -574,6 +579,70 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const previousYield = yieldData[1]?.value || 0;
   const yieldChange = ((currentYield - previousYield) / previousYield) * 100;
 
+  const handleSaveStock = async () => {
+    try {
+      setIsLoading(true);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to save stocks",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      if (isSaved) {
+        // Remove from saved stocks
+        const { error } = await supabase
+          .from('saved_stocks')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('symbol', stock.Symbol);
+          
+        if (error) throw error;
+        
+        setIsSaved(false);
+        toast({
+          title: "Stock removed",
+          description: `${stock.Symbol} has been removed from your saved stocks`,
+        });
+      } else {
+        // Add to saved stocks
+        const { error } = await supabase
+          .from('saved_stocks')
+          .upsert({
+            user_id: user.id,
+            symbol: stock.Symbol,
+            company_name: stock.title || '',
+            logo_url: logoURL,
+            price: parseFloat(currentYield.toFixed(2)),
+            dividend_yield: parseFloat(yieldChange.toFixed(2)),
+            is_favorite: false
+          });
+          
+        if (error) throw error;
+        
+        setIsSaved(true);
+        toast({
+          title: "Stock saved",
+          description: `${stock.Symbol} has been added to your saved stocks`,
+        });
+      }
+    } catch (error) {
+      console.error('Error saving stock:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save stock. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleToggleSubscription = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -642,32 +711,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     } finally {
       setIsSubscriptionLoading(false);
     }
-  };
-
-  const filterDividendHistory = (data: DividendHistory[], range: string) => {
-    const now = new Date();
-    const yearsAgo = new Date();
-    
-    switch (range) {
-      case '1Y':
-        yearsAgo.setFullYear(now.getFullYear() - 1);
-        break;
-      case '3Y':
-        yearsAgo.setFullYear(now.getFullYear() - 3);
-        break;
-      case '5Y':
-        yearsAgo.setFullYear(now.getFullYear() - 5);
-        break;
-      case '10Y':
-        yearsAgo.setFullYear(now.getFullYear() - 10);
-        break;
-      case 'MAX':
-        return data;
-      default:
-        yearsAgo.setFullYear(now.getFullYear() - 1);
-    }
-
-    return data.filter(item => new Date(item.date) >= yearsAgo);
   };
 
   useEffect(() => {
@@ -820,609 +863,3 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                       </svg>
                     </Button>
                     <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </Button>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    + Add Comparison
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 bg-muted/50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                  <span className="font-medium">{stock.Symbol}</span>
-                </div>
-                <div>
-                  <span className="font-medium">{currentYield.toFixed(2)}%</span>
-                  <span className={`ml-2 ${yieldChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {yieldChange >= 0 ? '+' : ''}{yieldChange.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-lg h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={filterDataByPeriod(selectedPeriod)}
-                    margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
-                    <XAxis
-                      dataKey="date"
-                      axisLine={false}
-                      tickLine={false}
-                      stroke="#666"
-                      fontSize={12}
-                    />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      tickFormatter={(value) => `${value.toFixed(2)}%`}
-                      axisLine={false}
-                      tickLine={false}
-                      stroke="#666"
-                      fontSize={12}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#f97316"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4, fill: "#f97316" }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        );
-      case "Payout":
-        const lastPayout = payoutData[0]?.value || 0;
-        const healthyPayoutRange = { min: 40, max: 60 };
-        const isHealthyPayout = lastPayout >= healthyPayoutRange.min && lastPayout <= healthyPayoutRange.max;
-        const isHighPayout = lastPayout > healthyPayoutRange.max;
-        
-        return (
-          <div >
-            <div className="p-4">
-              <h3 className="text-xl font-semibold mb-2 text-white">Payout Ratio Analysis</h3>
-              <div className={`text-2xl font-bold mb-4 ${
-                isHealthyPayout ? 'text-yellow-500' : 
-                isHighPayout ? 'text-red-500' : 'text-green-500'
-              }`}>
-                {lastPayout.toFixed(2)}%
-              </div>
-            </div>
-            <div className="px-4 h-[300px] relative">
-              {/* Background color zones */}
-              <div className="absolute inset-0 flex flex-col">
-                <div className="h-1/3 bg-red-600 opacity-20" />
-                <div className="h-1/3 bg-yellow-400 opacity-20" />
-                <div className="h-1/3 bg-green-500 opacity-20" />
-              </div>
-              
-              {/* Zone labels */}
-              <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between pr-2 text-sm">
-                <span className="text-white mt-2">65%</span>
-                <span className="text-white">35%</span>
-              </div>
-
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart 
-                  data={payoutData} 
-                  margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
-                >
-                  <XAxis
-                    dataKey="quarter"
-                    axisLine={false}
-                    tickLine={false}
-                    stroke="#fff"
-                    fontSize={12}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    axisLine={false}
-                    tickLine={false}
-                    stroke="#fff"
-                    fontSize={12}
-                    tickFormatter={(value) => `${value}%`}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="#2563eb"
-                    strokeWidth={2}
-                    dot={(props) => {
-                      const { cx, cy, payload } = props;
-                      // Use star marker for future projections (2025 onwards)
-                      const isFuture = payload.quarter.includes('2025');
-                      if (isFuture) {
-                        return (
-                          <path
-                            d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                            transform={`translate(${cx - 10}, ${cy - 10}) scale(0.8)`}
-                            fill="#2563eb"
-                            stroke="none"
-                          />
-                        );
-                      }
-                      // Use square marker for historical data
-                      return (
-                        <rect
-                          x={cx - 4}
-                          y={cy - 4}
-                          width={8}
-                          height={8}
-                          fill="#2563eb"
-                          transform={`rotate(45, ${cx}, ${cy})`}
-                        />
-                      );
-                    }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        );
-
-    
-      case "Dividend History":
-        return (
-          <div className="space-y-4 mt-6">
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex space-x-4">
-                <Button
-                  variant={activeDividendTab === 'annual' ? 'default' : 'outline'}
-                  onClick={() => setActiveDividendTab('annual')}
-                  className={`w-32 ${activeDividendTab === 'annual' && 'bg-primary text-primary-foreground'}`}
-                >
-                  Annual
-                </Button>
-                <Button
-                  variant={activeDividendTab === 'quarterly' ? 'default' : 'outline'}
-                  onClick={() => setActiveDividendTab('quarterly')}
-                  className={`w-32 ${activeDividendTab === 'quarterly' && 'bg-primary text-primary-foreground'}`}
-                >
-                  Quarterly
-                </Button>
-              </div>
-              
-              <div className="flex space-x-2">
-                {['1Y', '3Y', '5Y', 'MAX'].map((range) => (
-                  <Button
-                    key={range}
-                    variant={timeRange === range ? 'default' : 'outline'}
-                    onClick={() => setTimeRange(range)}
-                    className={`px-3 py-1 ${
-                      timeRange === range ? 'bg-primary text-primary-foreground' : ''
-                    }`}
-                    size="sm"
-                  >
-                    {range}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-              <BarChart 
-  data={filterDividendData(dividendHistoryData, timeRange)}
-  margin={{ top: 20, right: 30, left: 40, bottom: 30 }} 
-  barCategoryGap={15} 
->
-  {/* X-Axis */}
-  <XAxis 
-    dataKey="date"
-    tick={{ fontSize: 12, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
-    axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
-    tickLine={false}
-  />
-
-  {/* Y-Axis */}
-  <YAxis 
-    tick={{ fontSize: 12, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
-    tickFormatter={(value) => `$${value.toFixed(2)}`}
-    axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
-    tickLine={false}
-  />
-
-  {/* Tooltip */}
-  <Tooltip 
-    cursor={false}
-    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Dividend']}
-    labelFormatter={(label) => `Year: ${label}`}
-    contentStyle={{
-      backgroundColor: theme === 'dark' ? '#1f2937' : 'white',
-      border: 'none',
-      borderRadius: '8px',
-      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-      padding: '12px'
-    }}
-  />
-
-  {/* Bar Graph */}
-  <Bar 
-    dataKey="dividends" 
-    fill={theme === 'dark' ? '#6366f1' : '#4f46e5'}
-    name="Dividend Amount"
-    radius={[6, 6, 0, 0]}
-  >
-    <LabelList 
-      dataKey="dividends" 
-      position="top" 
-      formatter={(value: number) => `$${value.toFixed(2)}`}
-      style={{
-        fontSize: '10px',
-        fill: theme === 'dark' ? '#9CA3AF' : '#4B5563'
-      }}
-    />
-  </Bar>
-
-  {/* Red Line Graph - Ensures It Touches Midpoints of Bars */}
-  <Line 
-    type="monotone" 
-    dataKey="dividends" 
-    stroke="red" 
-    strokeWidth={2} 
-    dot={{ 
-      r: 4, 
-      fill: 'red', 
-      stroke: 'red', 
-      strokeWidth: 2 
-    }} 
-    activeDot={{ 
-      r: 6, 
-      fill: 'red' 
-    }} 
-    connectNulls={true} // Ensures missing points are connected
-  />
-
-  {/* Dot Graph Above Each Bar */}
-  <Scatter 
-    data={filterDividendData(dividendHistoryData, timeRange).map(d => ({ 
-      date: d.date, 
-      dividends: d.dividends * 1.1 // Adjusted height (10% higher than bars)
-    }))} 
-    fill="green" 
-    shape="circle"
-  />
-
-</BarChart>
-
-
-</ResponsiveContainer>
-
-            </div>
-          </div>
-        );
-
-      case 'Analyst Ratings':
-        return (
-          <div className="flex flex-col gap-4 w-full">
-  <div className="flex flex-col gap-2 w-full">
-    <div className="flex items-center justify-between w-full">
-      <div className="flex items-center gap-2 w-full">
-        <UpDown />
-      </div>
-    </div>
-  </div>
-</div>
-
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  const miniChartData = yieldData.slice(0, 3).map(item => ({
-    date: item.date,
-    value: item.value
-  }));
-
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className={`max-w-6xl mx-auto mt-6 mb-6 p-5 rounded-lg shadow-lg text-sm overflow-y-auto max-h-[80vh] ${theme === "dark" ? ' text-white' : ' text-white'}`}>
-      <DialogHeader>
-  <DialogTitle className="text-2xl font-bold flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg">
-    <div className="flex items-center gap-6 flex-wrap">
-      {/* Logo and Stock Info */}
-      <div className="flex items-center gap-4">
-        <div
-          className="w-16 h-16 bg-center bg-no-repeat bg-contain rounded-lg border border-gray-300 dark:border-gray-700 shadow-md"
-          style={{
-            backgroundImage: `url(${logoURL || 'stock.avif'})`,
-            backgroundColor: theme === 'dark' ? '#1f2937' : '#f3f4f6'
-          }}
-        />
-        <div className="flex flex-col">
-  {/* Symbol & Save Button on the Same Row */}
-  <div className="flex items-center gap-[2px]">
-    <div className="text-lg text-gray-600 dark:text-gray-300">{stock.Symbol}</div>
-    <button
-      onClick={handleSaveStock}
-      disabled={isLoading}
-      className={`flex items-center gap-2 px-4 ml-4 py-2 rounded-full transition ${
-        isLoading ? 'opacity-50 cursor-not-allowed ' : ''
-      } ${
-        isSaved
-          ? 'bg-red-50 dark:bg-red-900/20 text-red-500'
-          : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500'
-      }`}
-    >
-      {isLoading ? (
-        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-      ) : (
-        <Heart
-          className={`w-5 h-5 transition ${
-            isSaved ? 'fill-red-500 stroke-red-500' : 'stroke-current'
-          }`}
-        />
-      )}
-      <span className="text-sm font-medium">
-        {isLoading ? 'Processing...' : isSaved ? 'Saved' : 'Save'}
-      </span>
-    </button>
-  </div>
-
-  {/* Short Name Below Symbol & Save Button */}
-  <div className="text-sm font-bold text-gray-700 dark:text-gray-300">
-    {stock?.title}
-  </div>
-</div>
-
-        
-      </div>
-
-      {/* Ranking Section */}
-      {rankingCSVData && (
-        <div className="flex gap-6 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-sm">
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500">Score</span>
-            <span className={`text-lg font-bold ${
-              Number(rankingCSVData.score) >= 0.7 ? 'text-green-500' : 
-              Number(rankingCSVData.score) >= 0.4 ? 'text-yellow-500' : 
-              'text-red-500'
-            }`}>
-              {(Number(rankingCSVData.score) * 100).toFixed(1)}%
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500">Sector</span>
-            <span className="text-sm font-medium text-blue-400">
-              {rankingCSVData.sector || 'N/A'}
-            </span>
-          </div>
-          <div className="flex flex-col items-center">
-            <span className="text-xs text-gray-500">Industry</span>
-            <span className="text-sm font-medium text-purple-400">
-              {rankingCSVData.industry || 'N/A'}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* Mini Chart */}
-      <div className="h-14 w-28">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={miniChartData}>
-            <Line type="monotone" dataKey="value" stroke="#2563eb" dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="text-xs text-gray-500 text-center">Last quarter data</div>
-      </div>
-    </div>
-
-    {/* Right Section */}
-    <div className="text-right flex flex-col items-end gap-3">
-      <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
-
-      {/* Similar Companies */}
-      <div className="relative flex flex-col items-end space-y-3 mt-2">
-        <div className="flex items-center space-x-2 mb-2">
-          <div className="text-sm font-medium">Similar Companies</div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-500 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <AlertCircle className="w-4 h-4" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-4 text-sm rounded-xl shadow-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              <p className="font-semibold text-lg">📈 Similar Stocks</p>
-              <p className="mt-2">Click on any company to view more details.</p>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Similar Companies Grid */}
-        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {similarStocks.map((similarStock) => (
-            <div
-              key={similarStock.symbol}
-              onClick={() => setSelectedStock(similarStock)}
-              className="w-12 h-16 flex flex-col items-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition cursor-pointer"
-            >
-              <div
-                className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                style={{ backgroundImage: `url(${similarStock.logoUrl})` }}
-              />
-              <div className="text-sm font-semibold text-center">{similarStock.symbol}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  </DialogTitle>
-</DialogHeader>
-
-        <div className="mt-6">
-          {stock && (
-            <DividendCountdown symbol={stock.Symbol} />
-          )}
-          <div className="grid grid-cols-5 gap-4 mb-6">
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`} >
-              
-              <div className="grid grid-cols-2 gap-4">
-                {/* Annual Dividend */}
-                <div className="border-r border-gray-700 pr-4">
-                  <div className="text-xs text-gray-400 mb-1">Annual</div>
-                  <div className="flex flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-bold text-green-500">
-                        {latestDividends.annual 
-                          ? `$${Number(latestDividends.annual).toFixed(2)}` 
-                          : 'N/A'}
-                      </span>
-                      
-                    </div>
-                    
-                  </div>
-                </div>
-
-                {/* Quarterly Dividend */}
-                <div className="pl-4">
-                  <div className="text-xs text-gray-400 mb-1">Quarterly</div>
-                  <div className="flex flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-bold text-blue-500">
-                        {latestDividends.quarterly 
-                          ? `$${Number(latestDividends.quarterly).toFixed(2)}` 
-                          : 'N/A'}
-                      </span>
-                      
-                    </div>
-                    
-                  </div>
-                </div>
-              </div>
-            </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-xs text-gray-600 mb-2">Rank in Cohert</div>
-              <div className="font-bold space-y-2">
-                {rankingCSVData ? (
-                  <>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg text-blue-500">#{rankingCSVData.rank}</span>
-                        
-                      </div>
-                      
-                    </div>
-                    
-                  </>
-                ) : (
-                  <div className="text-gray-500 text-lg">
-                    0
-                  </div>
-                )}
-              </div>
-            </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-600">Next raise expectations
-              </div>
-              <div className="text-lg font-bold">$.08 on 11/30/2025
-              </div>
-            </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-600">Current Status</div>
-              <div className="text-lg font-bold">Neutral</div>
-            </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-600">Regulatory Impact</div>
-              <div className="text-lg font-bold">High</div>
-            </Card>
-          </div>
-
-          <div className={`relative border rounded-lg p-4 ${theme === "dark" ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className="absolute top-2 right-2 flex flex-col items-start gap-2 p-4 rounded-md shadow-md">
-              <div className="flex items-center justify-between w-full gap-8">
-                <div>
-                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    Stay updated with important notifications!
-                  </p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                    Toggle to receive alerts about {stock?.Symbol} dividend changes
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="subscription-toggle"
-                    checked={isSubscribed}
-                    onCheckedChange={handleToggleSubscription}
-                    disabled={isSubscriptionLoading}
-                  />
-                  <label
-                    htmlFor="subscription-toggle"
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    {isSubscribed ? (
-                      <span className="text-green-500 flex items-center">
-                        <Bell className="h-4 w-4 mr-1" /> Subscribed
-                      </span>
-                    ) : (
-                      <span className="text-gray-500 dark:text-gray-400 flex items-center">
-                        <Bell className="h-4 w-4 mr-1" /> Subscribe
-                      </span>
-                    )}
-                  </label>
-                </div>
-              </div>
-            </div>
-  
-            <div className="flex gap-4 mt-8 overflow-x-auto">
-              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings"].map((tab) => (
-                <div 
-                  key={tab} 
-                  className={`flex flex-col items-center cursor-pointer ${
-                    selectedTab === tab ? 'border-b-2 border-blue-500' : ''
-                  }`}
-                  onClick={() => setSelectedTab(tab)}
-                >
-                  <span className={`text-sm ${selectedTab === tab ? 'text-blue-500' : ''}`}>
-                    {tab}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {renderTabContent()}
-          </div>
-
-          <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-3">
-                  <div 
-                    className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                    style={{ backgroundImage: `url(${selectedStock?.logoUrl})` }}
-                  />
-                  <div>
-                    <div className="text-lg font-bold">{selectedStock?.symbol}</div>
-                    <div className="text-sm text-gray-500">{selectedStock?.company}</div>
-                  </div>
-                </DialogTitle>
-              </DialogHeader>
-              
-              <div className="p-4">
-                <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                  {selectedStock?.description || 'No description available'}
-                </div>
-                
-                <div className="mt-4 text-xs text-gray-500">
-                  Estimated Revenue 2024: ${selectedStock?.revenue}B
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
-
-export default StockDetailsDialog;
