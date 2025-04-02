@@ -13,7 +13,7 @@ export interface DividendData {
   dividendYield: number;
   payoutRatio: number;
   AnnualRate: number;
-  amount: number; // Ensure this field is required
+  amount: number;
   message: string;
   ExDividendDate: string;
   DividendDate: string;
@@ -36,6 +36,21 @@ export interface DividendData {
   yieldRange: string;
   companyName?: string;
   announcements?: string[];
+  // Filter-related fields
+  location?: string;
+  exchange?: string;
+  sector?: string;
+  subSector?: string;
+  revenueGrowth?: number;
+  netIncome?: number;
+  debtLevels?: number;
+  fiveYearDividendYield?: number;
+  dividendHistory?: string;
+  financialHealthScore?: number;
+  revenue?: number;
+  earningsPerShare?: number;
+  adjustedDividendYield?: number;
+  payoutRatioPenalty?: number;
 }
 
 export const filterDividendData = (data: DividendHistoryData[], range: string) => {

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DollarSign, TrendingUp, TrendingDown, Info } from "lucide-react";
+import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
 
 interface DividendEvent {
   id: string;
@@ -42,6 +43,9 @@ const DividendCalendar = () => {
   const [hoveredStock, setHoveredStock] = useState<DividendEvent | null>(null);
   const [showPopup, setShowPopup] = useState<Record<string, boolean>>({});
   const [selectedDateEvents, setSelectedDateEvents] = useState<{date: Date, events: DividendEvent[]} | null>(null);
+  const [filterCriteria, setFilterCriteria] = useState<StockFilterCriteria>({});
+  const [filteredEvents, setFilteredEvents] = useState<DividendEvent[]>([]);
+  const [stockFilterData, setStockFilterData] = useState<StockFilterData[]>([]);
 
   const showDateEvents = (date: Date, events: DividendEvent[]) => {
     const sortedEvents = [...events].sort((a, b) => 
@@ -96,6 +100,71 @@ const DividendCalendar = () => {
     fetchDividendData();
   }, []);
 
+  useEffect(() => {
+    const transformedData = dividendEvents.map(event => ({
+      symbol: event.symbol,
+      sector: "Technology",
+      exchange: "NASDAQ",
+      dividendYield: Math.random() * 10,
+      payoutRatio: Math.random() * 100,
+      financialHealthScore: Math.floor(Math.random() * 10) + 1,
+      debtLevels: Math.floor(Math.random() * 10) + 1,
+      revenue: Math.random() * 50000000000,
+      earningsPerShare: Math.random() * 10,
+    }));
+    
+    setStockFilterData(transformedData);
+  }, [dividendEvents]);
+
+  useEffect(() => {
+    if (Object.keys(filterCriteria).length === 0) {
+      setFilteredEvents(dividendEvents);
+      return;
+    }
+
+    const filtered = dividendEvents.filter(event => {
+      const stockData = stockFilterData.find(stock => stock.symbol === event.symbol);
+      if (!stockData) return false;
+      
+      if (filterCriteria.symbol && !event.symbol.toLowerCase().includes(filterCriteria.symbol.toLowerCase())) {
+        return false;
+      }
+      
+      if (filterCriteria.sector && stockData.sector !== filterCriteria.sector) {
+        return false;
+      }
+      
+      if (filterCriteria.exchange && stockData.exchange !== filterCriteria.exchange) {
+        return false;
+      }
+      
+      if (stockData.dividendYield !== undefined && 
+          (stockData.dividendYield < (filterCriteria.minDividendYield || 0) || 
+           stockData.dividendYield > (filterCriteria.maxDividendYield || 100))) {
+        return false;
+      }
+      
+      if (stockData.payoutRatio !== undefined && 
+          (stockData.payoutRatio < (filterCriteria.minPayoutRatio || 0) || 
+           stockData.payoutRatio > (filterCriteria.maxPayoutRatio || 100))) {
+        return false;
+      }
+      
+      if (stockData.financialHealthScore !== undefined && 
+          stockData.financialHealthScore < (filterCriteria.minHealthScore || 0)) {
+        return false;
+      }
+      
+      if (filterCriteria.hasDebtConcerns && stockData.debtLevels !== undefined && stockData.debtLevels < 3) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    setFilteredEvents(filtered);
+  }, [filterCriteria, dividendEvents, stockFilterData]);
+
   const handlePreviousMonth = () => {
     const newMonth = new Date(month);
     newMonth.setMonth(newMonth.getMonth() - 1);
@@ -133,7 +202,7 @@ const DividendCalendar = () => {
     const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
     const formattedDate = format(currentDate, 'yyyy-MM-dd');
     
-    return dividendEvents.filter(event => {
+    return filteredEvents.filter(event => {
       if (!event.dividend_date) return false;
       return event.dividend_date === formattedDate;
     });
@@ -267,6 +336,10 @@ const DividendCalendar = () => {
     );
   };
 
+  const handleFilterApply = (filters: StockFilterCriteria) => {
+    setFilterCriteria(filters);
+  };
+
   return (
     <div className="p-4 h-full bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
@@ -276,6 +349,12 @@ const DividendCalendar = () => {
         </h2>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-wrap items-center gap-2">
+            <StockFilter 
+              onFilterApply={handleFilterApply}
+              filterableStocks={stockFilterData}
+              isCalendarView={true}
+            />
+            
             <Select value={year} onValueChange={setYear}>
               <SelectTrigger className="w-[90px] bg-gray-800/90 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Year" />
