@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,12 +41,21 @@ const DividendCalendar = () => {
   const [companyLogos, setCompanyLogos] = useState<Map<string, string>>(new Map());
   const [hoveredStock, setHoveredStock] = useState<DividendEvent | null>(null);
   const [showPopup, setShowPopup] = useState<Record<string, boolean>>({});
+  const [selectedDateEvents, setSelectedDateEvents] = useState<{date: Date, events: DividendEvent[]} | null>(null);
 
-  const togglePopup = (dateKey: string) => {
-    setShowPopup(prev => ({
-      ...prev,
-      [dateKey]: !prev[dateKey]
-    }));
+  const showDateEvents = (date: Date, events: DividendEvent[]) => {
+    const sortedEvents = [...events].sort((a, b) => 
+      a.symbol.localeCompare(b.symbol)
+    );
+    
+    setSelectedDateEvents({
+      date,
+      events: sortedEvents
+    });
+  };
+
+  const closeDateEvents = () => {
+    setSelectedDateEvents(null);
   };
 
   useEffect(() => {
@@ -213,7 +221,6 @@ const DividendCalendar = () => {
                     <p className="text-xs font-semibold text-gray-100 text-center">
                       {event.symbol}
                     </p>
-                    
                   </div>
                 ))}
               </div>
@@ -222,7 +229,7 @@ const DividendCalendar = () => {
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    togglePopup(dateKey);
+                    showDateEvents(currentDate, events);
                   }}
                   className="mt-3 text-xs text-blue-400 hover:text-blue-300 transition-colors w-full text-center flex items-center justify-center gap-1.5
                             py-1.5 rounded-lg border border-gray-700 hover:border-blue-500 bg-gray-800/70 hover:bg-gray-800/90"
@@ -230,66 +237,6 @@ const DividendCalendar = () => {
                   <Plus className="w-3 h-3" />
                   Show {events.length - 6} more stocks
                 </button>
-              )}
-
-              {showPopup[dateKey] && (
-                <div 
-                  className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    togglePopup(dateKey);
-                  }}
-                >
-                  <div 
-                    className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4 border border-gray-700 shadow-2xl"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-                      <h3 className="text-xl font-semibold text-white flex items-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                        <CalendarIcon className="mr-2 h-5 w-5 text-blue-400" />
-                        Stocks for {format(currentDate, 'MMMM d, yyyy')}
-                      </h3>
-                      <button
-                        onClick={() => togglePopup(dateKey)}
-                        className="text-gray-400 hover:text-white transition-colors bg-gray-800/60 p-2 rounded-full hover:bg-gray-700"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-4">
-                      {events.map((stock, index) => (
-                        <div 
-                          key={index}
-                          className="flex flex-col items-center p-4 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors
-                                    border border-gray-700 hover:border-blue-400 cursor-pointer"
-                          onClick={() => handleEventClick(stock)}
-                        >
-                          <div className="w-14 h-14 bg-white rounded-lg overflow-hidden mb-3 shadow-md flex items-center justify-center">
-                            <img
-                              src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
-                              alt={stock.symbol}
-                              className="w-full h-full object-contain p-1.5"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).src = '/stock.avif';
-                              }}
-                            />
-                          </div>
-                          <p className="text-sm font-bold text-white text-center bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent">
-                            {stock.symbol}
-                          </p>
-                          <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
-                            {stock.company_name || 'Unknown Company'}
-                          </p>
-                          <div className="mt-2 flex items-center text-xs text-blue-300">
-                            <CalendarIcon className="w-3 h-3 mr-1" />
-                            <span>Ex-div: {stock.ex_dividend_date ? format(new Date(stock.ex_dividend_date), 'MMM d') : 'N/A'}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
               )}
             </div>
           )}
@@ -385,6 +332,68 @@ const DividendCalendar = () => {
       <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/60 backdrop-blur-lg rounded-2xl p-6 border border-gray-800/80 shadow-2xl">
         {renderCalendarGrid()}
       </div>
+
+      {selectedDateEvents && (
+        <div 
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
+          onClick={closeDateEvents}
+        >
+          <div 
+            className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 border border-blue-700/30 shadow-2xl animate-fade-in"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+              <h3 className="text-xl font-semibold text-white flex items-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <CalendarIcon className="mr-2 h-5 w-5 text-blue-400" />
+                Dividend Stocks for {format(selectedDateEvents.date, 'MMMM d, yyyy')}
+              </h3>
+              <button
+                onClick={closeDateEvents}
+                className="text-gray-400 hover:text-white transition-colors bg-gray-800/60 p-2 rounded-full hover:bg-gray-700"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="mb-4 p-3 bg-blue-900/20 border border-blue-600/20 rounded-lg text-blue-200 text-sm flex items-center">
+              <Info className="w-4 h-4 mr-2" />
+              <span>Showing {selectedDateEvents.events.length} stocks with dividend payments on this date.</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-4">
+              {selectedDateEvents.events.map((stock, index) => (
+                <div 
+                  key={index}
+                  className="flex flex-col items-center p-4 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors
+                            border border-gray-700 hover:border-blue-400 cursor-pointer"
+                  onClick={() => handleEventClick(stock)}
+                >
+                  <div className="w-14 h-14 bg-white rounded-lg overflow-hidden mb-3 shadow-md flex items-center justify-center">
+                    <img
+                      src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
+                      alt={stock.symbol}
+                      className="w-full h-full object-contain p-1.5"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/stock.avif';
+                      }}
+                    />
+                  </div>
+                  <p className="text-sm font-bold text-white text-center bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent">
+                    {stock.symbol}
+                  </p>
+                  <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
+                    {stock.company_name || 'Unknown Company'}
+                  </p>
+                  <div className="mt-2 flex items-center text-xs text-blue-300">
+                    <CalendarIcon className="w-3 h-3 mr-1" />
+                    <span>Ex-div: {stock.ex_dividend_date ? format(new Date(stock.ex_dividend_date), 'MMM d') : 'N/A'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-lg bg-gradient-to-br from-gray-900 to-gray-950 text-white border border-gray-800 shadow-2xl rounded-xl">
