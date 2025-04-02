@@ -197,18 +197,20 @@ const StockFilter: React.FC<StockFilterProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="sector">Sector</Label>
                 <Select
-                  value={filters.sector}
-                  onValueChange={(value) => handleFilterChange("sector", value)}
+                  value={filters.sector || ""}
+                  onValueChange={(value) => handleFilterChange("sector", value || undefined)}
                 >
                   <SelectTrigger id="sector">
                     <SelectValue placeholder="Select sector" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Sectors</SelectItem>
+                    <SelectItem value="all-sectors">All Sectors</SelectItem>
                     {uniqueSectors.map((sector) => (
-                      <SelectItem key={sector} value={sector}>
-                        {sector}
-                      </SelectItem>
+                      sector ? (
+                        <SelectItem key={sector} value={sector}>
+                          {sector}
+                        </SelectItem>
+                      ) : null
                     ))}
                   </SelectContent>
                 </Select>
@@ -217,18 +219,20 @@ const StockFilter: React.FC<StockFilterProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="exchange">Exchange</Label>
                 <Select
-                  value={filters.exchange}
-                  onValueChange={(value) => handleFilterChange("exchange", value)}
+                  value={filters.exchange || ""}
+                  onValueChange={(value) => handleFilterChange("exchange", value || undefined)}
                 >
                   <SelectTrigger id="exchange">
                     <SelectValue placeholder="Select exchange" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Exchanges</SelectItem>
+                    <SelectItem value="all-exchanges">All Exchanges</SelectItem>
                     {uniqueExchanges.map((exchange) => (
-                      <SelectItem key={exchange} value={exchange}>
-                        {exchange}
-                      </SelectItem>
+                      exchange ? (
+                        <SelectItem key={exchange} value={exchange}>
+                          {exchange}
+                        </SelectItem>
+                      ) : null
                     ))}
                   </SelectContent>
                 </Select>
