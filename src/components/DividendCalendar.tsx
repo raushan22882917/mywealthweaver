@@ -6,6 +6,8 @@ import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, X, ExternalL
 import { format, isSameDay, parseISO, getDaysInMonth, getDay, setDate } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 
 interface DividendEvent {
   id: string;
@@ -17,6 +19,10 @@ interface DividendEvent {
   revenue_average: number;
   LogoURL?: string;
   company_name?: string;
+  earnings_low: number;
+  earnings_high: number;
+  revenue_low: number;
+  revenue_high: number;
 }
 
 const dayNames = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -394,43 +400,78 @@ const DividendCalendar = () => {
                   </div>
                 </div>
               </DialogHeader>
-              <div className="grid grid-cols-2 gap-4 mt-4">
-                <div className="space-y-2 p-3 bg-gray-800/60 rounded-lg border border-gray-700">
-                  <h4 className="font-medium text-sm text-gray-400">Dividend Date</h4>
-                  <p className="font-medium text-blue-400">
-                    {selectedEvent.dividend_date ? format(parseISO(selectedEvent.dividend_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-                <div className="space-y-2 p-3 bg-gray-800/60 rounded-lg border border-gray-700">
-                  <h4 className="font-medium text-sm text-gray-400">Ex-Dividend Date</h4>
-                  <p className="font-medium text-blue-400">
-                    {selectedEvent.ex_dividend_date ? format(parseISO(selectedEvent.ex_dividend_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-                <div className="space-y-2 p-3 bg-gray-800/60 rounded-lg border border-gray-700">
-                  <h4 className="font-medium text-sm text-gray-400">Earnings Date</h4>
-                  <p className="font-medium text-blue-400">
-                    {selectedEvent.earnings_date ? format(parseISO(selectedEvent.earnings_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-                <div className="space-y-2 p-3 bg-gray-800/60 rounded-lg border border-gray-700">
-                  <h4 className="font-medium text-sm text-gray-400">Earnings (EPS)</h4>
-                  <p className="font-medium text-green-400">${selectedEvent.earnings_average?.toFixed(2) || 'N/A'}</p>
-                </div>
-                <div className="col-span-2 space-y-2 p-3 bg-gray-800/60 rounded-lg border border-gray-700">
-                  <h4 className="font-medium text-sm text-gray-400">Revenue</h4>
-                  <p className="font-medium text-green-400">
-                    {selectedEvent.revenue_average
-                      ? new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD',
-                          notation: 'compact',
-                          maximumFractionDigits: 1
-                        }).format(selectedEvent.revenue_average)
-                      : 'N/A'}
-                  </p>
-                </div>
-              </div>
+              <div className="overflow-x-auto mt-4">
+      <Table className="w-full border border-gray-700 bg-gray-900/80 rounded-lg shadow-lg">
+        <TableHeader>
+          <TableRow className="bg-gray-800/60 text-gray-400">
+            <TableHead className="p-3 text-left">Metric</TableHead>
+            <TableHead className="p-3 text-center">Average</TableHead>
+            <TableHead className="p-3 text-center">Low</TableHead>
+            <TableHead className="p-3 text-center">High</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {/* Earnings (EPS) Row */}
+          <TableRow className="hover:bg-gray-800 transition">
+            <TableCell className="p-3 flex items-center gap-2 text-gray-300">
+              <DollarSign className="w-4 h-4 text-yellow-400" />
+              Earnings (EPS)
+            </TableCell>
+            <TableCell className="p-3 text-center font-medium text-green-400">
+              {selectedEvent.earnings_average?.toFixed(2) || "N/A"}
+            </TableCell>
+            <TableCell className="p-3 text-center font-medium text-red-400">
+              <TrendingDown className="w-4 h-4 inline-block mr-1" />
+              {selectedEvent.earnings_low?.toFixed(2) || "N/A"}
+            </TableCell>
+            <TableCell className="p-3 text-center font-medium text-blue-400">
+              <TrendingUp className="w-4 h-4 inline-block mr-1" />
+              {selectedEvent.earnings_high?.toFixed(2) || "N/A"}
+            </TableCell>
+          </TableRow>
+
+          {/* Revenue Row */}
+          <TableRow className="hover:bg-gray-800 transition">
+            <TableCell className="p-3 flex items-center gap-2 text-gray-300">
+              <DollarSign className="w-4 h-4 text-green-400" />
+              Revenue
+            </TableCell>
+            <TableCell className="p-3 text-center font-medium text-green-400">
+              {selectedEvent.revenue_average
+                ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    notation: "compact",
+                    maximumFractionDigits: 1,
+                  }).format(selectedEvent.revenue_average)
+                : "N/A"}
+            </TableCell>
+            <TableCell className="p-3 text-center font-medium text-red-400">
+              <TrendingDown className="w-4 h-4 inline-block mr-1" />
+              {selectedEvent.revenue_low
+                ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    notation: "compact",
+                    maximumFractionDigits: 1,
+                  }).format(selectedEvent.revenue_low)
+                : "N/A"}
+            </TableCell>
+            <TableCell className="p-3 text-center font-medium text-blue-400">
+              <TrendingUp className="w-4 h-4 inline-block mr-1" />
+              {selectedEvent.revenue_high
+                ? new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    notation: "compact",
+                    maximumFractionDigits: 1,
+                  }).format(selectedEvent.revenue_high)
+                : "N/A"}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
             </>
           )}
         </DialogContent>
