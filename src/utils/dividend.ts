@@ -1,3 +1,4 @@
+
 export interface DividendHistoryData {
   date: string;
   dividends: number;
@@ -50,38 +51,6 @@ export interface DividendData {
   earningsPerShare?: number;
   adjustedDividendYield?: number;
   payoutRatioPenalty?: number;
-  // Additional fields needed for integration
-  buy_date?: string;
-  payoutdate?: string;
-  hist?: string;
-  insight?: string;
-  LogoURL?: string;
-  industry?: string;
-  employees?: string;
-  founded?: string;
-  address?: string;
-  ceo?: string;
-  website?: string;
-  description?: string;
-  marketCap?: string;
-  peRatio?: string;
-  weekRange?: string;
-  volume?: string;
-  status?: string;
-  payout_ratio?: string;
-  fcf_coverage?: string;
-  debt_to_equity?: string;
-  company_name?: string;
-  domain?: string;
-}
-
-export interface DividendHistory {
-  date: string;
-  dividend?: number;
-  dividends?: number;
-  id?: number;
-  symbol?: string;
-  created_at?: string;
 }
 
 export const filterDividendData = (data: DividendHistoryData[], range: string) => {
