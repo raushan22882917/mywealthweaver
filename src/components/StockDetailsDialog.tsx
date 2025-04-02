@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   LineChart,
   Line,
@@ -22,7 +22,7 @@ import {
   Scatter,
 } from "recharts";
 import { useTheme } from "next-themes";
-import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, Heart } from "lucide-react";
+import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, Heart, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -351,6 +351,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const [selectedStock, setSelectedStock] = useState<typeof similarStocks[0] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscriptionLoading, setIsSubscriptionLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -572,63 +574,73 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const previousYield = yieldData[1]?.value || 0;
   const yieldChange = ((currentYield - previousYield) / previousYield) * 100;
 
-  const handleSubscribe = async () => {
-    if (!email || !email.includes("@")) {
-      toast({
-        title: "Invalid email",
-        description: "Please enter a valid email address",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!stock?.Symbol) {
-      toast({
-        title: "Error",
-        description: "Stock symbol not found",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
+  const handleToggleSubscription = async () => {
     try {
-      const { error } = await supabase
-        .from("stock_subscriptions")
-        .insert([
-          {
-            email: email,
-            stock_symbol: stock.Symbol,
-          },
-        ]);
-
-      if (error) {
-        if (error.code === "23505") {
-          toast({
-            title: "Already subscribed",
-            description: "You are already subscribed to updates for this stock",
-            variant: "default",
-          });
-        } else {
-          throw error;
-        }
-      } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
         toast({
-          title: "Subscription successful",
-          description: "You will receive updates about this stock",
-          variant: "default",
+          title: "Authentication required",
+          description: "Please sign in to subscribe to stock updates",
+          variant: "destructive",
         });
-        setEmail("");
+        return;
+      }
+      
+      if (!stock?.Symbol) {
+        toast({
+          title: "Error",
+          description: "Stock symbol not found",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setIsSubscriptionLoading(true);
+      
+      if (isSubscribed) {
+        // Unsubscribe - update subscription to false
+        const { error } = await supabase
+          .from('stock_subscriptions')
+          .update({ is_subscribed: false, updated_at: new Date().toISOString() })
+          .eq('user_id', user.id)
+          .eq('stock_symbol', stock.Symbol);
+        
+        if (error) throw error;
+        
+        setIsSubscribed(false);
+        toast({
+          title: "Unsubscribed",
+          description: `You will no longer receive updates about ${stock.Symbol}`,
+        });
+      } else {
+        // Subscribe - insert or update
+        const { error } = await supabase
+          .from('stock_subscriptions')
+          .upsert({
+            user_id: user.id,
+            stock_symbol: stock.Symbol,
+            is_subscribed: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id,stock_symbol' });
+        
+        if (error) throw error;
+        
+        setIsSubscribed(true);
+        toast({
+          title: "Subscribed",
+          description: `You will now receive updates about ${stock.Symbol}`,
+        });
       }
     } catch (error) {
-      console.error("Subscription error:", error);
+      console.error('Error toggling subscription:', error);
       toast({
-        title: "Subscription failed",
-        description: "Unable to subscribe at this time. Please try again later.",
+        title: "Error",
+        description: "Failed to update subscription. Please try again.",
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsSubscriptionLoading(false);
     }
   };
 
@@ -658,103 +670,33 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     return data.filter(item => new Date(item.date) >= yearsAgo);
   };
 
-  // Check if stock is already saved when dialog opens
   useEffect(() => {
-    if (stock?.Symbol) {
-      checkIfStockIsSaved(stock.Symbol);
-    }
-  }, [stock]);
-
-  const checkIfStockIsSaved = async (symbol: string) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('saved_stocks')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('symbol', symbol)
-        .single();
-
-      if (error && error.code !== 'PGRST116') { // PGRST116 is the "not found" error
-        throw error;
-      }
-
-      setIsSaved(!!data);
-    } catch (error) {
-      console.error('Error checking saved stock:', error);
-    }
-  };
-
-  const handleSaveStock = async () => {
-    if (!stock) return;
-
-    setIsLoading(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        toast({
-          title: "Authentication Error",
-          description: "Please login to save stocks",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (isSaved) {
-        // Remove stock if it's already saved
-        const { error } = await supabase
-          .from('saved_stocks')
-          .delete()
+    const checkSubscriptionStatus = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user || !stock?.Symbol) return;
+        
+        const { data, error } = await supabase
+          .from('stock_subscriptions')
+          .select('is_subscribed')
           .eq('user_id', user.id)
-          .eq('symbol', stock.Symbol);
-
-        if (error) throw error;
-
-        setIsSaved(false);
-        toast({
-          title: "Success",
-          description: "Stock removed from watchlist",
-        });
-      } else {
-        // Save new stock
-        const stockData: SavedStock = {
-          user_id: user.id,
-          symbol: stock.Symbol,
-          company_name: stock.title,
-          logo_url: stock.LogoURL || '',
-          price: parseFloat(stock.marketCap) || 0,
-          dividend_yield: parseFloat(stock.dividendYield) || 0,
-          next_dividend_date: stock['Ex-Dividend Date'],
-          is_favorite: false
-        };
-
-        const { error } = await supabase
-          .from('saved_stocks')
-          .insert([stockData]);
-
-        if (error) throw error;
-
-        setIsSaved(true);
-        toast({
-          title: "Success",
-          description: "Stock saved to watchlist",
-        });
+          .eq('stock_symbol', stock.Symbol)
+          .single();
+        
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking subscription:', error);
+          return;
+        }
+        
+        setIsSubscribed(!!data?.is_subscribed);
+      } catch (error) {
+        console.error('Error checking subscription status:', error);
       }
-    } catch (error) {
-      console.error('Error saving stock:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save stock",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+    
+    checkSubscriptionStatus();
+  }, [stock?.Symbol]);
 
   if (!stock) return null;
 
@@ -836,7 +778,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     ))}
                     <Button variant="outline" size="sm">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                       </svg>
                     </Button>
                   </div>
@@ -1178,7 +1120,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     }
   };
 
-  // Create mini chart data from yield data
   const miniChartData = yieldData.slice(0, 3).map(item => ({
     date: item.date,
     value: item.value
@@ -1319,8 +1260,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   </DialogTitle>
 </DialogHeader>
 
-
-
         <div className="mt-6">
           {stock && (
             <DividendCountdown symbol={stock.Symbol} />
@@ -1399,92 +1338,88 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             </Card>
           </div>
 
-         
-
           <div className={`relative border rounded-lg p-4 ${theme === "dark" ? 'border-gray-700' : 'border-gray-200'}`}>
-  {/* Notification Box in Top Right Corner */}
-  <div className="absolute top-2 right-2 flex flex-col items-start gap-2 p-4 rounded-md shadow-md w-[500px]">
-  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-    Stay updated with important notifications!
-  </p>
-  <div className="flex w-full items-center gap-3">
-    <Input
-      type="email"
-      placeholder="Enter your email"
-      className={`w-full p-3 rounded-lg border text-sm focus:ring-2 transition ${
-        theme === 'dark'
-          ? 'bg-transparent text-white border-gray-600 focus:ring-blue-400'
-          : 'bg-transparent text-black border-gray-400 focus:ring-blue-500'
-      }`}
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      disabled={isSubmitting}
-    />
-    <Button
-      onClick={handleSubscribe}
-      disabled={isSubmitting}
-      className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-    >
-      {isSubmitting ? "Subscribing..." : "Subscribe"}
-    </Button>
-  </div>
-</div>
-
-
-  
-  {/* Tabs in a single row */}
-  <div className="flex gap-4 mt-8 overflow-x-auto">
-    {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings"].map((tab) => (
-      <div 
-        key={tab} 
-        className={`flex flex-col items-center cursor-pointer ${
-          selectedTab === tab ? 'border-b-2 border-blue-500' : ''
-        }`}
-        onClick={() => setSelectedTab(tab)}
-      >
-        <span className={`text-sm ${selectedTab === tab ? 'text-blue-500' : ''}`}>
-          {tab}
-        </span>
-      </div>
-    ))}
-  </div>
-
-  {renderTabContent()}
-</div>
-
-
-         
-
-          
-        </div>
-
-        {/* Stock Details Dialog */}
-        <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-3">
-                <div 
-                  className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                  style={{ backgroundImage: `url(${selectedStock?.logoUrl})` }}
-                />
+            <div className="absolute top-2 right-2 flex flex-col items-start gap-2 p-4 rounded-md shadow-md">
+              <div className="flex items-center justify-between w-full gap-8">
                 <div>
-                  <div className="text-lg font-bold">{selectedStock?.symbol}</div>
-                  <div className="text-sm text-gray-500">{selectedStock?.company}</div>
+                  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                    Stay updated with important notifications!
+                  </p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                    Toggle to receive alerts about {stock?.Symbol} dividend changes
+                  </p>
                 </div>
-              </DialogTitle>
-            </DialogHeader>
-            
-            <div className="p-4">
-              <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                {selectedStock?.description || 'No description available'}
-              </div>
-              
-              <div className="mt-4 text-xs text-gray-500">
-                Estimated Revenue 2024: ${selectedStock?.revenue}B
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="subscription-toggle"
+                    checked={isSubscribed}
+                    onCheckedChange={handleToggleSubscription}
+                    disabled={isSubscriptionLoading}
+                  />
+                  <label
+                    htmlFor="subscription-toggle"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    {isSubscribed ? (
+                      <span className="text-green-500 flex items-center">
+                        <Bell className="h-4 w-4 mr-1" /> Subscribed
+                      </span>
+                    ) : (
+                      <span className="text-gray-500 dark:text-gray-400 flex items-center">
+                        <Bell className="h-4 w-4 mr-1" /> Subscribe
+                      </span>
+                    )}
+                  </label>
+                </div>
               </div>
             </div>
-          </DialogContent>
-        </Dialog>
+  
+            <div className="flex gap-4 mt-8 overflow-x-auto">
+              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings"].map((tab) => (
+                <div 
+                  key={tab} 
+                  className={`flex flex-col items-center cursor-pointer ${
+                    selectedTab === tab ? 'border-b-2 border-blue-500' : ''
+                  }`}
+                  onClick={() => setSelectedTab(tab)}
+                >
+                  <span className={`text-sm ${selectedTab === tab ? 'text-blue-500' : ''}`}>
+                    {tab}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {renderTabContent()}
+          </div>
+
+          <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-3">
+                  <div 
+                    className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
+                    style={{ backgroundImage: `url(${selectedStock?.logoUrl})` }}
+                  />
+                  <div>
+                    <div className="text-lg font-bold">{selectedStock?.symbol}</div>
+                    <div className="text-sm text-gray-500">{selectedStock?.company}</div>
+                  </div>
+                </DialogTitle>
+              </DialogHeader>
+              
+              <div className="p-4">
+                <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
+                  {selectedStock?.description || 'No description available'}
+                </div>
+                
+                <div className="mt-4 text-xs text-gray-500">
+                  Estimated Revenue 2024: ${selectedStock?.revenue}B
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
       </DialogContent>
     </Dialog>
   );
