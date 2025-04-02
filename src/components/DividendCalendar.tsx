@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,7 +8,7 @@ import { format, isSameDay, parseISO, getDaysInMonth, getDay, setDate } from "da
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Info } from "lucide-react";
 
 interface DividendEvent {
   id: string;
@@ -166,10 +167,10 @@ const DividendCalendar = () => {
         <div 
           key={dateKey}
           className={`
-            relative p-3 min-h-[180px] rounded-lg transition-all 
-            ${isToday ? 'bg-purple-900/20 border-purple-500' : 'bg-gray-900/80'}
+            relative p-3 min-h-[180px] rounded-xl transition-all 
+            ${isToday ? 'bg-purple-900/20 border-purple-500/70' : 'bg-gray-900/80'}
             ${hasEvents ? 'border-2 border-blue-500/50 hover:border-blue-400' : 'border border-gray-700 hover:border-gray-600'}
-            backdrop-blur-sm shadow-md hover:shadow-lg
+            backdrop-blur-sm shadow-lg hover:shadow-xl
           `}
         >
           <div className={`
@@ -196,10 +197,10 @@ const DividendCalendar = () => {
                   <div
                     key={`${event.id}-${index}`}
                     onClick={() => handleEventClick(event)}
-                    className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 
+                    className="flex flex-col items-center p-2 rounded-xl bg-gray-800/80 
                              hover:bg-blue-500/20 cursor-pointer transition-all border border-gray-700 hover:border-blue-400"
                   >
-                    <div className="w-9 h-9 bg-white rounded-full flex-shrink-0 overflow-hidden mb-1.5 shadow-sm">
+                    <div className="w-9 h-9 bg-white rounded-lg flex-shrink-0 overflow-hidden mb-1.5 shadow-sm">
                       <img
                         src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
                         alt={event.symbol}
@@ -224,7 +225,7 @@ const DividendCalendar = () => {
                     togglePopup(dateKey);
                   }}
                   className="mt-3 text-xs text-blue-400 hover:text-blue-300 transition-colors w-full text-center flex items-center justify-center gap-1.5
-                            py-1 rounded-md border border-gray-700 hover:border-blue-500 bg-gray-800/50 hover:bg-gray-800"
+                            py-1.5 rounded-lg border border-gray-700 hover:border-blue-500 bg-gray-800/70 hover:bg-gray-800/90"
                 >
                   <Plus className="w-3 h-3" />
                   Show {events.length - 6} more stocks
@@ -233,24 +234,24 @@ const DividendCalendar = () => {
 
               {showPopup[dateKey] && (
                 <div 
-                  className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50"
+                  className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50"
                   onClick={(e) => {
                     e.stopPropagation();
                     togglePopup(dateKey);
                   }}
                 >
                   <div 
-                    className="bg-gray-900 rounded-xl p-5 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4 border border-gray-700 shadow-xl"
+                    className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4 border border-gray-700 shadow-2xl"
                     onClick={e => e.stopPropagation()}
                   >
-                    <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-3">
-                      <h3 className="text-xl font-semibold text-white flex items-center">
+                    <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+                      <h3 className="text-xl font-semibold text-white flex items-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                         <CalendarIcon className="mr-2 h-5 w-5 text-blue-400" />
                         Stocks for {format(currentDate, 'MMMM d, yyyy')}
                       </h3>
                       <button
                         onClick={() => togglePopup(dateKey)}
-                        className="text-gray-400 hover:text-white transition-colors bg-gray-800 p-1.5 rounded-full hover:bg-gray-700"
+                        className="text-gray-400 hover:text-white transition-colors bg-gray-800/60 p-2 rounded-full hover:bg-gray-700"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -260,11 +261,11 @@ const DividendCalendar = () => {
                       {events.map((stock, index) => (
                         <div 
                           key={index}
-                          className="flex flex-col items-center p-3 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors
+                          className="flex flex-col items-center p-4 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors
                                     border border-gray-700 hover:border-blue-400 cursor-pointer"
                           onClick={() => handleEventClick(stock)}
                         >
-                          <div className="w-12 h-12 bg-white rounded-full overflow-hidden mb-2 shadow-md">
+                          <div className="w-14 h-14 bg-white rounded-lg overflow-hidden mb-3 shadow-md flex items-center justify-center">
                             <img
                               src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
                               alt={stock.symbol}
@@ -274,12 +275,16 @@ const DividendCalendar = () => {
                               }}
                             />
                           </div>
-                          <p className="text-sm font-semibold text-white text-center">
+                          <p className="text-sm font-bold text-white text-center bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent">
                             {stock.symbol}
                           </p>
                           <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
                             {stock.company_name || 'Unknown Company'}
                           </p>
+                          <div className="mt-2 flex items-center text-xs text-blue-300">
+                            <CalendarIcon className="w-3 h-3 mr-1" />
+                            <span>Ex-div: {stock.ex_dividend_date ? format(new Date(stock.ex_dividend_date), 'MMM d') : 'N/A'}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -305,7 +310,7 @@ const DividendCalendar = () => {
       <div className="grid grid-cols-5 gap-4">
         {dayNames.map(day => (
           <div key={day} className="text-center py-2 font-semibold text-gray-300 
-                                  bg-gray-800/70 rounded-lg backdrop-blur-sm border border-gray-700">
+                                  bg-gray-800/70 rounded-xl backdrop-blur-sm border border-gray-700">
             {day}
           </div>
         ))}
@@ -316,13 +321,16 @@ const DividendCalendar = () => {
   };
 
   return (
-    <div className="p-4 h-full bg-gradient-to-br from-gray-950 to-gray-900 text-white">
+    <div className="p-4 h-full bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">{`${selectedMonth} ${year}`}</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-purple-300 bg-clip-text text-transparent flex items-center">
+          <CalendarIcon className="mr-2 h-5 w-5 text-blue-400" />
+          {`${selectedMonth} ${year}`}
+        </h2>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="w-[90px] bg-gray-800 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
+              <SelectTrigger className="w-[90px] bg-gray-800/90 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Year" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
@@ -339,7 +347,7 @@ const DividendCalendar = () => {
             </Select>
             
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[120px] bg-gray-800 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
+              <SelectTrigger className="w-[120px] bg-gray-800/90 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="Month" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
@@ -353,7 +361,7 @@ const DividendCalendar = () => {
             </Select>
             
             <Select value={view} onValueChange={setView}>
-              <SelectTrigger className="w-[120px] bg-gray-800 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
+              <SelectTrigger className="w-[120px] bg-gray-800/90 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
                 <SelectValue placeholder="View" />
               </SelectTrigger>
               <SelectContent className="bg-gray-800 border-gray-700">
@@ -364,27 +372,27 @@ const DividendCalendar = () => {
           </div>
           
           <div className="flex space-x-1">
-            <Button variant="outline" size="icon" onClick={handlePreviousMonth} className="bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-blue-500">
+            <Button variant="outline" size="icon" onClick={handlePreviousMonth} className="bg-gray-800/90 border-gray-700 hover:bg-gray-700 hover:border-blue-500">
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <Button variant="outline" size="icon" onClick={handleNextMonth} className="bg-gray-800 border-gray-700 hover:bg-gray-700 hover:border-blue-500">
+            <Button variant="outline" size="icon" onClick={handleNextMonth} className="bg-gray-800/90 border-gray-700 hover:bg-gray-700 hover:border-blue-500">
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="bg-gray-900/60 backdrop-blur-sm rounded-xl p-5 border border-gray-800 shadow-lg">
+      <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/60 backdrop-blur-lg rounded-2xl p-6 border border-gray-800/80 shadow-2xl">
         {renderCalendarGrid()}
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg bg-gray-900 text-white border border-gray-800 shadow-xl">
+        <DialogContent className="sm:max-w-lg bg-gradient-to-br from-gray-900 to-gray-950 text-white border border-gray-800 shadow-2xl rounded-xl">
           {selectedEvent && (
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="h-12 w-12 bg-white rounded-full p-1.5 shadow-md flex items-center justify-center">
+                  <div className="h-14 w-14 bg-white rounded-lg p-1.5 shadow-lg flex items-center justify-center">
                     <img 
                       src={selectedEvent.LogoURL || "/stock.avif"} 
                       alt={selectedEvent.symbol} 
@@ -395,83 +403,113 @@ const DividendCalendar = () => {
                     />
                   </div>
                   <div>
-                    <DialogTitle className="text-xl text-white">{selectedEvent.symbol}</DialogTitle>
+                    <DialogTitle className="text-xl bg-gradient-to-r from-blue-100 to-blue-300 bg-clip-text text-transparent">{selectedEvent.symbol}</DialogTitle>
                     <DialogDescription className="text-gray-400">{selectedEvent.company_name || selectedEvent.symbol}</DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
-              <div className="overflow-x-auto mt-4">
-      <Table className="w-full border border-gray-700 bg-gray-900/80 rounded-lg shadow-lg">
-        <TableHeader>
-          <TableRow className="bg-gray-800/60 text-gray-400">
-            <TableHead className="p-3 text-left">Metric</TableHead>
-            <TableHead className="p-3 text-center">Average</TableHead>
-            <TableHead className="p-3 text-center">Low</TableHead>
-            <TableHead className="p-3 text-center">High</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {/* Earnings (EPS) Row */}
-          <TableRow className="hover:bg-gray-800 transition">
-            <TableCell className="p-3 flex items-center gap-2 text-gray-300">
-              <DollarSign className="w-4 h-4 text-yellow-400" />
-              Earnings (EPS)
-            </TableCell>
-            <TableCell className="p-3 text-center font-medium text-green-400">
-              {selectedEvent.earnings_average?.toFixed(2) || "N/A"}
-            </TableCell>
-            <TableCell className="p-3 text-center font-medium text-red-400">
-              <TrendingDown className="w-4 h-4 inline-block mr-1" />
-              {selectedEvent.earnings_low?.toFixed(2) || "N/A"}
-            </TableCell>
-            <TableCell className="p-3 text-center font-medium text-blue-400">
-              <TrendingUp className="w-4 h-4 inline-block mr-1" />
-              {selectedEvent.earnings_high?.toFixed(2) || "N/A"}
-            </TableCell>
-          </TableRow>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 mb-4">
+                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">Dividend Date</h4>
+                  <p className="text-blue-300 flex items-center">
+                    <CalendarIcon className="w-4 h-4 mr-1 text-blue-400" />
+                    {selectedEvent.dividend_date ? format(new Date(selectedEvent.dividend_date), 'MMMM d, yyyy') : 'N/A'}
+                  </p>
+                </div>
+                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">Ex-Dividend Date</h4>
+                  <p className="text-purple-300 flex items-center">
+                    <CalendarIcon className="w-4 h-4 mr-1 text-purple-400" />
+                    {selectedEvent.ex_dividend_date ? format(new Date(selectedEvent.ex_dividend_date), 'MMMM d, yyyy') : 'N/A'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="overflow-x-auto mt-2">
+                <div className="bg-gray-800/30 p-2 rounded-lg mb-4 flex items-center text-sm text-gray-300">
+                  <Info className="w-4 h-4 mr-2 text-blue-400" />
+                  Earnings and Revenue Estimates
+                </div>
+                <Table className="w-full border border-gray-700 bg-gray-900/80 rounded-lg shadow-lg">
+                  <TableHeader>
+                    <TableRow className="bg-gray-800/60 text-gray-400">
+                      <TableHead className="p-3 text-left">Metric</TableHead>
+                      <TableHead className="p-3 text-center">Average</TableHead>
+                      <TableHead className="p-3 text-center">Low</TableHead>
+                      <TableHead className="p-3 text-center">High</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {/* Earnings (EPS) Row */}
+                    <TableRow className="hover:bg-gray-800/60 transition">
+                      <TableCell className="p-3 flex items-center gap-2 text-gray-300">
+                        <DollarSign className="w-4 h-4 text-yellow-400" />
+                        Earnings (EPS)
+                      </TableCell>
+                      <TableCell className="p-3 text-center font-medium text-green-400">
+                        {selectedEvent.earnings_average?.toFixed(2) || "N/A"}
+                      </TableCell>
+                      <TableCell className="p-3 text-center font-medium text-red-400">
+                        <span className="inline-flex items-center">
+                          <TrendingDown className="w-4 h-4 inline-block mr-1" />
+                          {selectedEvent.earnings_low?.toFixed(2) || "N/A"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="p-3 text-center font-medium text-blue-400">
+                        <span className="inline-flex items-center">
+                          <TrendingUp className="w-4 h-4 inline-block mr-1" />
+                          {selectedEvent.earnings_high?.toFixed(2) || "N/A"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
 
-          {/* Revenue Row */}
-          <TableRow className="hover:bg-gray-800 transition">
-            <TableCell className="p-3 flex items-center gap-2 text-gray-300">
-              <DollarSign className="w-4 h-4 text-green-400" />
-              Revenue
-            </TableCell>
-            <TableCell className="p-3 text-center font-medium text-green-400">
-              {selectedEvent.revenue_average
-                ? new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                  }).format(selectedEvent.revenue_average)
-                : "N/A"}
-            </TableCell>
-            <TableCell className="p-3 text-center font-medium text-red-400">
-              <TrendingDown className="w-4 h-4 inline-block mr-1" />
-              {selectedEvent.revenue_low
-                ? new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                  }).format(selectedEvent.revenue_low)
-                : "N/A"}
-            </TableCell>
-            <TableCell className="p-3 text-center font-medium text-blue-400">
-              <TrendingUp className="w-4 h-4 inline-block mr-1" />
-              {selectedEvent.revenue_high
-                ? new Intl.NumberFormat("en-US", {
-                    style: "currency",
-                    currency: "USD",
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                  }).format(selectedEvent.revenue_high)
-                : "N/A"}
-            </TableCell>
-          </TableRow>
-        </TableBody>
-      </Table>
-    </div>
+                    {/* Revenue Row */}
+                    <TableRow className="hover:bg-gray-800/60 transition">
+                      <TableCell className="p-3 flex items-center gap-2 text-gray-300">
+                        <DollarSign className="w-4 h-4 text-green-400" />
+                        Revenue
+                      </TableCell>
+                      <TableCell className="p-3 text-center font-medium text-green-400">
+                        {selectedEvent.revenue_average
+                          ? new Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: "USD",
+                              notation: "compact",
+                              maximumFractionDigits: 1,
+                            }).format(selectedEvent.revenue_average)
+                          : "N/A"}
+                      </TableCell>
+                      <TableCell className="p-3 text-center font-medium text-red-400">
+                        <span className="inline-flex items-center">
+                          <TrendingDown className="w-4 h-4 inline-block mr-1" />
+                          {selectedEvent.revenue_low
+                            ? new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                                notation: "compact",
+                                maximumFractionDigits: 1,
+                              }).format(selectedEvent.revenue_low)
+                            : "N/A"}
+                        </span>
+                      </TableCell>
+                      <TableCell className="p-3 text-center font-medium text-blue-400">
+                        <span className="inline-flex items-center">
+                          <TrendingUp className="w-4 h-4 inline-block mr-1" />
+                          {selectedEvent.revenue_high
+                            ? new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                                notation: "compact",
+                                maximumFractionDigits: 1,
+                              }).format(selectedEvent.revenue_high)
+                            : "N/A"}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
             </>
           )}
         </DialogContent>

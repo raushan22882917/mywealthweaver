@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import Footer from "@/components/Footer";
 import { LineChart, TrendingUp, BookOpen, DollarSign, Target, Search, BarChart, PieChart, Star, Users, CheckCircle, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import TradingAnimation from "@/components/TradingAnimation";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<string>("user1");
@@ -48,62 +49,116 @@ const Index = () => {
       <Navbar />
       
       <main>
-        {/* Hero Section */}
-        <div className="relative h-[650px] overflow-hidden"> {/* Increased height */}
-          {/* Background Video with Overlay */}
-          <video 
-            autoPlay 
-            loop 
-            muted 
-            playsInline 
-            className="absolute top-0 left-0 w-full h-full object-cover"
-          >
-            <source src="/video1.mp4" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+        {/* Hero Section with 3D Animation */}
+        <div className="relative min-h-[700px] overflow-hidden">
+          {/* 3D Trading Animation Background */}
+          <div className="absolute inset-0 z-0">
+            <TradingAnimation />
+          </div>
 
           {/* Gradient Overlay */}
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-gray-900/90 via-gray-900/70 to-gray-900/90"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 via-gray-900/80 to-gray-900/95 z-10"></div>
 
-          {/* Content */}
-          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 max-w-6xl mx-auto pt-16"> {/* Added padding top */}
-            <div className="animate-fade-in space-y-8"> {/* Added vertical spacing */}
-              <div className="flex items-center justify-center mb-8"> {/* Increased bottom margin */}
-                <TrendingUp className="h-16 w-16 text-green-400 mr-6" /> {/* Increased icon size and margin */}
-                <h1 className="text-6xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 leading-tight"> {/* Increased font size and line height */}
-                  IntelligentInvestor+
-                </h1>
+          {/* Split Content */}
+          <div className="relative z-20 container mx-auto px-4 h-full flex flex-col md:flex-row items-center justify-between pt-24 md:pt-32">
+            {/* Left Content */}
+            <div className="w-full md:w-1/2 space-y-8 text-left md:pr-10 mb-12 md:mb-0">
+              <div className="inline-flex items-center px-4 py-2 bg-blue-500/10 backdrop-blur-sm rounded-full border border-blue-500/20 text-blue-300 text-sm">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+                Next-gen investment intelligence
               </div>
-
-              <p className="text-2xl md:text-3xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed"> {/* Increased font size, margin, and max width */}
+              
+              <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
+                <span className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                  IntelligentInvestor+
+                </span>
+                <br />
+                <span className="text-white">
+                  Shape Your Financial Future
+                </span>
+              </h1>
+              
+              <p className="text-xl text-gray-300 leading-relaxed md:pr-10">
                 Harness the power of AI-driven analytics and real-time market data to make 
-                informed investment decisions that shape your financial future.
+                informed investment decisions that transform your portfolio performance.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center"> {/* Increased gap */}
+              <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
                   size="lg"
-                  className="bg-green-500 hover:bg-green-600 text-white px-10 py-7 rounded-xl text-xl font-semibold transition-all transform hover:scale-105 flex items-center gap-3 border-2 border-green-400 shadow-lg shadow-green-500/20"
-                > {/* Increased padding and font size */}
-                  <Search className="h-6 w-6" /> {/* Increased icon size */}
+                  className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white px-8 py-6 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 border-none shadow-lg shadow-blue-500/20"
+                >
+                  <Search className="h-5 w-5 mr-2" />
                   Start Investing
                 </Button>
                 <Link to="/education">
                   <Button 
                     variant="outline"
                     size="lg"
-                    className="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400/10 px-10 py-7 rounded-xl text-xl font-semibold transition-all transform hover:scale-105 flex items-center gap-3 shadow-lg shadow-blue-500/20"
-                  > {/* Increased padding and font size */}
-                    <BookOpen className="h-6 w-6" /> {/* Increased icon size */}
+                    className="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400/10 px-8 py-6 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 shadow-lg"
+                  >
+                    <BookOpen className="h-5 w-5 mr-2" />
                     Learn More
                   </Button>
                 </Link>
               </div>
             </div>
+            
+            {/* Right Content - Trading/Chart Visual */}
+            <div className="w-full md:w-1/2 relative">
+              <div className="relative backdrop-blur-md bg-black/30 p-6 border border-gray-700/50 rounded-2xl shadow-2xl transform rotate-1 hover:rotate-0 transition-all duration-300">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl pointer-events-none"></div>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center">
+                    <div className="w-10 h-10 bg-white rounded-lg mr-3 flex items-center justify-center">
+                      <img src="/logo.png" alt="Stock" className="w-8 h-8 object-contain" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-white">AAPL</h3>
+                      <p className="text-xs text-gray-400">Apple Inc.</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-green-400 font-bold">$193.89</p>
+                    <p className="text-xs text-green-400">+2.35 (1.21%)</p>
+                  </div>
+                </div>
+                
+                <div className="h-48 w-full bg-gray-800/50 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+                    alt="Stock Chart" 
+                    className="w-full h-full object-cover opacity-70"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="bg-gray-800/70 p-3 rounded-lg">
+                    <p className="text-gray-400">Market Cap</p>
+                    <p className="font-semibold text-white">$3.05T</p>
+                  </div>
+                  <div className="bg-gray-800/70 p-3 rounded-lg">
+                    <p className="text-gray-400">P/E Ratio</p>
+                    <p className="font-semibold text-white">32.41</p>
+                  </div>
+                  <div className="bg-gray-800/70 p-3 rounded-lg">
+                    <p className="text-gray-400">Dividend Yield</p>
+                    <p className="font-semibold text-white">0.51%</p>
+                  </div>
+                  <div className="bg-gray-800/70 p-3 rounded-lg">
+                    <p className="text-gray-400">52W Range</p>
+                    <p className="font-semibold text-white">$124.17 - $199.62</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="absolute -top-4 -right-4 bg-gradient-to-br from-purple-600 to-blue-600 p-4 rounded-2xl shadow-lg transform -rotate-3 hover:rotate-0 transition-all duration-300">
+                <p className="text-white font-bold">AI Recommendation</p>
+                <p className="text-xs text-blue-100">Strong Buy</p>
+              </div>
+            </div>
           </div>
         </div>
-
-       
 
         {/* Features Section */}
         <div className="py-20 bg-gradient-to-b from-gray-800 to-gray-900">
@@ -168,82 +223,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Testimonials Section */}
-        {/* <div className="py-20 bg-gradient-to-b from-gray-900 to-black">
-          <div className="container mx-auto px-6">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-extrabold text-white mb-4">What Our Users Say</h2>
-              <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-                Join thousands of investors who have transformed their financial future with IntelligentInvestor+
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-              {testimonials.map((testimonial) => (
-                <button
-                  key={testimonial.id}
-                  onClick={() => setActiveTab(testimonial.id)}
-                  className={`flex flex-col items-center p-2 rounded-lg transition-all ${
-                    activeTab === testimonial.id 
-                    ? "bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/30" 
-                    : "opacity-60 hover:opacity-80"
-                  }`}
-                >
-                  <img 
-                    src={testimonial.image} 
-                    alt={testimonial.name} 
-                    className={`w-16 h-16 rounded-full mb-2 object-cover border-2 ${
-                      activeTab === testimonial.id ? "border-blue-400" : "border-gray-600"
-                    }`}
-                  />
-                  <h4 className="text-lg font-medium text-white">{testimonial.name}</h4>
-                </button>
-              ))}
-            </div>
-
-            <div className="bg-gradient-to-r from-gray-800 to-gray-900 border border-white/10 rounded-2xl p-8 shadow-2xl">
-              {testimonials.map((testimonial) => (
-                <div 
-                  key={testimonial.id} 
-                  className={`transition-opacity duration-300 ${activeTab === testimonial.id ? "block" : "hidden"}`}
-                >
-                  <div className="flex items-center mb-6">
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial.name} 
-                      className="w-20 h-20 rounded-full object-cover border-2 border-blue-500 mr-4"
-                    />
-                    <div>
-                      <h3 className="text-2xl font-semibold text-white">{testimonial.name}</h3>
-                      <p className="text-blue-400">{testimonial.role}</p>
-                    </div>
-                    <div className="ml-auto flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="text-xl text-gray-300 italic leading-relaxed">"{testimonial.content}"</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div> */}
-
-        {/* Trust Badge Section */}
-        {/* <div className="py-16 bg-gradient-to-b from-black to-gray-900">
-          <div className="container mx-auto px-6">
-            <h2 className="text-2xl font-semibold text-center text-gray-400 mb-10">Trusted by Leading Companies</h2>
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Microsoft_logo.svg/512px-Microsoft_logo.svg.png" alt="Microsoft" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Google_2015_logo.svg/2560px-Google_2015_logo.svg.png" alt="Google" className="h-10 opacity-70 hover:opacity-100 transition-opacity" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Apple_logo_black.svg/488px-Apple_logo_black.svg.png" alt="Apple" className="h-12 opacity-70 hover:opacity-100 transition-opacity" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Amazon_logo.svg/2560px-Amazon_logo.svg.png" alt="Amazon" className="h-10 opacity-70 hover:opacity-100 transition-opacity" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/IBM_logo.svg/2560px-IBM_logo.svg.png" alt="IBM" className="h-10 opacity-70 hover:opacity-100 transition-opacity" />
-            </div>
-          </div>
-        </div> */}
-
         {/* Feedback/Contact Section */}
         <div className="py-20 bg-gradient-to-b from-gray-900 to-black">
           <div className="container mx-auto px-6">
@@ -305,11 +284,9 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Footer with gradient border */}
       <Footer />
     </div>
   );
 };
 
 export default Index;
-

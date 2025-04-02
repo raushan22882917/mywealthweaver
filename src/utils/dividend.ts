@@ -13,7 +13,7 @@ export interface DividendData {
   dividendYield: number;
   payoutRatio: number;
   AnnualRate: number;
-  amount: number;
+  amount: number; // Ensure this field is required
   message: string;
   ExDividendDate: string;
   DividendDate: string;
