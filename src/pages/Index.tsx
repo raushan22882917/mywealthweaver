@@ -46,11 +46,10 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
       <Navbar />
-      <StockTicker />
       
       <main>
         {/* Hero Section */}
-        <div className="relative h-[500px] overflow-hidden">
+        <div className="relative h-[650px] overflow-hidden"> {/* Increased height */}
           {/* Background Video with Overlay */}
           <video 
             autoPlay 
@@ -67,34 +66,35 @@ const Index = () => {
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-gray-900/90 via-gray-900/70 to-gray-900/90"></div>
 
           {/* Content */}
-          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 max-w-6xl mx-auto">
-            <div className="animate-fade-in">
-              <div className="flex items-center justify-center mb-6">
-                <TrendingUp className="h-12 w-12 text-green-400 mr-4" />
-                <h1 className="text-5xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500">
+          <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 max-w-6xl mx-auto pt-16"> {/* Added padding top */}
+            <div className="animate-fade-in space-y-8"> {/* Added vertical spacing */}
+              <div className="flex items-center justify-center mb-8"> {/* Increased bottom margin */}
+                <TrendingUp className="h-16 w-16 text-green-400 mr-6" /> {/* Increased icon size and margin */}
+                <h1 className="text-6xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-blue-500 leading-tight"> {/* Increased font size and line height */}
                   IntelligentInvestor+
                 </h1>
               </div>
-              <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+
+              <p className="text-2xl md:text-3xl text-gray-300 mb-12 max-w-4xl mx-auto leading-relaxed"> {/* Increased font size, margin, and max width */}
                 Harness the power of AI-driven analytics and real-time market data to make 
                 informed investment decisions that shape your financial future.
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center"> {/* Increased gap */}
                 <Button 
                   size="lg"
-                  className="bg-green-500 hover:bg-green-600 text-white px-8 py-6 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2 border-2 border-green-400 shadow-lg shadow-green-500/20"
-                >
-                  <Search className="h-5 w-5" />
+                  className="bg-green-500 hover:bg-green-600 text-white px-10 py-7 rounded-xl text-xl font-semibold transition-all transform hover:scale-105 flex items-center gap-3 border-2 border-green-400 shadow-lg shadow-green-500/20"
+                > {/* Increased padding and font size */}
+                  <Search className="h-6 w-6" /> {/* Increased icon size */}
                   Start Investing
                 </Button>
                 <Link to="/education">
                   <Button 
                     variant="outline"
                     size="lg"
-                    className="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400/10 px-8 py-6 rounded-xl text-lg font-semibold transition-all transform hover:scale-105 flex items-center gap-2 shadow-lg shadow-blue-500/20"
-                  >
-                    <BookOpen className="h-5 w-5" />
+                    className="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400/10 px-10 py-7 rounded-xl text-xl font-semibold transition-all transform hover:scale-105 flex items-center gap-3 shadow-lg shadow-blue-500/20"
+                  > {/* Increased padding and font size */}
+                    <BookOpen className="h-6 w-6" /> {/* Increased icon size */}
                     Learn More
                   </Button>
                 </Link>
@@ -103,23 +103,7 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Stats Section */}
-        <div className="py-16 bg-gradient-to-b from-gray-900 to-gray-800">
-          <div className="container mx-auto px-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-12">
-              {stats.map((stat, index) => (
-                <div 
-                  key={index} 
-                  className="flex flex-col items-center p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 transition-all hover:border-white/20 hover:bg-white/10"
-                >
-                  <stat.icon className="h-10 w-10 mb-4 text-blue-400" />
-                  <h3 className="text-3xl font-bold text-white mb-1">{stat.value}</h3>
-                  <p className="text-gray-400">{stat.title}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+       
 
         {/* Features Section */}
         <div className="py-20 bg-gradient-to-b from-gray-800 to-gray-900">
@@ -185,7 +169,7 @@ const Index = () => {
         </div>
 
         {/* Testimonials Section */}
-        <div className="py-20 bg-gradient-to-b from-gray-900 to-black">
+        {/* <div className="py-20 bg-gradient-to-b from-gray-900 to-black">
           <div className="container mx-auto px-6">
             <div className="text-center mb-16">
               <h2 className="text-4xl font-extrabold text-white mb-4">What Our Users Say</h2>
@@ -244,10 +228,10 @@ const Index = () => {
               ))}
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Trust Badge Section */}
-        <div className="py-16 bg-gradient-to-b from-black to-gray-900">
+        {/* <div className="py-16 bg-gradient-to-b from-black to-gray-900">
           <div className="container mx-auto px-6">
             <h2 className="text-2xl font-semibold text-center text-gray-400 mb-10">Trusted by Leading Companies</h2>
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
@@ -258,7 +242,7 @@ const Index = () => {
               <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/51/IBM_logo.svg/2560px-IBM_logo.svg.png" alt="IBM" className="h-10 opacity-70 hover:opacity-100 transition-opacity" />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Feedback/Contact Section */}
         <div className="py-20 bg-gradient-to-b from-gray-900 to-black">
@@ -328,3 +312,4 @@ const Index = () => {
 };
 
 export default Index;
+

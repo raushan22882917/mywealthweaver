@@ -105,10 +105,44 @@ const Navbar = () => {
     
     if (value.trim()) {
       const searchTermLower = value.toLowerCase();
-      const filtered = stockData.filter(stock => 
-        stock.Symbol.toLowerCase().includes(searchTermLower) ||
-        stock.title.toLowerCase().includes(searchTermLower)
+      
+      // First try to find matches in symbols only
+      let filtered = stockData.filter(stock => 
+        stock.Symbol.toLowerCase().includes(searchTermLower)
       );
+
+      // If no symbol matches found, then search in titles
+      if (filtered.length === 0) {
+        filtered = stockData.filter(stock => 
+          stock.title.toLowerCase().includes(searchTermLower)
+        );
+      }
+
+      // Sort based on number of characters matched
+      filtered.sort((a, b) => {
+        const aSymbol = a.Symbol.toLowerCase();
+        const bSymbol = b.Symbol.toLowerCase();
+        const searchTerm = value.toLowerCase();
+
+        // Count occurrences of search term in symbols
+        const aCount = (aSymbol.match(new RegExp(searchTerm, 'g')) || []).length;
+        const bCount = (bSymbol.match(new RegExp(searchTerm, 'g')) || []).length;
+
+        // If counts are different, prioritize fewer occurrences
+        if (aCount !== bCount) {
+          return aCount - bCount;
+        }
+
+        // If same number of occurrences, prioritize by position
+        const aIndex = aSymbol.indexOf(searchTerm);
+        const bIndex = bSymbol.indexOf(searchTerm);
+        if (aIndex !== bIndex) {
+          return aIndex - bIndex;
+        }
+
+        return aSymbol.localeCompare(bSymbol);
+      });
+
       setFilteredStocks(filtered.slice(0, 5));
       setShowSuggestions(true);
     } else {
@@ -155,6 +189,25 @@ const Navbar = () => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
+  };
+
+  const highlightMatchedText = (text: string, searchTerm: string) => {
+    if (!searchTerm) return text;
+    
+    const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, index) => 
+          part.toLowerCase() === searchTerm.toLowerCase() ? (
+            <span key={index} className="bg-blue-500/30 text-blue-200">
+              {part}
+            </span>
+          ) : (
+            part
+          )
+        )}
+      </>
+    );
   };
 
   return (
@@ -250,37 +303,67 @@ const Navbar = () => {
           {/* Right section */}
           <div className="flex items-center space-x-4">
             {/* Search */}
-            <div className="flex items-center gap-4">
-              <div ref={searchRef} className="relative">
-                <form onSubmit={handleSearch}>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <input
-                      type="text"
-                      placeholder="Search stocks..."
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/50 w-[220px] md:w-[300px] placeholder-gray-500 text-sm"
-                    />
-                  </div>
-                </form>
-                
-                {showSuggestions && filteredStocks.length > 0 && (
-                  <div className="absolute z-50 mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
-                    {filteredStocks.map((stock) => (
-                      <div
-                        key={stock.Symbol}
-                        className="px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
-                        onClick={() => handleStockSelect(stock)}
-                      >
-                        <div className="font-medium text-white">{stock.Symbol}</div>
-                        <div className="text-sm text-gray-400 truncate">{stock.title}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+  {/* Search */}
+  <div className="flex items-center gap-4">
+    <div ref={searchRef} className="relative">
+      <form onSubmit={handleSearch}>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <input
+            type="text"
+            placeholder="Search stocks..."
+            value={searchTerm}
+            onChange={handleSearchChange}
+            className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/50 w-[220px] md:w-[300px] placeholder-gray-500 text-sm"
+          />
+        </div>
+      </form>
+      
+      {showSuggestions && filteredStocks.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
+          {filteredStocks
+            .sort((a, b) => {
+              const termLower = searchTerm.toLowerCase();
+              const aSymbolLower = a.Symbol.toLowerCase();
+              const bSymbolLower = b.Symbol.toLowerCase();
+              
+              // Priority 1: Single character matches
+              const aHasSingleChar = aSymbolLower.split('').filter(char => char === termLower).length === 1;
+              const bHasSingleChar = bSymbolLower.split('').filter(char => char === termLower).length === 1;
+              if (aHasSingleChar && !bHasSingleChar) return -1;
+              if (!aHasSingleChar && bHasSingleChar) return 1;
+
+              // Priority 2: Position of first occurrence
+              const aIndex = aSymbolLower.indexOf(termLower);
+              const bIndex = bSymbolLower.indexOf(termLower);
+              if (aIndex !== bIndex) return aIndex - bIndex;
+
+              // Priority 3: Length of symbol (shorter symbols first)
+              if (aSymbolLower.length !== bSymbolLower.length) {
+                return aSymbolLower.length - bSymbolLower.length;
+              }
+
+              // Priority 4: Alphabetical order
+              return aSymbolLower.localeCompare(bSymbolLower);
+            })
+            .map((stock) => (
+              <div
+                key={stock.Symbol}
+                className="px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
+                onClick={() => handleStockSelect(stock)}
+              >
+                <div className="font-medium text-white">
+                  {highlightMatchedText(stock.Symbol, searchTerm)}
+                </div>
+                <div className="text-sm text-gray-400 truncate">
+                  {highlightMatchedText(stock.title, searchTerm)}
+                </div>
               </div>
-            </div>
+            ))}
+        </div>
+      )}
+    </div>
+  </div>
             
             {/* Theme toggle */}
             <button
@@ -347,7 +430,6 @@ const Navbar = () => {
                       </div>
                       <div className="hidden md:block">
                         <p className="text-sm font-medium text-white">{username}</p>
-                        <p className="text-xs text-gray-400">Premium User</p>
                       </div>
                       <ChevronDown className="h-4 w-4 text-gray-400" />
                     </div>
@@ -471,3 +553,7 @@ const Navbar = () => {
 };
 
 export default Navbar;
+
+
+
+

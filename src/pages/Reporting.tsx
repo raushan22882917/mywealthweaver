@@ -264,14 +264,7 @@ const Reporting: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900 text-gray-200">
       <Navbar />
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2 text-transparent bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text">
-            Dividend Reporting Dashboard
-          </h1>
-          <p className="text-gray-400">
-            Comprehensive analysis and visualization of dividend data
-          </p>
-        </div>
+        
 
         {/* Price Status Alert with improved design */}
         <Card className="mb-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg hover:shadow-xl transition-all">
@@ -438,14 +431,7 @@ const Reporting: React.FC = () => {
           {/* Left side - Calendar (75%) with improved styling */}
           <div className="lg:w-3/4">
             <Card className="h-full bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg">
-              <CardHeader className="border-b border-gray-800">
-                <CardTitle className="text-xl text-gradient bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Dividend Calendar
-                </CardTitle>
-                <CardDescription className="text-gray-400">
-                  View upcoming dividend events with company logos
-                </CardDescription>
-              </CardHeader>
+              
               <CardContent className="p-0">
                 <DividendCalendar />
               </CardContent>

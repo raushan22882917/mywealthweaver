@@ -151,6 +151,10 @@ const Dividend: React.FC = () => {
 
   const [autoCloseTimer, setAutoCloseTimer] = useState<NodeJS.Timeout | null>(null);
 
+  // Add new state to track if card was touched/clicked
+  const [isTouched, setIsTouched] = useState(false);
+  const [isHoveringSymbol, setIsHoveringSymbol] = useState(false);
+
   const handleCardTouch = useCallback(() => {
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer);
@@ -397,14 +401,12 @@ const Dividend: React.FC = () => {
   };
 
   const handleStockHover = useCallback((stock: DividendData) => {
-    // Clear any existing timer
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer);
     }
 
     setHoveredStock(stock);
     
-    // Using MouseEvent for type safety
     const event = window.event as MouseEvent;
     
     setHoveredStockDetails({
@@ -414,14 +416,15 @@ const Dividend: React.FC = () => {
       dividendDate: stock.DividendDate
     });
 
-    // Set new timer to close the card after 2 seconds
-    const timer = setTimeout(() => {
-      setHoveredStock(null);
-      setHoveredStockDetails(null);
-    }, 2000);
-
-    setAutoCloseTimer(timer);
-  }, [autoCloseTimer]);
+    // Only set auto-close timer if not touched
+    if (!isTouched) {
+      const timer = setTimeout(() => {
+        setHoveredStock(null);
+        setHoveredStockDetails(null);
+      }, 1000);
+      setAutoCloseTimer(timer);
+    }
+  }, [autoCloseTimer, isTouched]);
 
   const handleStockLeave = () => {
     // Don't clear the hover state anymore
@@ -480,12 +483,21 @@ const Dividend: React.FC = () => {
       className="relative group stock-element w-[50px] h-[50px] mt-2"
       onMouseEnter={() => handleStockHover(stock)}
       onMouseLeave={() => {
-        // Start the close timer when mouse leaves
+        // Only start close timer if mouse leaves
         const timer = setTimeout(() => {
           setHoveredStock(null);
           setHoveredStockDetails(null);
-        }, 2000);
+          setIsTouched(false); // Reset touch state
+        }, 1000);
         setAutoCloseTimer(timer);
+      }}
+      onClick={() => {
+        setIsTouched(true);
+        handleStockHover(stock);
+      }}
+      onTouchStart={() => {
+        setIsTouched(true);
+        handleStockHover(stock);
       }}
     >
       <div
@@ -934,12 +946,15 @@ const Dividend: React.FC = () => {
             }
           }}
           onMouseLeave={() => {
-            // Start the close timer when mouse leaves
-            const timer = setTimeout(() => {
-              setHoveredStock(null);
-              setHoveredStockDetails(null);
-            }, 2000);
-            setAutoCloseTimer(timer);
+            if (!isHoveringSymbol) {
+              const timer = setTimeout(() => {
+                setHoveredStock(null);
+                setHoveredStockDetails(null);
+                setIsTouched(false);
+                setIsHoveringSymbol(false);
+              }, 1000);
+              setAutoCloseTimer(timer);
+            }
           }}
         >
           {/* Announcement Message */}
@@ -947,11 +962,11 @@ const Dividend: React.FC = () => {
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2 mb-2">
                 <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
+                <span className="font-semibold text-green-600 dark:text-blue-400">
                   Dividend Announcement
                 </span>
               </div>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
+              <p className="text-sm text-blue-800 dark:text-green-200">
                 {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}
               </p>
             </div>
@@ -1010,6 +1025,25 @@ const Dividend: React.FC = () => {
                     handleStockClick(hoveredStockDetails.stock);
                     setHoveredStockDetails(null);
                   }}
+                  onMouseEnter={() => {
+                    setIsHoveringSymbol(true);
+                    if (autoCloseTimer) {
+                      clearTimeout(autoCloseTimer);
+                    }
+                    const timer = setTimeout(() => {
+                      setIsHoveringSymbol(false);
+                    }, 300000); // 5 minutes
+                    setAutoCloseTimer(timer);
+                  }}
+                  onMouseLeave={() => {
+                    if (!isHoveringSymbol) {
+                      const timer = setTimeout(() => {
+                        setHoveredStock(null);
+                        setHoveredStockDetails(null);
+                      }, 1000);
+                      setAutoCloseTimer(timer);
+                    }
+                  }}
                 />
                 <div>
                   <div 
@@ -1017,6 +1051,25 @@ const Dividend: React.FC = () => {
                     onClick={() => {
                       handleStockClick(hoveredStockDetails.stock);
                       setHoveredStockDetails(null);
+                    }}
+                    onMouseEnter={() => {
+                      setIsHoveringSymbol(true);
+                      if (autoCloseTimer) {
+                        clearTimeout(autoCloseTimer);
+                      }
+                      const timer = setTimeout(() => {
+                        setIsHoveringSymbol(false);
+                      }, 300000); // 5 minutes
+                      setAutoCloseTimer(timer);
+                    }}
+                    onMouseLeave={() => {
+                      if (!isHoveringSymbol) {
+                        const timer = setTimeout(() => {
+                          setHoveredStock(null);
+                          setHoveredStockDetails(null);
+                        }, 1000);
+                        setAutoCloseTimer(timer);
+                      }
                     }}
                   >
                     {hoveredStockDetails.stock?.Symbol}
@@ -1028,7 +1081,11 @@ const Dividend: React.FC = () => {
               </div>
             </div>
             <button
-              onClick={handleCloseHover}
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsTouched(false);
+                handleCloseHover();
+              }}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1323,6 +1380,9 @@ const Dividend: React.FC = () => {
 };
 
 export default Dividend;
+
+
+
 
 
 
