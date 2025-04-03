@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Filter, X, Check } from "lucide-react";
+import { Filter, X, Check, Search } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
@@ -42,6 +42,10 @@ const StockFilter: React.FC<StockFilterProps> = ({
   const [filteredStocks, setFilteredStocks] = useState<StockFilterData[]>([]);
   const [stockData, setStockData] = useState<StockFilterData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Symbol search suggestions
+  const [symbolSuggestions, setSymbolSuggestions] = useState<string[]>([]);
+  const [showSymbolSuggestions, setShowSymbolSuggestions] = useState(false);
   
   // Filter criteria
   const [filters, setFilters] = useState<StockFilterCriteria>({
@@ -97,11 +101,74 @@ const StockFilter: React.FC<StockFilterProps> = ({
   }, [initialFilterableStocks]);
 
   // Extract unique sectors and exchanges for dropdowns
-  const uniqueSectors = Array.from(new Set(stockData.map(stock => stock.Sector).filter(Boolean)));
-  const uniqueExchanges = Array.from(new Set(stockData.map(stock => stock.Exchange).filter(Boolean)));
+  const uniqueSectors = Array.from(
+    new Set(stockData.map(stock => stock.Sector).filter(Boolean))
+  );
+  
+  // Get exchanges based on selected sector
+  const getFilteredExchanges = () => {
+    if (!filters.sector || filters.sector === "all-sectors") {
+      return Array.from(new Set(stockData.map(stock => stock.Exchange).filter(Boolean)));
+    }
+    
+    return Array.from(
+      new Set(
+        stockData
+          .filter(stock => stock.Sector === filters.sector)
+          .map(stock => stock.Exchange)
+          .filter(Boolean)
+      )
+    );
+  };
+  
+  const uniqueExchanges = getFilteredExchanges();
 
   const handleFilterChange = (key: keyof StockFilterCriteria, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    // If sector is changing, reset exchange
+    if (key === 'sector' && value !== filters.sector) {
+      setFilters(prev => ({ ...prev, [key]: value, exchange: undefined }));
+    } else {
+      setFilters(prev => ({ ...prev, [key]: value }));
+    }
+    
+    // If symbol is being typed, update suggestions
+    if (key === 'symbol') {
+      updateSymbolSuggestions(value);
+    }
+  };
+  
+  const updateSymbolSuggestions = (input: string) => {
+    if (!input || input.length < 1) {
+      setSymbolSuggestions([]);
+      setShowSymbolSuggestions(false);
+      return;
+    }
+    
+    const matches = stockData
+      .filter(stock => 
+        stock.Symbol.toLowerCase().includes(input.toLowerCase()) || 
+        (stock.Sector && stock.Sector.toLowerCase().includes(input.toLowerCase()))
+      )
+      .map(stock => stock.Symbol)
+      .slice(0, 7); // Limit to 7 suggestions
+    
+    setSymbolSuggestions(matches);
+    setShowSymbolSuggestions(matches.length > 0);
+  };
+  
+  const handleSymbolSelect = (symbol: string) => {
+    const selectedStock = stockData.find(stock => stock.Symbol === symbol);
+    
+    setFilters(prev => ({ 
+      ...prev, 
+      symbol,
+      // Automatically set the sector if available
+      sector: selectedStock?.Sector || prev.sector,
+      // Automatically set the exchange if available
+      exchange: selectedStock?.Exchange || prev.exchange
+    }));
+    
+    setShowSymbolSuggestions(false);
   };
 
   const applyFilters = () => {
@@ -112,12 +179,12 @@ const StockFilter: React.FC<StockFilterProps> = ({
       }
       
       // Sector filter
-      if (filters.sector && stock.Sector !== filters.sector) {
+      if (filters.sector && filters.sector !== "all-sectors" && stock.Sector !== filters.sector) {
         return false;
       }
       
       // Exchange filter
-      if (filters.exchange && stock.Exchange !== filters.exchange) {
+      if (filters.exchange && filters.exchange !== "all-exchanges" && stock.Exchange !== filters.exchange) {
         return false;
       }
       
@@ -152,6 +219,9 @@ const StockFilter: React.FC<StockFilterProps> = ({
     setFilteredStocks(newFilteredStocks);
     setShowFilteredTable(true);
     onFilterApply(filters);
+    
+    // Show a toast notification with filter results
+    toast.success(`Found ${newFilteredStocks.length} stocks matching your criteria`);
   };
 
   const clearFilters = () => {
@@ -222,14 +292,33 @@ const StockFilter: React.FC<StockFilterProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* First Column */}
             <div className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="symbol">Symbol</Label>
-                <Input
-                  id="symbol"
-                  placeholder="e.g., AAPL"
-                  value={filters.symbol || ""}
-                  onChange={(e) => handleFilterChange("symbol", e.target.value)}
-                />
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    id="symbol"
+                    placeholder="Type to search..."
+                    value={filters.symbol || ""}
+                    onChange={(e) => handleFilterChange("symbol", e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Symbol suggestions dropdown */}
+                {showSymbolSuggestions && (
+                  <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                    {symbolSuggestions.map((symbol) => (
+                      <div 
+                        key={symbol} 
+                        className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => handleSymbolSelect(symbol)}
+                      >
+                        {symbol}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -354,55 +443,56 @@ const StockFilter: React.FC<StockFilterProps> = ({
           </div>
           
           {/* Results Table */}
-          {showFilteredTable && filteredStocks.length > 0 && (
+          {showFilteredTable && (
             <div className="mt-4 border rounded-lg p-4 overflow-auto max-h-[400px]">
-              <h3 className="text-lg font-medium mb-3">Filtered Results ({filteredStocks.length} stocks)</h3>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Symbol</TableHead>
-                    <TableHead>Sector</TableHead>
-                    <TableHead>Exchange</TableHead>
-                    <TableHead>Div Yield</TableHead>
-                    <TableHead>Payout Ratio</TableHead>
-                    <TableHead>Health Score</TableHead>
-                    <TableHead>Revenue</TableHead>
-                    <TableHead>EPS</TableHead>
-                    <TableHead>Debt Level</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredStocks.map((stock) => (
-                    <TableRow key={stock.Symbol}>
-                      <TableCell className="font-medium">{stock.Symbol}</TableCell>
-                      <TableCell>{stock.Sector || "N/A"}</TableCell>
-                      <TableCell>{stock.Exchange || "N/A"}</TableCell>
-                      <TableCell>{stock["Dividend-Yield"] !== undefined ? `${stock["Dividend-Yield"].toFixed(2)}%` : "N/A"}</TableCell>
-                      <TableCell>{stock["Payout Ratio"] !== undefined ? `${stock["Payout Ratio"].toFixed(2)}%` : "N/A"}</TableCell>
-                      <TableCell>{stock["Financial-Health-Score"] !== undefined ? stock["Financial-Health-Score"].toFixed(1) : "N/A"}</TableCell>
-                      <TableCell>{stock.Revenue !== undefined ? formatValue(stock.Revenue) : "N/A"}</TableCell>
-                      <TableCell>{stock.Earnings_per_share !== undefined ? `$${stock.Earnings_per_share.toFixed(2)}` : "N/A"}</TableCell>
-                      <TableCell>
-                        {stock["Debt Levels"] !== undefined ? (
-                          <Badge
-                            variant={stock["Debt Levels"] > 7 ? "destructive" : stock["Debt Levels"] > 4 ? "default" : "secondary"}
-                          >
-                            {stock["Debt Levels"] > 7 ? "High" : stock["Debt Levels"] > 4 ? "Medium" : "Low"}
-                          </Badge>
-                        ) : (
-                          "N/A"
-                        )}
-                      </TableCell>
+              <h3 className="text-lg font-medium mb-3">
+                {filteredStocks.length > 0 
+                  ? `Filtered Results (${filteredStocks.length} stocks)` 
+                  : 'No stocks match your filter criteria.'}
+              </h3>
+              
+              {filteredStocks.length > 0 && (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Symbol</TableHead>
+                      <TableHead>Sector</TableHead>
+                      <TableHead>Exchange</TableHead>
+                      <TableHead>Div Yield</TableHead>
+                      <TableHead>Payout Ratio</TableHead>
+                      <TableHead>Health Score</TableHead>
+                      <TableHead>Revenue</TableHead>
+                      <TableHead>EPS</TableHead>
+                      <TableHead>Debt Level</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-          
-          {showFilteredTable && filteredStocks.length === 0 && (
-            <div className="mt-4 border rounded-lg p-6 text-center">
-              <p className="text-gray-500 dark:text-gray-400">No stocks match your filter criteria.</p>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredStocks.map((stock) => (
+                      <TableRow key={stock.Symbol}>
+                        <TableCell className="font-medium">{stock.Symbol}</TableCell>
+                        <TableCell>{stock.Sector || "N/A"}</TableCell>
+                        <TableCell>{stock.Exchange || "N/A"}</TableCell>
+                        <TableCell>{stock["Dividend-Yield"] !== undefined ? `${stock["Dividend-Yield"].toFixed(2)}%` : "N/A"}</TableCell>
+                        <TableCell>{stock["Payout Ratio"] !== undefined ? `${stock["Payout Ratio"].toFixed(2)}%` : "N/A"}</TableCell>
+                        <TableCell>{stock["Financial-Health-Score"] !== undefined ? stock["Financial-Health-Score"].toFixed(1) : "N/A"}</TableCell>
+                        <TableCell>{stock.Revenue !== undefined ? formatValue(stock.Revenue) : "N/A"}</TableCell>
+                        <TableCell>{stock.Earnings_per_share !== undefined ? `$${stock.Earnings_per_share.toFixed(2)}` : "N/A"}</TableCell>
+                        <TableCell>
+                          {stock["Debt Levels"] !== undefined ? (
+                            <Badge
+                              variant={stock["Debt Levels"] > 7 ? "destructive" : stock["Debt Levels"] > 4 ? "default" : "secondary"}
+                            >
+                              {stock["Debt Levels"] > 7 ? "High" : stock["Debt Levels"] > 4 ? "Medium" : "Low"}
+                            </Badge>
+                          ) : (
+                            "N/A"
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           )}
         </DialogContent>
@@ -412,3 +502,4 @@ const StockFilter: React.FC<StockFilterProps> = ({
 };
 
 export default StockFilter;
+export type { StockFilterData, StockFilterCriteria };
