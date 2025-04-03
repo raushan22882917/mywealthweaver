@@ -1,3 +1,4 @@
+
 export interface DividendHistoryData {
   date: string;
   dividends: number;

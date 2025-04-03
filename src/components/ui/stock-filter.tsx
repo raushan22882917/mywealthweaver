@@ -502,4 +502,3 @@ const StockFilter: React.FC<StockFilterProps> = ({
 };
 
 export default StockFilter;
-export type { StockFilterData, StockFilterCriteria };
