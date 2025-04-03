@@ -11,6 +11,7 @@ import Papa from "papaparse";
 import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { HoverCard, HoverCardTrigger, HoverCardContent } from "@/components/ui/hover-card";
 
 interface Stock {
   cik_str: string;
@@ -18,43 +19,45 @@ interface Stock {
   title: string;
 }
 
+interface Holiday {
+  date: string;
+  name: string;
+  type: string;
+}
+
+interface StockFilterData {
+  id: number;
+  symbol: string;
+  sector: string;
+  exchange: string;
+  dividend_yield: number;
+  payout_ratio: number;
+  financial_health_score: number;
+  debt_levels: number;
+  revenue: number;
+  earnings_per_share: number;
+  five_year_dividend_yield: number;
+  status?: string;
+}
+
 interface DividendData {
   Symbol: string;
   title: string;
-  dividendRate: string;
-  previousClose: string;
-  currentPrice: string;
-  dividendYield: string;
-  payoutRatio: string;
-  AnnualRate: string;
+  amount: number;
+  dividendRate: number;
+  previousClose: number;
+  currentPrice: number;
+  dividendYield: number;
+  payoutRatio: number;
+  AnnualRate: number;
   message: string;
   ExDividendDate: string;
-  buy_date: string;
   DividendDate: string;
   EarningsDate: string;
   payoutdate: string;
-  hist: string;
-  insight: string;
-  LogoURL: string;
-  industry: string;
-  employees: string;
-  founded: string;
-  address: string;
-  ceo: string;
-  website: string;
-  description: string;
-  marketCap: string;
-  peRatio: string;
-  weekRange: string;
-  volume: string;
-  yieldRange: string;
-  status?: string;
-  payout_ratio?: string;
-  fcf_coverage?: string;
-  debt_to_equity?: string;
-  company_name?: string;
-  domain?: string;
-  amount: string;
+  insight?: string;
+  LogoURL?: string;
+  status?: string;  // Add status field
 }
 
 interface HoveredStockDetails {
@@ -147,6 +150,8 @@ const Dividend: React.FC = () => {
   const [isTouched, setIsTouched] = useState(false);
   const [isHoveringSymbol, setIsHoveringSymbol] = useState(false);
 
+  const [showInsight, setShowInsight] = useState(false);
+
   const handleCardTouch = useCallback(() => {
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer);
@@ -154,7 +159,7 @@ const Dividend: React.FC = () => {
     
     const timer = setTimeout(() => {
       setHoveredStockDetails(null);
-    }, 1000);
+    }, 7000);
     
     setAutoCloseTimer(timer);
   }, [autoCloseTimer]);
@@ -206,6 +211,7 @@ const Dividend: React.FC = () => {
           const newData: DividendData = {
             Symbol: stock.symbol,
             title: stock.shortname,
+            amount: stock.amount,
             dividendRate: stock.dividendrate?.toString() || '0',
             previousClose: stock.previousclose?.toString() || '0',
             currentPrice: stock.currentprice?.toString() || '0',
@@ -353,7 +359,7 @@ const Dividend: React.FC = () => {
     handleCloseExpanded();
   };
 
-  const isCurrentWeek = (date: Date) => {
+  const isCurrentWeek = (date: Date): boolean => {
     const today = new Date();
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - today.getDay());
@@ -451,24 +457,108 @@ const Dividend: React.FC = () => {
 
   const [filterCriteria, setFilterCriteria] = useState<StockFilterCriteria>({});
   const [stockFilterData, setStockFilterData] = useState<StockFilterData[]>([]);
+  const [filteredStocks, setFilteredStocks] = useState<StockFilterData[]>([]);
+  const [showResultsPopup, setShowResultsPopup] = useState(false);
+
+  const fetchFilterData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('stock_financial_details')
+        .select('*');
+
+      if (error) throw error;
+
+      const transformedData = data.map(stock => ({
+        id: stock.id,
+        symbol: stock.symbol,
+        sector: stock.sector || 'N/A',
+        exchange: stock.exchange || 'N/A',
+        dividend_yield: stock.dividend_yield || 0,
+        payout_ratio: stock.payout_ratio || 0,
+        financial_health_score: stock.financial_health_score || 0,
+        debt_levels: stock.debt_levels || 0,
+        revenue: stock.revenue || 0,
+        earnings_per_share: stock.earnings_per_share || 0,
+        five_year_dividend_yield: stock.five_year_dividend_yield || stock.dividend_yield || 0,
+        status: stock.status || 'N/A'
+      }));
+
+      setStockFilterData(transformedData);
+    } catch (error) {
+      console.error('Error fetching filter data:', error);
+    }
+  };
 
   useEffect(() => {
-    if (!dividendData.length) return;
-    
-    const transformedData = dividendData.map(stock => ({
-      symbol: stock.Symbol,
-      sector: "Technology",
-      exchange: "NASDAQ",
-      dividendYield: parseFloat(stock.dividendYield) || 0,
-      payoutRatio: parseFloat(stock.payoutRatio) || 0,
-      financialHealthScore: Math.floor(Math.random() * 10) + 1,
-      debtLevels: Math.floor(Math.random() * 10) + 1,
-      revenue: Math.random() * 50000000000,
-      earningsPerShare: Math.random() * 10,
-    }));
-    
-    setStockFilterData(transformedData);
-  }, [dividendData]);
+    fetchFilterData();
+  }, []);
+
+  const handleFilterApply = async (filterCriteria: StockFilterCriteria) => {
+    try {
+      let query = supabase
+        .from('stock_financial_details')
+        .select('*');
+
+      // Apply filters
+      if (filterCriteria.symbol && filterCriteria.symbol !== '_all') {
+        query = query.ilike('symbol', `%${filterCriteria.symbol}%`);
+      }
+
+      if (filterCriteria.sector && filterCriteria.sector !== '_all') {
+        query = query.eq('sector', filterCriteria.sector);
+      }
+
+      if (filterCriteria.exchange && filterCriteria.exchange !== '_all') {
+        query = query.eq('exchange', filterCriteria.exchange);
+      }
+
+      if (filterCriteria.minDividendYield !== undefined) {
+        query = query.gte('dividend_yield', filterCriteria.minDividendYield);
+      }
+      if (filterCriteria.maxDividendYield !== undefined) {
+        query = query.lte('dividend_yield', filterCriteria.maxDividendYield);
+      }
+
+      if (filterCriteria.minPayoutRatio !== undefined) {
+        query = query.gte('payout_ratio', filterCriteria.minPayoutRatio);
+      }
+      if (filterCriteria.maxPayoutRatio !== undefined) {
+        query = query.lte('payout_ratio', filterCriteria.maxPayoutRatio);
+      }
+
+      if (filterCriteria.minHealthScore !== undefined) {
+        query = query.gte('financial_health_score', filterCriteria.minHealthScore);
+      }
+
+      if (filterCriteria.hasDebtConcerns) {
+        query = query.gte('debt_levels', 3);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const filteredData = data.map(stock => ({
+        id: stock.id,
+        symbol: stock.symbol,
+        sector: stock.sector || 'N/A',
+        exchange: stock.exchange || 'N/A',
+        dividend_yield: stock.dividend_yield || 0,
+        payout_ratio: stock.payout_ratio || 0,
+        financial_health_score: stock.financial_health_score || 0,
+        debt_levels: stock.debt_levels || 0,
+        revenue: stock.revenue || 0,
+        earnings_per_share: stock.earnings_per_share || 0,
+        five_year_dividend_yield: stock.five_year_dividend_yield || stock.dividend_yield || 0,
+        status: stock.status || 'N/A'
+      }));
+
+      setFilteredStocks(filteredData);
+      setShowResultsPopup(true);
+    } catch (error) {
+      console.error('Error applying filters:', error);
+    }
+  };
 
   const filteredDividendData = dividendData
     .filter(stock => {
@@ -489,24 +579,24 @@ const Dividend: React.FC = () => {
         return false;
       }
       
-      if (stockData.dividendYield !== undefined && 
-          (stockData.dividendYield < (filterCriteria.minDividendYield || 0) || 
-           stockData.dividendYield > (filterCriteria.maxDividendYield || 100))) {
+      if (stockData.dividend_yield !== undefined && 
+          (stockData.dividend_yield < (filterCriteria.minDividendYield || 0) || 
+           stockData.dividend_yield > (filterCriteria.maxDividendYield || 100))) {
         return false;
       }
       
-      if (stockData.payoutRatio !== undefined && 
-          (stockData.payoutRatio < (filterCriteria.minPayoutRatio || 0) || 
-           stockData.payoutRatio > (filterCriteria.maxPayoutRatio || 100))) {
+      if (stockData.payout_ratio !== undefined && 
+          (stockData.payout_ratio < (filterCriteria.minPayoutRatio || 0) || 
+           stockData.payout_ratio > (filterCriteria.maxPayoutRatio || 100))) {
         return false;
       }
       
-      if (stockData.financialHealthScore !== undefined && 
-          stockData.financialHealthScore < (filterCriteria.minHealthScore || 0)) {
+      if (stockData.financial_health_score !== undefined && 
+          stockData.financial_health_score < (filterCriteria.minHealthScore || 0)) {
         return false;
       }
       
-      if (filterCriteria.hasDebtConcerns && stockData.debtLevels !== undefined && stockData.debtLevels < 3) {
+      if (filterCriteria.hasDebtConcerns && stockData.debt_levels !== undefined && stockData.debt_levels < 3) {
         return false;
       }
       
@@ -524,74 +614,82 @@ const Dividend: React.FC = () => {
       return symbolA.localeCompare(symbolB);
     });
 
-  const handleFilterApply = (filters: StockFilterCriteria) => {
-    setFilterCriteria(filters);
-  };
+  const convertToDividendData = (stock: StockFilterData): DividendData => ({
+    Symbol: stock.symbol,
+    title: stock.symbol,
+    amount: stock.dividend_yield,
+    dividendRate: stock.dividend_yield,
+    previousClose: 0,
+    currentPrice: 0,
+    dividendYield: stock.dividend_yield,
+    payoutRatio: stock.payout_ratio,
+    AnnualRate: stock.dividend_yield * 4, // Assuming quarterly dividends
+    message: '',
+    ExDividendDate: new Date().toISOString(),
+    DividendDate: new Date().toISOString(),
+    EarningsDate: new Date().toISOString(),
+    payoutdate: new Date().toISOString(),
+    insight: `Financial Health Score: ${stock.financial_health_score}, Debt Levels: ${stock.debt_levels}`,
+    LogoURL: undefined,
+    status: stock.status
+  });
 
   const renderStockCard = (stock: DividendData, borderColorClass: string) => (
     <div 
       className="relative group stock-element w-[50px] h-[50px] mt-2"
-      onMouseEnter={() => handleStockHover(stock)}
-      onMouseLeave={() => {
-        const timer = setTimeout(() => {
-          setHoveredStock(null);
-          setHoveredStockDetails(null);
-          setIsTouched(false);
-        }, 1000);
-        setAutoCloseTimer(timer);
+      onClick={(e) => {
+        e.stopPropagation();
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setHoveredStockDetails({
+          stock,
+          position: { 
+            x: rect.left + rect.width / 2,
+            y: rect.top 
+          },
+          exDividendDate: stock.ExDividendDate,
+          dividendDate: stock.DividendDate
+        });
+        setShowInsight(true);
       }}
-      onClick={() => {
-        setIsTouched(true);
-        handleStockHover(stock);
-      }}
-      onTouchStart={() => {
-        setIsTouched(true);
-        handleStockHover(stock);
+      onTouchStart={(e) => {
+        e.stopPropagation();
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setHoveredStockDetails({
+          stock,
+          position: { 
+            x: rect.left + rect.width / 2,
+            y: rect.top 
+          },
+          exDividendDate: stock.ExDividendDate,
+          dividendDate: stock.DividendDate
+        });
+        setShowInsight(true);
       }}
     >
       <div
-        className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
+        className={`w-full h-full flex flex-col items-center justify-center rounded-lg border-2 ${borderColorClass} bg-white dark:bg-gray-800 transition-transform transform hover:scale-110 overflow-hidden`}
       >
-        <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
+        <div className="w-full h-[35px] flex items-center justify-center">
           <img
             src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
             alt={stock.Symbol}
-            className="object-contain"
+            className="h-full w-full object-contain p-1"
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'stock.avif';
             }}
           />
         </div>
-  
-        <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-          <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
-            {stock.Symbol.length > 8 
-              ? `${stock.Symbol.slice(0, 8)}..`
-              : stock.Symbol
-            }
+        <div className="w-full h-[15px] bg-gray-50 dark:bg-gray-700 flex items-center justify-center">
+          <span className="text-[10px] font-bold text-gray-900 dark:text-gray-100 leading-none truncate px-1">
+            {stock.Symbol}
           </span>
         </div>
       </div>
-      
-      {(stock.status === 'This stock may have a risky dividend.' || 
-        stock.status === 'This stock does not pay a dividend.') && (
-        <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            viewBox="0 0 24 24" 
-            fill="currentColor" 
-            className="w-4 h-4"
-          >
-            <path 
-              fillRule="evenodd" 
-              d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z"
-            />
-          </svg>
-        </div>
-      )}
     </div>
   );
+
+  const [showFilterPopup, setShowFilterPopup] = useState(false);
 
   const isDateInCurrentWeek = (date: Date): boolean => {
     if (viewMode !== 'weekly') return true;
@@ -717,7 +815,7 @@ const Dividend: React.FC = () => {
               onClick={() => togglePopup(dateString)}
             >
               <div 
-                className="relative bg-white/90 dark:bg-gray-900/90 p-6 rounded-xl shadow-xl border border-gray-300 dark:border-gray-700 overflow-hidden" 
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 border border-gray-200 dark:border-gray-700 overflow-hidden" 
                 onClick={(e) => e.stopPropagation()}
               >
                 <div 
@@ -730,7 +828,7 @@ const Dividend: React.FC = () => {
                 <div className="relative z-10">
                   <div className="flex items-center justify-center mb-4 text-gray-900 dark:text-gray-100">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2 2V9a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     <h3 className="text-xl font-bold">{dateString}</h3>
                   </div>
@@ -901,12 +999,13 @@ const Dividend: React.FC = () => {
                 </h1>
                 
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full md:w-auto">
-                  <div className="mb-3">
-                    <StockFilter 
-                      onFilterApply={handleFilterApply}
-                      filterableStocks={stockFilterData}
-                    />
-                  </div>
+                  <Button
+                    onClick={() => setShowFilterPopup(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <CalendarIcon className="h-4 w-4" />
+                    Filter Stocks
+                  </Button>
                   
                   {renderFilters()}
                   
@@ -979,23 +1078,36 @@ const Dividend: React.FC = () => {
             top: Math.max(hoveredStockDetails.position.y - 350, 10),
             transform: 'translateX(-50%)',
           }}
-          onMouseEnter={() => {
-            if (autoCloseTimer) {
-              clearTimeout(autoCloseTimer);
-            }
-          }}
-          onMouseLeave={() => {
-            if (!isHoveringSymbol) {
-              const timer = setTimeout(() => {
-                setHoveredStock(null);
-                setHoveredStockDetails(null);
-                setIsTouched(false);
-                setIsHoveringSymbol(false);
-              }, 1000);
-              setAutoCloseTimer(timer);
-            }
-          }}
         >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setHoveredStockDetails(null);
+              setShowInsight(false);
+              setIsTouched(false);
+            }}
+            className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          >
+            <X className="h-4 w-4" />
+          </button>
+
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 rounded-lg border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+              <img
+                src={companyLogos.get(hoveredStockDetails.stock?.Symbol) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'}
+                alt={hoveredStockDetails.stock?.Symbol}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = 'stock.avif';
+                }}
+              />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">{hoveredStockDetails.stock?.Symbol}</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">{hoveredStockDetails.stock?.title}</p>
+            </div>
+          </div>
+
           {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2 mb-2">
@@ -1010,11 +1122,7 @@ const Dividend: React.FC = () => {
             </div>
           )}
 
-          <div 
-            className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700"
-          />
-          
-          {hoveredStockDetails.stock?.insight && (
+          {showInsight && hoveredStockDetails.stock?.insight && (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-b-lg border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2">
                 <FaInfoCircle className="text-blue-800 dark:text-blue-100 text-lg" />
@@ -1023,84 +1131,7 @@ const Dividend: React.FC = () => {
               <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{hoveredStockDetails.stock?.insight}</p>
             </div>
           )}
-          <div className="flex justify-between items-end mb-2 w-[200px]">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <div 
-                  className="w-8 h-8 bg-center bg-no-repeat bg-contain aspect-square border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'})` }}
-                  onClick={() => {
-                    handleStockClick(hoveredStockDetails.stock);
-                    setHoveredStockDetails(null);
-                  }}
-                  onMouseEnter={() => {
-                    setIsHoveringSymbol(true);
-                    if (autoCloseTimer) {
-                      clearTimeout(autoCloseTimer);
-                    }
-                    const timer = setTimeout(() => {
-                      setIsHoveringSymbol(false);
-                    }, 300000);
-                    setAutoCloseTimer(timer);
-                  }}
-                  onMouseLeave={() => {
-                    if (!isHoveringSymbol) {
-                      const timer = setTimeout(() => {
-                        setHoveredStock(null);
-                        setHoveredStockDetails(null);
-                      }, 1000);
-                      setAutoCloseTimer(timer);
-                    }
-                  }}
-                />
-                <div>
-                  <div 
-                    className="font-semibold cursor-pointer hover:text-blue-500 transition-colors"
-                    onClick={() => {
-                      handleStockClick(hoveredStockDetails.stock);
-                      setHoveredStockDetails(null);
-                    }}
-                    onMouseEnter={() => {
-                      setIsHoveringSymbol(true);
-                      if (autoCloseTimer) {
-                        clearTimeout(autoCloseTimer);
-                      }
-                      const timer = setTimeout(() => {
-                        setIsHoveringSymbol(false);
-                      }, 300000);
-                      setAutoCloseTimer(timer);
-                    }}
-                    onMouseLeave={() => {
-                      if (!isHoveringSymbol) {
-                        const timer = setTimeout(() => {
-                          setHoveredStock(null);
-                          setHoveredStockDetails(null);
-                        }, 1000);
-                        setAutoCloseTimer(timer);
-                      }
-                    }}
-                  >
-                    {hoveredStockDetails.stock?.Symbol}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {hoveredStockDetails.stock?.title}
-                  </div>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsTouched(false);
-                handleCloseHover();
-              }}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+
           <div className="space-y-2 text-sm">
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-300">Ex-Dividend Date:</span>
@@ -1128,16 +1159,47 @@ const Dividend: React.FC = () => {
                 {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
                   ? 'N/A'
                   : (Number(hoveredStockDetails.stock?.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2)
-                }
+                }%
               </span>
             </div>
           </div>
+
           <button
             onClick={(e) => handleSeeMoreClick(e, hoveredStockDetails.stock)}
-            className="w-full mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-center py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+            className="w-full mt-4 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-center py-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
           >
             See More Details
           </button>
+        </div>
+      )}
+
+      {/* Filter Popup */}
+      {showFilterPopup && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 flex items-center justify-center"
+          onClick={() => setShowFilterPopup(false)}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700 w-[800px] max-h-[80vh] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white dark:bg-gray-800 pb-4 mb-4 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-semibold">Filter Stocks</h3>
+                <button 
+                  onClick={() => setShowFilterPopup(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <StockFilter 
+              onFilterApply={handleFilterApply}
+              stocks={stockFilterData}
+            />
+          </div>
         </div>
       )}
 
@@ -1196,7 +1258,7 @@ const Dividend: React.FC = () => {
                   handleCloseExpanded();
                   setHoveredStockDetails(null);
                 }}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1350,6 +1412,67 @@ const Dividend: React.FC = () => {
                     onMouseLeave={() => setHoveredStock(null)}
                   >
                     {renderStockCard(stock, getStatusBorderColor(stock.status))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+      {showResultsPopup && (
+        <div 
+          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 flex items-center justify-center"
+          onClick={() => {
+            setShowResultsPopup(false);
+          }}
+        >
+          <div 
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700 w-[600px] max-h-[500px] overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white dark:bg-gray-800">
+              <div className="flex justify-between items-center mb-6 pb-3 border-b border-gray-200 dark:border-gray-700">
+                <div>
+                  <h3 className="font-semibold text-xl text-gray-900 dark:text-gray-100">
+                    Filtered Stocks
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {filteredStocks.length} stocks found
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setShowResultsPopup(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-6 gap-4">
+              {filteredStocks.map((stock, index) => (
+                <div key={index} className="flex justify-center">
+                  <div 
+                    className="cursor-pointer transition-transform hover:scale-105"
+                    onClick={(e) => {
+                      const dividendData = convertToDividendData(stock);
+                      setHoveredStockDetails({
+                        stock: dividendData,
+                        position: { 
+                          x: e.currentTarget.getBoundingClientRect().left + e.currentTarget.getBoundingClientRect().width / 2,
+                          y: e.currentTarget.getBoundingClientRect().top 
+                        },
+                        exDividendDate: dividendData.ExDividendDate,
+                        dividendDate: dividendData.DividendDate
+                      });
+                      e.stopPropagation();
+                    }}
+                  >
+                    {renderStockCard(convertToDividendData(stock), 
+                      stock.financial_health_score > 7 ? 'border-green-500' : 
+                      stock.financial_health_score > 4 ? 'border-yellow-500' : 
+                      'border-red-500'
+                    )}
                   </div>
                 </div>
               ))}

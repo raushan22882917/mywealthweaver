@@ -1,12 +1,11 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
   TableHeader,
@@ -15,11 +14,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
 import { 
   Search, 
   BarChart3, 
   DollarSign, 
-  Calendar, 
   ArrowUpDown, 
   Filter, 
   ChevronDown, 
@@ -45,9 +46,7 @@ import { format } from "date-fns";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import DividendCalendar from "@/components/DividendCalendar";
-import { DateRangePicker } from "@/components/DateRangePicker";
 import { addDays, subDays } from "date-fns";
 
 interface DividendReport {
@@ -70,7 +69,7 @@ interface DividendReport {
   price_status?: 'high' | 'low' | 'medium';
 }
 
-interface DateRange {
+interface CustomDateRange {
   from: Date;
   to: Date;
 }
@@ -85,7 +84,7 @@ const Reporting: React.FC = () => {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [activeTab, setActiveTab] = useState("overview");
   const [trackPrices, setTrackPrices] = useState(true);
-  const [dateRange, setDateRange] = useState<DateRange>({
+  const [dateRange, setDateRange] = useState<CustomDateRange>({
     from: subDays(new Date(), 30),
     to: new Date(),
   });
@@ -348,11 +347,51 @@ const Reporting: React.FC = () => {
               />
             </div>
             
-            <DateRangePicker
-              date={dateRange}
-              onDateChange={setDateRange}
-              className="bg-gray-800/70 rounded-lg border border-gray-700"
-            />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  className={cn(
+                    "w-[300px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
+                  ) : (
+                    <span>Pick a date range</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={{
+                    from: dateRange.from,
+                    to: dateRange.to
+                  }}
+                  onSelect={(range) => {
+                    if (range) {
+                      setDateRange({
+                        from: range.from || dateRange.from,
+                        to: range.to || dateRange.to
+                      });
+                    }
+                  }}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
           
           <div className="flex items-center gap-3">
