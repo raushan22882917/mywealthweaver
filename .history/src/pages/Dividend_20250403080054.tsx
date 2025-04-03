@@ -558,14 +558,39 @@ const Dividend: React.FC = () => {
     <div 
       className="relative group stock-element w-[50px] h-[50px] mt-2"
       onMouseEnter={() => handleStockHover(stock)}
-      
-      onClick={() => {
+      onClick={(e) => {
         setIsTouched(true);
-        handleStockHover(stock);
+        // Get the position of the clicked element
+        const rect = e.currentTarget.getBoundingClientRect();
+        // Calculate position above the stock card
+        const position = {
+          x: rect.left,
+          y: rect.top - 10 // Position slightly above the card
+        };
+        // Update hover details with position
+        setHoveredStockDetails({
+          stock,
+          exDividendDate: stock.ExDividendDate,
+          dividendDate: stock.DividendDate,
+          position
+        });
       }}
-      onTouchStart={() => {
+      onTouchStart={(e) => {
         setIsTouched(true);
-        handleStockHover(stock);
+        // Get the position of the touched element
+        const rect = e.currentTarget.getBoundingClientRect();
+        // Calculate position above the stock card
+        const position = {
+          x: rect.left,
+          y: rect.top - 10 // Position slightly above the card
+        };
+        // Update hover details with position
+        setHoveredStockDetails({
+          stock,
+          exDividendDate: stock.ExDividendDate,
+          dividendDate: stock.DividendDate,
+          position
+        });
       }}
     >
       <div
@@ -1022,22 +1047,6 @@ const Dividend: React.FC = () => {
                 <span className="font-semibold text-green-600 dark:text-blue-400">
                   Dividend Announcement
                 </span>
-              </div>
-              <p className="text-sm text-blue-800 dark:text-green-200">
-                {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}
-              </p>
-            </div>
-          )}
-
-          <div 
-            className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700"
-          />
-          
-          {hoveredStockDetails.stock?.insight && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-b-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2">
-                <FaInfoCircle className="text-blue-800 dark:text-blue-100 text-lg" />
-                <span className="font-semibold text-blue-800 dark:text-blue-100">Important</span>
               </div>
               <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{hoveredStockDetails.stock?.insight}</p>
             </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -134,11 +133,14 @@ const StockFilter: React.FC<StockFilterProps> = ({
     }
     
     const matches = stockData
-      .filter(stock => 
-        stock.Symbol.toLowerCase().includes(input.toLowerCase()) || 
-        (stock.Sector && stock.Sector.toLowerCase().includes(input.toLowerCase()))
-      )
+      .filter(stock => {
+        const symbol = stock.Symbol?.toLowerCase() || '';
+        const sector = stock.Sector?.toLowerCase() || '';
+        const inputLower = input.toLowerCase();
+        return symbol.includes(inputLower) || sector.includes(inputLower);
+      })
       .map(stock => stock.Symbol)
+      .filter(Boolean)
       .slice(0, 7);
     
     setSymbolSuggestions(matches);
@@ -160,7 +162,8 @@ const StockFilter: React.FC<StockFilterProps> = ({
 
   const applyFilters = () => {
     const newFilteredStocks = stockData.filter(stock => {
-      if (filters.symbol && !stock.Symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
+      if (filters.symbol && stock.Symbol && 
+          !stock.Symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
         return false;
       }
       

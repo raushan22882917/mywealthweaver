@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader } from '@/components/ui/loader';
@@ -16,14 +15,15 @@ import {
 import { TrendingUp, TrendingDown, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface Stock {
   cik_str: string;
-  Symbol: string;
-  title: string;
+  symbol?: string;
+  title?: string;
   price?: number;
-  change?: number;
-  changePercent?: number;
+  change_value?: number;
+  change_percent?: number;
 }
 
 interface TopStocksProps {
@@ -43,6 +43,8 @@ const TopStocks: React.FC<TopStocksProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchTopStocks();
@@ -51,28 +53,13 @@ const TopStocks: React.FC<TopStocksProps> = ({
   const fetchTopStocks = async () => {
     try {
       setIsLoading(true);
-      // This is a placeholder - in a real app, you would fetch this data from your Supabase table
-      // For now, we'll use dummy data to simulate the API response
-      const dummyData: Stock[] = [
-        { cik_str: '0000789019', Symbol: 'MSFT', title: 'Microsoft Corporation', price: 420.45, change: 2.45, changePercent: 0.59 },
-        { cik_str: '0000320193', Symbol: 'AAPL', title: 'Apple Inc.', price: 175.52, change: -0.86, changePercent: -0.49 },
-        { cik_str: '0001652044', Symbol: 'GOOG', title: 'Alphabet Inc.', price: 164.84, change: 1.23, changePercent: 0.75 },
-        { cik_str: '0001018724', Symbol: 'AMZN', title: 'Amazon.com Inc.', price: 178.75, change: 3.45, changePercent: 1.97 },
-        { cik_str: '0001318605', Symbol: 'TSLA', title: 'Tesla, Inc.', price: 176.75, change: -5.20, changePercent: -2.86 },
-        { cik_str: '0000200406', Symbol: 'INTC', title: 'Intel Corporation', price: 43.75, change: 0.48, changePercent: 1.11 },
-        { cik_str: '0001045810', Symbol: 'NFLX', title: 'Netflix, Inc.', price: 603.50, change: 12.75, changePercent: 2.16 },
-        { cik_str: '0001326801', Symbol: 'META', title: 'Meta Platforms, Inc.', price: 485.22, change: 7.85, changePercent: 1.64 },
-      ];
+      const { data, error } = await supabase
+        .from('top_stocks')
+        .select('*')
+        .order('change_percent', { ascending: false });
       
-      // In a real implementation, you would fetch from Supabase like this:
-      // const { data, error } = await supabase
-      //   .from('top_stocks')
-      //   .select('*')
-      //   .order('changePercent', { ascending: false });
-      
-      // if (error) throw error;
-      
-      setStocks(dummyData);
+      if (error) throw error;
+      setStocks(data);
     } catch (err: any) {
       console.error('Error fetching top stocks:', err);
       setError(err.message || 'Failed to load top stocks');
@@ -83,9 +70,12 @@ const TopStocks: React.FC<TopStocksProps> = ({
 
   const filteredStocks = stocks.filter(
     (stock) =>
-      stock.Symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      stock.title.toLowerCase().includes(searchTerm.toLowerCase())
+      (stock.symbol && stock.symbol.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (stock.title && stock.title.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  const totalPages = Math.ceil(filteredStocks.length / itemsPerPage);
+  const paginatedStocks = filteredStocks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className={`flex flex-col ${transparentBg ? 'bg-transparent' : 'bg-background'}`}>
@@ -145,25 +135,34 @@ const TopStocks: React.FC<TopStocksProps> = ({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(limit ? filteredStocks.slice(0, limit) : filteredStocks).map((stock) => (
-                    <TableRow key={stock.Symbol}>
-                      <TableCell className="font-medium">{stock.Symbol}</TableCell>
-                      <TableCell>{stock.title}</TableCell>
-                      <TableCell className="text-right">${stock.price.toFixed(2)}</TableCell>
+                  {paginatedStocks.map((stock) => (
+                    <TableRow key={stock.symbol || stock.cik_str}>
+                      <TableCell className="font-medium">{stock.symbol || 'N/A'}</TableCell>
+                      <TableCell>{stock.title || 'N/A'}</TableCell>
+                      <TableCell className="text-right">${stock.price?.toFixed(2) || '0.00'}</TableCell>
                       <TableCell className="text-right">
-                        <span className={stock.change >= 0 ? 'text-green-500' : 'text-red-500'}>
-                          {stock.change >= 0 ? '+' : ''}{stock.change.toFixed(2)}
+                        <span className={stock.change_value && stock.change_value >= 0 ? 'text-green-500' : 'text-red-500'}>
+                          {stock.change_value && stock.change_value >= 0 ? '+' : ''}{stock.change_value?.toFixed(2) || '0.00'}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className={stock.changePercent >= 0 ? 'text-green-500' : 'text-red-500'}>
-                          {stock.changePercent >= 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
+                        <span className={stock.change_percent && stock.change_percent >= 0 ? 'text-green-500' : 'text-red-500'}>
+                          {stock.change_percent && stock.change_percent >= 0 ? '+' : ''}{stock.change_percent?.toFixed(2) || '0.00'}%
                         </span>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <div className="flex justify-between mt-4">
+                <Button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>
+                  Previous
+                </Button>
+                <span>Page {currentPage} of {totalPages}</span>
+                <Button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>
+                  Next
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -173,4 +172,3 @@ const TopStocks: React.FC<TopStocksProps> = ({
 };
 
 export default TopStocks;
-

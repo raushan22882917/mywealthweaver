@@ -8,6 +8,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+
 import {
   LineChart,
   Line,
@@ -149,12 +151,12 @@ interface RankingCSVData {
   sector: string;
 }
 
-interface SimilarStockData {
-  stock: string;
-  Description: string;
-  similarStock: string;
-  Company: string;
-  'Revenue 2024 (USD billion)': string;
+interface SimilarCompany {
+  symbol: string;
+  similar_symbol: string;
+  similar_company: string;
+  revenue_2024: string;
+  logo?: string | null;
 }
 
 interface LogoData {
@@ -315,13 +317,35 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const [dividendHistory, setDividendHistory] = useState<DividendHistory[]>([]);
   const [timeRange, setTimeRange] = useState('5Y');
   const [isHidden, setIsHidden] = useState(false);
-  const [similarCompanies, setSimilarCompanies] = useState<string[]>([]);
+  const [similarCompanies, setSimilarCompanies] = useState<SimilarCompany[]>([]);
   const [activeDividendTab, setActiveDividendTab] = useState('quarterly');
   const [dividendHistoryData, setDividendHistoryData] = useState<DividendHistoryData[]>([]);
   const [rankingCSVData, setRankingCSVData] = useState<RankingDisplayData | null>(null);
   const [rankingData, setRankingData] = useState<RankingData | null>(null);
   const { theme } = useTheme();
   const { toast } = useToast();
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(true); // Replace with actual auth check
+
+  const handleToggle = () => {
+    if (!isUserLoggedIn) {
+      setIsLoginPopupOpen(true);
+      return;
+    }
+    setIsSubscribed(!isSubscribed);
+    saveSubscriptionStatus(!isSubscribed);
+
+    setTimeout(() => {
+      setShowMessage(false);
+    }, 3000);
+  };
+
+  const saveSubscriptionStatus = (status: boolean) => {
+    // Implement saving logic (e.g., API call to save user preference)
+    console.log('Subscription status saved:', status);
+  };
   const [logoURL, setLogoURL] = useState<string>('');
   const [annualDividend, setAnnualDividend] = useState<{ current: string; last: string }>({ 
     current: '0', 
@@ -431,32 +455,41 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchSimilarCompanies = async () => {
       if (!stock?.Symbol) return;
-      
+    
       try {
+        // Fetch similar companies based on stock symbol
         const { data: similarData, error: similarError } = await supabase
           .from('similar_companies')
           .select('*')
           .eq('symbol', stock.Symbol);
-
+    
         if (similarError) throw similarError;
-
+        if (!similarData.length) return; // Avoid unnecessary fetch if no data
+    
+        // Fetch company logos for the similar companies
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
           .select('*')
-          .in('symbol', similarData.map(company => company.Symbol));
-
+          .in('symbol', similarData.map(company => company.similar_symbol));
+    
         if (logoError) throw logoError;
-
-        const combinedData = similarData.map(company => ({
-          ...company,
-          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.LogoURL
+    
+        // Merge logo data with similar companies
+        const combinedData: SimilarCompany[] = similarData.map(company => ({
+          symbol: company.similar_symbol,
+          similar_symbol: company.similar_symbol,
+          similar_company: company.similar_company,
+          revenue_2024: company.revenue_2024,
+          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.LogoURL || null
         }));
-
+    
         setSimilarCompanies(combinedData);
       } catch (error) {
         console.error('Error fetching similar companies:', error);
+        toast.error('Failed to load similar companies');
       }
     };
+    
 
     fetchSimilarCompanies();
   }, [stock?.Symbol]);
@@ -1279,43 +1312,46 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
     {/* Right Section */}
     <div className="text-right flex flex-col items-end gap-3">
-      <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
+  <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
 
-      {/* Similar Companies */}
-      <div className="relative flex flex-col items-end space-y-3 mt-2">
-        <div className="flex items-center space-x-2 mb-2">
-          <div className="text-sm font-medium">Similar Companies</div>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-500 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">
-                <AlertCircle className="w-4 h-4" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-72 p-4 text-sm rounded-xl shadow-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-              <p className="font-semibold text-lg">📈 Similar Stocks</p>
-              <p className="mt-2">Click on any company to view more details.</p>
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {/* Similar Companies Grid */}
-        <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-          {similarStocks.map((similarStock) => (
-            <div
-              key={similarStock.symbol}
-              onClick={() => setSelectedStock(similarStock)}
-              className="w-12 h-16 flex flex-col items-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition cursor-pointer"
-            >
-              <div
-                className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                style={{ backgroundImage: `url(${similarStock.logoUrl})` }}
-              />
-              <div className="text-sm font-semibold text-center">{similarStock.symbol}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+  {/* Similar Companies */}
+  <div className="relative flex flex-col items-end space-y-3 mt-2">
+    <div className="flex items-center space-x-2 mb-2">
+      <div className="text-sm font-medium">Similar Companies</div>
+      <Popover>
+        <PopoverTrigger asChild>
+          <button className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-500 text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700">
+            <AlertCircle className="w-4 h-4" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-72 p-4 text-sm rounded-xl shadow-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+          <p className="font-semibold text-lg">📈 Similar Stocks</p>
+          <p className="mt-2">Click on any company to view more details.</p>
+        </PopoverContent>
+      </Popover>
     </div>
+
+    {/* Similar Companies Grid */}
+    <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+      {similarCompanies.map((similarStock) => (
+        <div
+          key={similarStock.symbol}
+          onClick={() => setSelectedStock(similarStock)}
+          className="w-12 h-16 flex flex-col items-center p-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition cursor-pointer"
+        >
+          <div
+            className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
+            style={{
+              backgroundImage: `url(${similarStock.logo || "/default-logo.png"})`
+            }}
+          />
+          <div className="text-sm font-semibold text-center">{similarStock.symbol}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
   </DialogTitle>
 </DialogHeader>
 
@@ -1403,32 +1439,18 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
           <div className={`relative border rounded-lg p-4 ${theme === "dark" ? 'border-gray-700' : 'border-gray-200'}`}>
   {/* Notification Box in Top Right Corner */}
-  <div className="absolute top-2 right-2 flex flex-col items-start gap-2 p-4 rounded-md shadow-md w-[500px]">
-  <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-    Stay updated with important notifications!
-  </p>
-  <div className="flex w-full items-center gap-3">
-    <Input
-      type="email"
-      placeholder="Enter your email"
-      className={`w-full p-3 rounded-lg border text-sm focus:ring-2 transition ${
-        theme === 'dark'
-          ? 'bg-transparent text-white border-gray-600 focus:ring-blue-400'
-          : 'bg-transparent text-black border-gray-400 focus:ring-blue-500'
-      }`}
-      value={email}
-      onChange={(e) => setEmail(e.target.value)}
-      disabled={isSubmitting}
-    />
-    <Button
-      onClick={handleSubscribe}
-      disabled={isSubmitting}
-      className="px-4 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-    >
-      {isSubmitting ? "Subscribing..." : "Subscribe"}
-    </Button>
-  </div>
-</div>
+  <div className="absolute top-2 right-2 flex flex-col items-start gap-2 p-4 rounded-md shadow-md w-[300px]">
+      <div className="flex w-full items-center gap-3">
+        <Switch checked={isSubscribed} onCheckedChange={handleToggle} />
+        <span className="text-sm">{isSubscribed ? "Saved for updates" : "Subscribe for updates"}</span>
+      </div>
+
+      {showMessage && (
+        <span className="text-green-500 text-sm font-medium transition-opacity duration-500">
+          Thank you for subscribing!
+        </span>
+      )}
+    </div>
 
 
   
@@ -1465,22 +1487,22 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               <DialogTitle className="flex items-center gap-3">
                 <div 
                   className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                  style={{ backgroundImage: `url(${selectedStock?.logoUrl})` }}
+                  style={{ backgroundImage: `url(${selectedStock?.logo || "/default-logo.png"})` }}
                 />
                 <div>
                   <div className="text-lg font-bold">{selectedStock?.symbol}</div>
-                  <div className="text-sm text-gray-500">{selectedStock?.company}</div>
+                  <div className="text-sm text-gray-500">{selectedStock?.similar_company}</div>
                 </div>
               </DialogTitle>
             </DialogHeader>
             
             <div className="p-4">
               <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
-                {selectedStock?.description || 'No description available'}
+                {selectedStock?.revenue_2024 || 'No description available'}
               </div>
               
               <div className="mt-4 text-xs text-gray-500">
-                Estimated Revenue 2024: ${selectedStock?.revenue}B
+                Estimated Revenue 2024: ${selectedStock?.revenue_2024}B
               </div>
             </div>
           </DialogContent>
