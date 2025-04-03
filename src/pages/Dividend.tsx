@@ -256,6 +256,39 @@ const Dividend: React.FC = () => {
     fetchDividendData();
   }, []);
 
+  useEffect(() => {
+    const fetchStockFilterData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('stock_filter')
+          .select('*');
+        
+        if (error) {
+          console.error("Error fetching stock filter data:", error);
+          return;
+        }
+        
+        const filterData = data.map(item => ({
+          symbol: item.Symbol,
+          sector: item.Sector,
+          exchange: item.Exchange,
+          dividendYield: item["Dividend-Yield"],
+          payoutRatio: item["Payout Ratio"],
+          financialHealthScore: item["Financial-Health-Score"],
+          debtLevels: item["Debt Levels"],
+          revenue: item.Revenue,
+          earningsPerShare: item.Earnings_per_share,
+        }));
+        
+        setStockFilterData(filterData);
+      } catch (error) {
+        console.error("Error processing stock filter data:", error);
+      }
+    };
+    
+    fetchStockFilterData();
+  }, []);
+
   const [companyLogos, setCompanyLogos] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {

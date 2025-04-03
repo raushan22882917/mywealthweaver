@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,32 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
-
-export interface StockFilterData {
-  symbol: string;
-  location?: string;
-  exchange?: string;
-  sector?: string;
-  subSector?: string;
-  revenueGrowth?: number;
-  netIncome?: number;
-  debtLevels?: number;
-  payoutRatio?: number;
-  dividendYield?: number;
-  fiveYearDividendYield?: number;
-  dividendHistory?: string;
-  financialHealthScore?: number;
-  revenue?: number;
-  earningsPerShare?: number;
-  adjustedDividendYield?: number;
-  payoutRatioPenalty?: number;
-}
-
-interface StockFilterProps {
-  onFilterApply: (filters: StockFilterCriteria) => void;
-  filterableStocks: StockFilterData[];
-  isCalendarView?: boolean;
-}
+import { supabase } from "@/lib/supabase";
+import { StockFilterData, mapDatabaseToFilterData } from "@/utils/dividend";
+import { toast } from "sonner";
 
 export interface StockFilterCriteria {
   symbol?: string;
@@ -49,14 +26,22 @@ export interface StockFilterCriteria {
   hasDebtConcerns?: boolean;
 }
 
+interface StockFilterProps {
+  onFilterApply: (filters: StockFilterCriteria) => void;
+  filterableStocks?: StockFilterData[];
+  isCalendarView?: boolean;
+}
+
 const StockFilter: React.FC<StockFilterProps> = ({ 
   onFilterApply, 
-  filterableStocks,
+  filterableStocks: initialFilterableStocks,
   isCalendarView = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [showFilteredTable, setShowFilteredTable] = useState(false);
   const [filteredStocks, setFilteredStocks] = useState<StockFilterData[]>([]);
+  const [stockData, setStockData] = useState<StockFilterData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   
   // Filter criteria
   const [filters, setFilters] = useState<StockFilterCriteria>({
@@ -68,53 +53,96 @@ const StockFilter: React.FC<StockFilterProps> = ({
     hasDebtConcerns: false
   });
 
+  // Fetch stock filter data from Supabase
+  useEffect(() => {
+    const fetchStockFilterData = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('stock_filter')
+          .select('*');
+        
+        if (error) {
+          console.error("Error fetching stock filter data:", error);
+          toast.error("Failed to load stock filter data");
+          return;
+        }
+        
+        // Map database results to our filter data structure
+        const mappedData = data.map(item => mapDatabaseToFilterData(item));
+        
+        // If we have initial data passed through props, merge it with the fetched data
+        if (initialFilterableStocks && initialFilterableStocks.length > 0) {
+          // Create a map of existing symbols
+          const symbolMap = new Map(mappedData.map(item => [item.Symbol, item]));
+          
+          // Add any stocks from initialFilterableStocks that aren't in the database results
+          for (const stock of initialFilterableStocks) {
+            if (!symbolMap.has(stock.Symbol)) {
+              mappedData.push(stock);
+            }
+          }
+        }
+        
+        setStockData(mappedData);
+      } catch (error) {
+        console.error("Error in stock filter data fetch:", error);
+        toast.error("An error occurred while loading filter data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStockFilterData();
+  }, [initialFilterableStocks]);
+
   // Extract unique sectors and exchanges for dropdowns
-  const uniqueSectors = Array.from(new Set(filterableStocks.map(stock => stock.sector).filter(Boolean)));
-  const uniqueExchanges = Array.from(new Set(filterableStocks.map(stock => stock.exchange).filter(Boolean)));
+  const uniqueSectors = Array.from(new Set(stockData.map(stock => stock.Sector).filter(Boolean)));
+  const uniqueExchanges = Array.from(new Set(stockData.map(stock => stock.Exchange).filter(Boolean)));
 
   const handleFilterChange = (key: keyof StockFilterCriteria, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
   };
 
   const applyFilters = () => {
-    const newFilteredStocks = filterableStocks.filter(stock => {
+    const newFilteredStocks = stockData.filter(stock => {
       // Symbol filter
-      if (filters.symbol && !stock.symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
+      if (filters.symbol && !stock.Symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
         return false;
       }
       
       // Sector filter
-      if (filters.sector && stock.sector !== filters.sector) {
+      if (filters.sector && stock.Sector !== filters.sector) {
         return false;
       }
       
       // Exchange filter
-      if (filters.exchange && stock.exchange !== filters.exchange) {
+      if (filters.exchange && stock.Exchange !== filters.exchange) {
         return false;
       }
       
       // Dividend Yield filter
-      if (stock.dividendYield !== undefined && 
-          (stock.dividendYield < (filters.minDividendYield || 0) || 
-           stock.dividendYield > (filters.maxDividendYield || 100))) {
+      if (stock["Dividend-Yield"] !== undefined && 
+          (stock["Dividend-Yield"] < (filters.minDividendYield || 0) || 
+           stock["Dividend-Yield"] > (filters.maxDividendYield || 100))) {
         return false;
       }
       
       // Payout Ratio filter
-      if (stock.payoutRatio !== undefined && 
-          (stock.payoutRatio < (filters.minPayoutRatio || 0) || 
-           stock.payoutRatio > (filters.maxPayoutRatio || 100))) {
+      if (stock["Payout Ratio"] !== undefined && 
+          (stock["Payout Ratio"] < (filters.minPayoutRatio || 0) || 
+           stock["Payout Ratio"] > (filters.maxPayoutRatio || 100))) {
         return false;
       }
       
       // Health Score filter
-      if (stock.financialHealthScore !== undefined && 
-          stock.financialHealthScore < (filters.minHealthScore || 0)) {
+      if (stock["Financial-Health-Score"] !== undefined && 
+          stock["Financial-Health-Score"] < (filters.minHealthScore || 0)) {
         return false;
       }
       
       // Debt Concerns filter
-      if (filters.hasDebtConcerns && stock.debtLevels !== undefined && stock.debtLevels < 3) {
+      if (filters.hasDebtConcerns && stock["Debt Levels"] !== undefined && stock["Debt Levels"] < 3) {
         return false;
       }
       
@@ -162,13 +190,23 @@ const StockFilter: React.FC<StockFilterProps> = ({
         variant="outline" 
         size="sm" 
         className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700"
+        disabled={isLoading}
       >
-        <Filter className="h-4 w-4" />
-        <span>Filter Stocks</span>
-        {Object.values(filters).some(val => val !== undefined && val !== "" && val !== 0 && val !== false) && (
-          <Badge variant="secondary" className="ml-1 bg-blue-500 text-white">
-            Active
-          </Badge>
+        {isLoading ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
+            <span>Loading...</span>
+          </>
+        ) : (
+          <>
+            <Filter className="h-4 w-4" />
+            <span>Filter Stocks</span>
+            {Object.values(filters).some(val => val !== undefined && val !== "" && val !== 0 && val !== false) && (
+              <Badge variant="secondary" className="ml-1 bg-blue-500 text-white">
+                Active
+              </Badge>
+            )}
+          </>
         )}
       </Button>
 
@@ -335,21 +373,21 @@ const StockFilter: React.FC<StockFilterProps> = ({
                 </TableHeader>
                 <TableBody>
                   {filteredStocks.map((stock) => (
-                    <TableRow key={stock.symbol}>
-                      <TableCell className="font-medium">{stock.symbol}</TableCell>
-                      <TableCell>{stock.sector || "N/A"}</TableCell>
-                      <TableCell>{stock.exchange || "N/A"}</TableCell>
-                      <TableCell>{stock.dividendYield !== undefined ? `${stock.dividendYield.toFixed(2)}%` : "N/A"}</TableCell>
-                      <TableCell>{stock.payoutRatio !== undefined ? `${stock.payoutRatio.toFixed(2)}%` : "N/A"}</TableCell>
-                      <TableCell>{stock.financialHealthScore !== undefined ? stock.financialHealthScore.toFixed(1) : "N/A"}</TableCell>
-                      <TableCell>{stock.revenue !== undefined ? formatValue(stock.revenue) : "N/A"}</TableCell>
-                      <TableCell>{stock.earningsPerShare !== undefined ? `$${stock.earningsPerShare.toFixed(2)}` : "N/A"}</TableCell>
+                    <TableRow key={stock.Symbol}>
+                      <TableCell className="font-medium">{stock.Symbol}</TableCell>
+                      <TableCell>{stock.Sector || "N/A"}</TableCell>
+                      <TableCell>{stock.Exchange || "N/A"}</TableCell>
+                      <TableCell>{stock["Dividend-Yield"] !== undefined ? `${stock["Dividend-Yield"].toFixed(2)}%` : "N/A"}</TableCell>
+                      <TableCell>{stock["Payout Ratio"] !== undefined ? `${stock["Payout Ratio"].toFixed(2)}%` : "N/A"}</TableCell>
+                      <TableCell>{stock["Financial-Health-Score"] !== undefined ? stock["Financial-Health-Score"].toFixed(1) : "N/A"}</TableCell>
+                      <TableCell>{stock.Revenue !== undefined ? formatValue(stock.Revenue) : "N/A"}</TableCell>
+                      <TableCell>{stock.Earnings_per_share !== undefined ? `$${stock.Earnings_per_share.toFixed(2)}` : "N/A"}</TableCell>
                       <TableCell>
-                        {stock.debtLevels !== undefined ? (
+                        {stock["Debt Levels"] !== undefined ? (
                           <Badge
-                            variant={stock.debtLevels > 7 ? "destructive" : stock.debtLevels > 4 ? "default" : "secondary"}
+                            variant={stock["Debt Levels"] > 7 ? "destructive" : stock["Debt Levels"] > 4 ? "default" : "secondary"}
                           >
-                            {stock.debtLevels > 7 ? "High" : stock.debtLevels > 4 ? "Medium" : "Low"}
+                            {stock["Debt Levels"] > 7 ? "High" : stock["Debt Levels"] > 4 ? "Medium" : "Low"}
                           </Badge>
                         ) : (
                           "N/A"

@@ -101,19 +101,73 @@ const DividendCalendar = () => {
   }, []);
 
   useEffect(() => {
-    const transformedData = dividendEvents.map(event => ({
-      symbol: event.symbol,
-      sector: "Technology",
-      exchange: "NASDAQ",
-      dividendYield: Math.random() * 10,
-      payoutRatio: Math.random() * 100,
-      financialHealthScore: Math.floor(Math.random() * 10) + 1,
-      debtLevels: Math.floor(Math.random() * 10) + 1,
-      revenue: Math.random() * 50000000000,
-      earningsPerShare: Math.random() * 10,
-    }));
+    const fetchStockFilterData = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('stock_filter')
+          .select('*');
+        
+        if (error) {
+          console.error("Error fetching stock filter data:", error);
+          // Fall back to transformed data if we can't fetch from database
+          const transformedData = dividendEvents.map(event => ({
+            symbol: event.symbol,
+            sector: "Technology",
+            exchange: "NASDAQ",
+            dividendYield: Math.random() * 10,
+            payoutRatio: Math.random() * 100,
+            financialHealthScore: Math.floor(Math.random() * 10) + 1,
+            debtLevels: Math.floor(Math.random() * 10) + 1,
+            revenue: Math.random() * 50000000000,
+            earningsPerShare: Math.random() * 10,
+          }));
+          
+          setStockFilterData(transformedData);
+          return;
+        }
+        
+        // Create a map of stock filter data by symbol
+        const stockFilterMap = new Map(data.map(item => [item.Symbol, item]));
+        
+        // For each dividend event, find matching stock filter data or create default data
+        const transformedData = dividendEvents.map(event => {
+          const filterData = stockFilterMap.get(event.symbol) || {};
+          
+          return {
+            symbol: event.symbol,
+            sector: filterData.Sector || "Technology",
+            exchange: filterData.Exchange || "NASDAQ",
+            dividendYield: filterData["Dividend-Yield"] !== undefined ? filterData["Dividend-Yield"] : Math.random() * 10,
+            payoutRatio: filterData["Payout Ratio"] !== undefined ? filterData["Payout Ratio"] : Math.random() * 100,
+            financialHealthScore: filterData["Financial-Health-Score"] !== undefined ? filterData["Financial-Health-Score"] : Math.floor(Math.random() * 10) + 1,
+            debtLevels: filterData["Debt Levels"] !== undefined ? filterData["Debt Levels"] : Math.floor(Math.random() * 10) + 1,
+            revenue: filterData.Revenue !== undefined ? filterData.Revenue : Math.random() * 50000000000,
+            earningsPerShare: filterData.Earnings_per_share !== undefined ? filterData.Earnings_per_share : Math.random() * 10,
+          };
+        });
+        
+        setStockFilterData(transformedData);
+      } catch (error) {
+        console.error("Error processing stock filter data:", error);
+        
+        // Fall back to generated data
+        const transformedData = dividendEvents.map(event => ({
+          symbol: event.symbol,
+          sector: "Technology",
+          exchange: "NASDAQ",
+          dividendYield: Math.random() * 10,
+          payoutRatio: Math.random() * 100,
+          financialHealthScore: Math.floor(Math.random() * 10) + 1,
+          debtLevels: Math.floor(Math.random() * 10) + 1,
+          revenue: Math.random() * 50000000000,
+          earningsPerShare: Math.random() * 10,
+        }));
+        
+        setStockFilterData(transformedData);
+      }
+    };
     
-    setStockFilterData(transformedData);
+    fetchStockFilterData();
   }, [dividendEvents]);
 
   useEffect(() => {

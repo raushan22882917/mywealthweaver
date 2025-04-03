@@ -417,6 +417,33 @@ export type Database = {
         }
         Relationships: []
       }
+      dividend_dates: {
+        Row: {
+          buy_date: string | null
+          created_at: string | null
+          id: string
+          payout_date: string | null
+          symbol: string
+          updated_at: string | null
+        }
+        Insert: {
+          buy_date?: string | null
+          created_at?: string | null
+          id?: string
+          payout_date?: string | null
+          symbol: string
+          updated_at?: string | null
+        }
+        Update: {
+          buy_date?: string | null
+          created_at?: string | null
+          id?: string
+          payout_date?: string | null
+          symbol?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       dividend_payout: {
         Row: {
           created_at: string
@@ -822,6 +849,72 @@ export type Database = {
         }
         Relationships: []
       }
+      stock_filter: {
+        Row: {
+          "5-Year-Dividend-Yield": number | null
+          "Adjusted-Dividend-Yield": number | null
+          created_at: string | null
+          "Debt Levels": number | null
+          "Dividend-History": string | null
+          "Dividend-Yield": number | null
+          Earnings_per_share: number | null
+          Exchange: string | null
+          "Financial-Health-Score": number | null
+          id: string
+          Location: string | null
+          Net_Income: number | null
+          "Payout Ratio": number | null
+          "Payout-Ratio-Penalty": number | null
+          Revenue: number | null
+          "Revenue Growth": number | null
+          Sector: string | null
+          "Sub-Sector": string | null
+          Symbol: string
+        }
+        Insert: {
+          "5-Year-Dividend-Yield"?: number | null
+          "Adjusted-Dividend-Yield"?: number | null
+          created_at?: string | null
+          "Debt Levels"?: number | null
+          "Dividend-History"?: string | null
+          "Dividend-Yield"?: number | null
+          Earnings_per_share?: number | null
+          Exchange?: string | null
+          "Financial-Health-Score"?: number | null
+          id?: string
+          Location?: string | null
+          Net_Income?: number | null
+          "Payout Ratio"?: number | null
+          "Payout-Ratio-Penalty"?: number | null
+          Revenue?: number | null
+          "Revenue Growth"?: number | null
+          Sector?: string | null
+          "Sub-Sector"?: string | null
+          Symbol: string
+        }
+        Update: {
+          "5-Year-Dividend-Yield"?: number | null
+          "Adjusted-Dividend-Yield"?: number | null
+          created_at?: string | null
+          "Debt Levels"?: number | null
+          "Dividend-History"?: string | null
+          "Dividend-Yield"?: number | null
+          Earnings_per_share?: number | null
+          Exchange?: string | null
+          "Financial-Health-Score"?: number | null
+          id?: string
+          Location?: string | null
+          Net_Income?: number | null
+          "Payout Ratio"?: number | null
+          "Payout-Ratio-Penalty"?: number | null
+          Revenue?: number | null
+          "Revenue Growth"?: number | null
+          Sector?: string | null
+          "Sub-Sector"?: string | null
+          Symbol?: string
+        }
+        Relationships: []
+      }
       stock_financial_details: {
         Row: {
           adjusted_dividend_yield: number | null
@@ -926,19 +1019,25 @@ export type Database = {
           created_at: string
           email: string
           id: string
+          is_subscribed: boolean | null
           stock_symbol: string
+          user_id: string | null
         }
         Insert: {
           created_at?: string
           email: string
           id?: string
+          is_subscribed?: boolean | null
           stock_symbol: string
+          user_id?: string | null
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
+          is_subscribed?: boolean | null
           stock_symbol?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -972,6 +1071,36 @@ export type Database = {
           id?: string
           symbol?: string
           to_grade?: string
+        }
+        Relationships: []
+      }
+      top_stocks: {
+        Row: {
+          change_percent: number | null
+          change_value: number | null
+          cik_str: string
+          id: number
+          price: number | null
+          symbol: string
+          title: string
+        }
+        Insert: {
+          change_percent?: number | null
+          change_value?: number | null
+          cik_str: string
+          id?: number
+          price?: number | null
+          symbol: string
+          title: string
+        }
+        Update: {
+          change_percent?: number | null
+          change_value?: number | null
+          cik_str?: string
+          id?: number
+          price?: number | null
+          symbol?: string
+          title?: string
         }
         Relationships: []
       }

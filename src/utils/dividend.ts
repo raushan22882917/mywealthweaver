@@ -1,4 +1,3 @@
-
 export interface DividendHistoryData {
   date: string;
   dividends: number;
@@ -65,4 +64,46 @@ export const filterDividendData = (data: DividendHistoryData[], range: string) =
     const itemYear = parseInt(item.date);
     return itemYear >= startYear;
   });
+};
+
+export interface StockFilterData {
+  Symbol: string;
+  Location?: string;
+  Exchange?: string;
+  Sector?: string;
+  "Sub-Sector"?: string; 
+  "Revenue Growth"?: number;
+  Net_Income?: number;
+  "Debt Levels"?: number;
+  "Payout Ratio"?: number;
+  "Dividend-Yield"?: number;
+  "5-Year-Dividend-Yield"?: number;
+  "Dividend-History"?: string;
+  "Financial-Health-Score"?: number;
+  Revenue?: number;
+  Earnings_per_share?: number;
+  "Adjusted-Dividend-Yield"?: number;
+  "Payout-Ratio-Penalty"?: number;
+}
+
+export const mapDatabaseToFilterData = (dbData: any): StockFilterData => {
+  return {
+    Symbol: dbData.Symbol || "",
+    Location: dbData.Location,
+    Exchange: dbData.Exchange,
+    Sector: dbData.Sector,
+    "Sub-Sector": dbData["Sub-Sector"],
+    "Revenue Growth": dbData["Revenue Growth"],
+    Net_Income: dbData.Net_Income,
+    "Debt Levels": dbData["Debt Levels"],
+    "Payout Ratio": dbData["Payout Ratio"],
+    "Dividend-Yield": dbData["Dividend-Yield"],
+    "5-Year-Dividend-Yield": dbData["5-Year-Dividend-Yield"],
+    "Dividend-History": dbData["Dividend-History"],
+    "Financial-Health-Score": dbData["Financial-Health-Score"],
+    Revenue: dbData.Revenue,
+    Earnings_per_share: dbData.Earnings_per_share,
+    "Adjusted-Dividend-Yield": dbData["Adjusted-Dividend-Yield"],
+    "Payout-Ratio-Penalty": dbData["Payout-Ratio-Penalty"]
+  };
 };
