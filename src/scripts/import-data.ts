@@ -1,3 +1,4 @@
+
 import { supabase } from '../lib/supabase';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -9,7 +10,7 @@ async function importData() {
     const profilesCSV = fs.readFileSync(path.join(__dirname, '../../public/profile/company_profile.csv'), 'utf-8');
     const profiles = Papa.parse(profilesCSV, { header: true, delimiter: '|' }).data;
     
-    for (const profile of profiles) {
+    for (const profile of profiles as any[]) {
       const { error } = await supabase
         .from('company_profiles')
         .upsert({
@@ -41,7 +42,7 @@ async function importData() {
     const annualDivCSV = fs.readFileSync(path.join(__dirname, '../../public/Annual_dividend/annual_dividend.csv'), 'utf-8');
     const annualDivs = Papa.parse(annualDivCSV, { header: true, delimiter: '|' }).data;
     
-    for (const div of annualDivs) {
+    for (const div of annualDivs as any[]) {
       const { error } = await supabase
         .from('annual_dividends')
         .upsert({

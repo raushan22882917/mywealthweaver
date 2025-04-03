@@ -294,8 +294,8 @@ const Navbar = () => {
                 Reporting
               </a>
 
-              <a href="/top-stocks" className="nav-item">
-                Top Stock
+              <a href="/market-data" className="nav-item">
+                Market Data
               </a>
             </div>
           </div>
