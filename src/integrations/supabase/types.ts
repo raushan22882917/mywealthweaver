@@ -417,33 +417,6 @@ export type Database = {
         }
         Relationships: []
       }
-      dividend_dates: {
-        Row: {
-          buy_date: string | null
-          created_at: string | null
-          id: string
-          payout_date: string | null
-          symbol: string
-          updated_at: string | null
-        }
-        Insert: {
-          buy_date?: string | null
-          created_at?: string | null
-          id?: string
-          payout_date?: string | null
-          symbol: string
-          updated_at?: string | null
-        }
-        Update: {
-          buy_date?: string | null
-          created_at?: string | null
-          id?: string
-          payout_date?: string | null
-          symbol?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       dividend_payout: {
         Row: {
           created_at: string
@@ -953,25 +926,19 @@ export type Database = {
           created_at: string
           email: string
           id: string
-          is_subscribed: boolean | null
           stock_symbol: string
-          user_id: string | null
         }
         Insert: {
           created_at?: string
           email: string
           id?: string
-          is_subscribed?: boolean | null
           stock_symbol: string
-          user_id?: string | null
         }
         Update: {
           created_at?: string
           email?: string
           id?: string
-          is_subscribed?: boolean | null
           stock_symbol?: string
-          user_id?: string | null
         }
         Relationships: []
       }

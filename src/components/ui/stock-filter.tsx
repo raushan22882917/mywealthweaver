@@ -84,12 +84,12 @@ const StockFilter: React.FC<StockFilterProps> = ({
       }
       
       // Sector filter
-      if (filters.sector && filters.sector !== "all-sectors" && stock.sector !== filters.sector) {
+      if (filters.sector && stock.sector !== filters.sector) {
         return false;
       }
       
       // Exchange filter
-      if (filters.exchange && filters.exchange !== "all-exchanges" && stock.exchange !== filters.exchange) {
+      if (filters.exchange && stock.exchange !== filters.exchange) {
         return false;
       }
       
