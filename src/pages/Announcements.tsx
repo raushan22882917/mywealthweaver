@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card } from '@/components/ui/card';
@@ -9,9 +9,11 @@ import { Input } from '@/components/ui/input';
 import { DollarSign, Calendar, Info, Search, Bell, TrendingUp } from 'lucide-react';
 import { fetchDividendAnnouncements, convertAnnouncementsToNotifications, formatNotificationDate, Notification } from '@/utils/notifications';
 import { useToast } from '@/components/ui/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Announcements = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const highlightId = searchParams.get('id');
   const type = searchParams.get('type') || 'all';
   
@@ -23,6 +25,27 @@ const Announcements = () => {
 
   useEffect(() => {
     loadNotifications();
+
+    // Set up a real-time subscription for new notifications
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'dividend_announcements'
+        },
+        () => {
+          // Refresh notification data when new dividend announcements are added
+          loadNotifications();
+        }
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadNotifications = async () => {
@@ -31,8 +54,17 @@ const Announcements = () => {
       
       // Load dividend announcements
       const announcements = await fetchDividendAnnouncements();
-      const notificationItems = convertAnnouncementsToNotifications(announcements);
+      console.log('Fetched announcements:', announcements);
       
+      if (announcements.length === 0) {
+        toast({
+          title: "No announcements found",
+          description: "There are currently no dividend announcements available.",
+          variant: "default",
+        });
+      }
+      
+      const notificationItems = convertAnnouncementsToNotifications(announcements);
       setNotifications(notificationItems);
       
       // If we have a highlighted ID, show a toast to highlight it
@@ -84,6 +116,12 @@ const Announcements = () => {
     
     return matchesSearch && matchesFilter;
   });
+
+  const handleStockClick = (symbol: string | undefined) => {
+    if (symbol) {
+      navigate(`/stock/${symbol}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-950">
@@ -165,7 +203,7 @@ const Announcements = () => {
                           variant="outline" 
                           size="sm"
                           className="text-blue-400 border-blue-800 hover:bg-blue-900/20"
-                          onClick={() => window.location.href = `/stock/${notification.related_symbol}`}
+                          onClick={() => handleStockClick(notification.related_symbol)}
                         >
                           View Stock Details
                         </Button>

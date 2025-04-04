@@ -69,7 +69,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
   const handleNotificationClick = (notification: Notification) => {
     // Handle navigation based on notification type
     if (notification.type === 'dividend' && notification.related_symbol) {
-      navigate(`/dividend/${notification.related_symbol}`);
+      navigate(`/stock/${notification.related_symbol}`);
     } else if (notification.type === 'price' && notification.related_symbol) {
       navigate(`/stock/${notification.related_symbol}`);
     } else if (notification.type === 'earnings' && notification.related_symbol) {
