@@ -93,23 +93,6 @@ export const markNotificationAsRead = async (notificationId: string): Promise<bo
       return true;
     }
     
-    // Check if it's in the notifications table
-    const { data: notification, error: notificationError } = await supabase
-      .from('notifications')
-      .select('*')
-      .eq('id', notificationId)
-      .maybeSingle();
-    
-    if (!notificationError && notification) {
-      // Update the read status
-      const { error: updateError } = await supabase
-        .from('notifications')
-        .update({ read: true })
-        .eq('id', notificationId);
-      
-      return !updateError;
-    }
-    
     // If we reach here, the notification wasn't found in any table
     return false;
   } catch (error) {
@@ -122,10 +105,7 @@ export const markNotificationAsRead = async (notificationId: string): Promise<bo
 export const getUnreadNotificationCount = async (): Promise<number> => {
   try {
     // Get count of unread notifications from the notifications table
-    const { count: notificationCount, error: notificationError } = await supabase
-      .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('read', false);
+    let notificationCount = 0;
     
     // Get recent dividend announcements (assuming they're all "unread")
     const { data: divAnnouncements, error: divError } = await supabase
@@ -135,9 +115,8 @@ export const getUnreadNotificationCount = async (): Promise<number> => {
       .limit(5);
     
     const divCount = divAnnouncements?.length || 0;
-    const notifCount = notificationCount || 0;
     
-    return divCount + notifCount;
+    return divCount + notificationCount;
   } catch (error) {
     console.error('Error getting unread notification count:', error);
     return 0;

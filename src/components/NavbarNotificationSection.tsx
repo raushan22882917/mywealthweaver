@@ -27,18 +27,6 @@ const NavbarNotificationSection: React.FC = () => {
           loadNotificationCount();
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications'
-        },
-        () => {
-          // Refresh notification count when new notifications are added
-          loadNotificationCount();
-        }
-      )
       .subscribe();
     
     // Check for new notifications every 2 minutes

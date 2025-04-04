@@ -1,468 +1,275 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useLocation, useNavigate } from 'react-router-dom';
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { Notification, fetchDividendAnnouncements, convertAnnouncementsToNotifications } from '@/utils/notifications';
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Calendar, DollarSign, TrendingUp, AlertCircle, Mail, Search, X } from 'lucide-react';
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from '@/integrations/supabase/client';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { Bell, Calendar, ChevronRight, DollarSign, Megaphone, Search, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { fetchDividendAnnouncements, convertAnnouncementsToNotifications, Notification, formatNotificationDate } from '@/utils/notifications';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
 
-const Announcements: React.FC = () => {
+export default function Announcements() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [filteredNotifications, setFilteredNotifications] = useState<Notification[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
-  
-  const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
   const { id } = useParams<{ id?: string }>();
-  const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const notificationId = queryParams.get('notification') || id;
-  const { toast } = useToast();
-
+  const navigate = useNavigate();
+  
   useEffect(() => {
-    loadAllNotifications();
+    fetchNotifications();
   }, []);
-
+  
   useEffect(() => {
-    // Filter notifications based on the active tab and search query
-    let filtered = notifications;
-    
-    if (activeTab !== 'all') {
-      filtered = filtered.filter(notification => notification.type === activeTab);
-    }
-    
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(notification => 
-        notification.title.toLowerCase().includes(query) || 
-        notification.message.toLowerCase().includes(query) ||
-        (notification.related_symbol && notification.related_symbol.toLowerCase().includes(query))
-      );
-    }
-    
-    // If notification ID is provided in URL, highlight that notification
-    if (notificationId) {
-      const targetNotification = notifications.find(n => n.id === notificationId);
-      if (targetNotification) {
-        // If the notification exists and has a type that doesn't match the current tab,
-        // switch to the appropriate tab
-        if (activeTab !== 'all' && activeTab !== targetNotification.type) {
-          setActiveTab(targetNotification.type);
-          return; // Return early as the useEffect will run again with the new activeTab
-        }
+    // If there's an ID in the URL, highlight that notification
+    if (id) {
+      const element = document.getElementById(`notification-${id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        element.classList.add('bg-blue-900/30');
+        setTimeout(() => {
+          element.classList.remove('bg-blue-900/30');
+          element.classList.add('transition-colors', 'duration-1000');
+        }, 1500);
       }
     }
-    
-    setFilteredNotifications(filtered);
-  }, [notifications, activeTab, searchQuery, notificationId]);
-
-  const loadAllNotifications = async () => {
-    setLoading(true);
+  }, [id, notifications]);
+  
+  const fetchNotifications = async () => {
+    setIsLoading(true);
     try {
-      // Fetch dividend announcements from Supabase
-      const { data: divAnnouncements, error: divError } = await supabase
-        .from('dividend_announcements')
-        .select('*')
-        .order('date', { ascending: false });
+      // Fetch dividend announcements
+      const divAnnouncements = await fetchDividendAnnouncements();
+      const dividendNotifications = convertAnnouncementsToNotifications(divAnnouncements);
       
-      if (divError) throw divError;
-      
-      // Convert dividend announcements to notification format
-      const dividendNotifications = divAnnouncements.map(announcement => ({
-        id: announcement.id,
-        type: 'dividend' as const,
-        title: announcement.header,
-        message: announcement.message,
-        related_symbol: announcement.symbol,
-        read: false,
-        created_at: announcement.created_at,
-      }));
-      
-      // Fetch other types of notifications (if tables exist)
-      // For now we'll add some sample notifications
-      
-      const priceNotifications: Notification[] = [
+      // Add simulated notifications for other types
+      const allNotifications: Notification[] = [
+        ...dividendNotifications,
+        // News notifications
+        {
+          id: 'news1',
+          type: 'news',
+          title: 'Market Report Available',
+          message: 'The weekly market report is now available for review.',
+          news_id: '101',
+          read: false,
+          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'news2',
+          type: 'news',
+          title: 'Earnings Season Update',
+          message: 'Read our analysis of the ongoing earnings season results.',
+          news_id: '102',
+          read: true,
+          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        // Price notifications
         {
           id: 'price1',
           type: 'price',
           title: 'AAPL Price Alert',
-          message: 'Apple stock has increased by 5% today',
+          message: 'Apple Inc. stock has increased by 5% today.',
           related_symbol: 'AAPL',
           read: false,
           created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
         },
+        // System notifications
         {
-          id: 'price2',
-          type: 'price',
-          title: 'MSFT Price Alert',
-          message: 'Microsoft stock has decreased by 2% today',
-          related_symbol: 'MSFT',
+          id: 'sys1',
+          type: 'system',
+          title: 'Welcome to Intelligent Investor',
+          message: 'Thank you for joining! Start by adding stocks to your watchlist.',
           read: true,
-          created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
+          created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
         }
-      ];
-      
-      const earningsNotifications: Notification[] = [
-        {
-          id: 'earnings1',
-          type: 'earnings',
-          title: 'GOOGL Earnings Release',
-          message: 'Google will release its earnings report tomorrow',
-          related_symbol: 'GOOGL',
-          read: false,
-          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
-      
-      // Fetch news notifications from any existing table or use sample
-      const { data: newsData, error: newsError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('type', 'news')
-        .order('created_at', { ascending: false });
-      
-      let newsNotifications: Notification[] = [];
-      
-      if (!newsError && newsData && newsData.length > 0) {
-        newsNotifications = newsData;
-      } else {
-        // Use sample data
-        newsNotifications = [
-          {
-            id: 'news1',
-            type: 'news',
-            title: 'Market Analysis Available',
-            message: 'New market analysis report is available',
-            news_id: '101',
-            read: false,
-            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            id: 'news2',
-            type: 'news',
-            title: 'Federal Reserve Meeting',
-            message: 'Federal Reserve announces interest rate decision',
-            news_id: '102',
-            read: true,
-            created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ];
-      }
-      
-      // Fetch system notifications
-      const { data: systemData, error: systemError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('type', 'system')
-        .order('created_at', { ascending: false });
-      
-      let systemNotifications: Notification[] = [];
-      
-      if (!systemError && systemData && systemData.length > 0) {
-        systemNotifications = systemData;
-      } else {
-        // Use sample data
-        systemNotifications = [
-          {
-            id: 'sys1',
-            type: 'system',
-            title: 'Welcome to Intelligent Investor',
-            message: 'Track your favorite dividend stocks and stay updated.',
-            read: true,
-            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-          },
-          {
-            id: 'sys2',
-            type: 'system',
-            title: 'New Features Available',
-            message: 'Check out our latest features for stock analysis.',
-            read: false,
-            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ];
-      }
-      
-      // Combine all notifications and sort by created date
-      const allNotifications = [
-        ...dividendNotifications,
-        ...priceNotifications,
-        ...earningsNotifications,
-        ...newsNotifications,
-        ...systemNotifications
-      ].sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
       setNotifications(allNotifications);
-      
-      // If a notification ID is in the URL, scroll to it after loading
-      if (notificationId) {
-        setTimeout(() => {
-          const element = document.getElementById(`notification-${notificationId}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-            element.classList.add('bg-purple-900/20');
-            
-            toast({
-              title: "Notification highlighted",
-              description: "You were redirected to the specific notification.",
-            });
-            
-            setTimeout(() => {
-              element.classList.remove('bg-purple-900/20');
-              element.classList.add('bg-gray-700/50');
-            }, 2000);
-          }
-        }, 500);
-      }
     } catch (error) {
-      console.error('Error loading notifications:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load notifications. Please try again.",
-        variant: "destructive",
-      });
+      console.error('Error fetching notifications:', error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
-
+  
+  const getFilteredNotifications = () => {
+    return notifications.filter(notification => {
+      // Filter by search query
+      const matchesSearch = searchQuery === '' || 
+        notification.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        notification.message.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (notification.related_symbol && notification.related_symbol.toLowerCase().includes(searchQuery.toLowerCase()));
+      
+      // Filter by type
+      const matchesType = activeTab === 'all' || notification.type === activeTab;
+      
+      return matchesSearch && matchesType;
+    });
+  };
+  
   const handleNotificationClick = (notification: Notification) => {
-    // Mark as read logic would go here in a real app
-    // For this example, we'll simulate by setting read state
-    
-    // Handle redirection based on notification type
     if (notification.type === 'dividend' && notification.related_symbol) {
       navigate(`/dividend/${notification.related_symbol}`);
     } else if (notification.type === 'news' && notification.news_id) {
       navigate(`/news/${notification.news_id}`);
-    } else if (notification.type === 'earnings' && notification.related_symbol) {
-      navigate(`/stock/${notification.related_symbol}?tab=earnings`);
     } else if (notification.type === 'price' && notification.related_symbol) {
       navigate(`/stock/${notification.related_symbol}`);
     }
-    // No navigation for system notifications - they're just informational
   };
-
-  const NotificationIcon = ({ type }: { type: string }) => {
+  
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'dividend':
-        return <DollarSign className="h-5 w-5 text-green-400" />;
+        return <DollarSign className="h-5 w-5 text-green-500" />;
       case 'price':
-        return <TrendingUp className="h-5 w-5 text-blue-400" />;
+        return <TrendingUp className="h-5 w-5 text-blue-500" />;
       case 'earnings':
-        return <Calendar className="h-5 w-5 text-purple-400" />;
+        return <Calendar className="h-5 w-5 text-purple-500" />;
       case 'news':
-        return <AlertCircle className="h-5 w-5 text-yellow-400" />;
-      case 'system':
-        return <Bell className="h-5 w-5 text-gray-400" />;
+        return <Megaphone className="h-5 w-5 text-yellow-500" />;
       default:
-        return <Mail className="h-5 w-5 text-gray-400" />;
+        return <Bell className="h-5 w-5 text-gray-500" />;
     }
   };
-
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
+  
+  const filteredNotifications = getFilteredNotifications();
+  
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col">
+    <div className="min-h-screen bg-gray-950 text-white flex flex-col">
       <Navbar />
       
-      <main className="flex-grow container mx-auto px-4 py-8 mt-16">
-        <div className="space-y-6">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white">Notifications</h1>
-              <p className="text-gray-400 mt-1">Stay updated with the latest announcements and alerts</p>
-            </div>
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto">
+          <header className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Notifications & Announcements</h1>
+            <p className="text-gray-400">Stay updated with the latest dividend announcements, price alerts, and news.</p>
+          </header>
+          
+          <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+              <TabsList className="grid grid-cols-5 w-full md:w-auto">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="dividend">Dividends</TabsTrigger>
+                <TabsTrigger value="price">Price</TabsTrigger>
+                <TabsTrigger value="news">News</TabsTrigger>
+                <TabsTrigger value="system">System</TabsTrigger>
+              </TabsList>
+            </Tabs>
             
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <div className="relative flex-grow">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
-                <Input
-                  placeholder="Search notifications..."
-                  className="pl-9 bg-gray-800 border-gray-700 text-white"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2"
-                  >
-                    <X className="h-4 w-4 text-gray-500 hover:text-gray-300" />
-                  </button>
-                )}
-              </div>
+            <div className="relative w-full md:w-auto md:min-w-[300px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
+              <Input
+                placeholder="Search notifications..."
+                className="pl-10 bg-gray-900 border-gray-700"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </div>
           
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-            <div className="border-b border-gray-700 mb-6">
-              <TabsList className="bg-transparent">
-                <TabsTrigger value="all" className="data-[state=active]:text-purple-400 data-[state=active]:border-b-2 data-[state=active]:border-purple-400 rounded-none">
-                  All
-                </TabsTrigger>
-                <TabsTrigger value="dividend" className="data-[state=active]:text-green-400 data-[state=active]:border-b-2 data-[state=active]:border-green-400 rounded-none">
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Dividend
-                </TabsTrigger>
-                <TabsTrigger value="price" className="data-[state=active]:text-blue-400 data-[state=active]:border-b-2 data-[state=active]:border-blue-400 rounded-none">
-                  <TrendingUp className="h-4 w-4 mr-2" />
-                  Price
-                </TabsTrigger>
-                <TabsTrigger value="earnings" className="data-[state=active]:text-purple-400 data-[state=active]:border-b-2 data-[state=active]:border-purple-400 rounded-none">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Earnings
-                </TabsTrigger>
-                <TabsTrigger value="news" className="data-[state=active]:text-yellow-400 data-[state=active]:border-b-2 data-[state=active]:border-yellow-400 rounded-none">
-                  <AlertCircle className="h-4 w-4 mr-2" />
-                  News
-                </TabsTrigger>
-                <TabsTrigger value="system" className="data-[state=active]:text-gray-400 data-[state=active]:border-b-2 data-[state=active]:border-gray-400 rounded-none">
-                  <Bell className="h-4 w-4 mr-2" />
-                  System
-                </TabsTrigger>
-              </TabsList>
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
+              <p className="text-gray-400">Loading notifications...</p>
             </div>
-            
-            <TabsContent value="all" className="mt-0">
-              {renderNotificationsList()}
-            </TabsContent>
-            <TabsContent value="dividend" className="mt-0">
-              {renderNotificationsList()}
-            </TabsContent>
-            <TabsContent value="price" className="mt-0">
-              {renderNotificationsList()}
-            </TabsContent>
-            <TabsContent value="earnings" className="mt-0">
-              {renderNotificationsList()}
-            </TabsContent>
-            <TabsContent value="news" className="mt-0">
-              {renderNotificationsList()}
-            </TabsContent>
-            <TabsContent value="system" className="mt-0">
-              {renderNotificationsList()}
-            </TabsContent>
-          </Tabs>
+          ) : filteredNotifications.length > 0 ? (
+            <div className="space-y-4">
+              {filteredNotifications.map((notification) => (
+                <Card
+                  key={notification.id}
+                  id={`notification-${notification.id}`}
+                  className="border-gray-800 bg-gray-900/50 hover:bg-gray-900 transition-colors overflow-hidden"
+                >
+                  <div className="flex">
+                    <div className={`w-2 ${
+                      notification.type === 'dividend' ? 'bg-green-500' :
+                      notification.type === 'price' ? 'bg-blue-500' :
+                      notification.type === 'news' ? 'bg-yellow-500' :
+                      notification.type === 'earnings' ? 'bg-purple-500' :
+                      'bg-gray-500'
+                    }`}></div>
+                    <div className="flex-1">
+                      <CardHeader className="flex flex-row items-start justify-between pb-2">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full ${
+                            notification.type === 'dividend' ? 'bg-green-500/20' :
+                            notification.type === 'price' ? 'bg-blue-500/20' :
+                            notification.type === 'news' ? 'bg-yellow-500/20' :
+                            notification.type === 'earnings' ? 'bg-purple-500/20' :
+                            'bg-gray-500/20'
+                          }`}>
+                            {getNotificationIcon(notification.type)}
+                          </div>
+                          <div>
+                            <CardTitle className="text-lg">{notification.title}</CardTitle>
+                            <CardDescription className="text-gray-400">
+                              {formatNotificationDate(notification.created_at)}
+                            </CardDescription>
+                          </div>
+                        </div>
+                        {!notification.read && (
+                          <Badge variant="outline" className="bg-purple-500/20 text-purple-300 border-purple-500/30">
+                            New
+                          </Badge>
+                        )}
+                      </CardHeader>
+                      <CardContent className="pb-3">
+                        <p className="text-gray-200">{notification.message}</p>
+                      </CardContent>
+                      <CardFooter className="flex justify-between items-center pt-0">
+                        <div className="flex items-center gap-2">
+                          {notification.related_symbol && (
+                            <Badge variant="outline" className="bg-gray-800 text-gray-300 border-gray-700">
+                              {notification.related_symbol}
+                            </Badge>
+                          )}
+                          <Badge variant="outline" className={`${
+                            notification.type === 'dividend' ? 'bg-green-500/10 text-green-300 border-green-500/30' :
+                            notification.type === 'price' ? 'bg-blue-500/10 text-blue-300 border-blue-500/30' :
+                            notification.type === 'news' ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30' :
+                            notification.type === 'earnings' ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' :
+                            'bg-gray-500/10 text-gray-300 border-gray-500/30'
+                          }`}>
+                            {notification.type.charAt(0).toUpperCase() + notification.type.slice(1)}
+                          </Badge>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 gap-1"
+                          onClick={() => handleNotificationClick(notification)}
+                        >
+                          View Details
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </CardFooter>
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-gray-900/30 rounded-lg border border-gray-800">
+              <Bell className="h-16 w-16 mx-auto text-gray-700 mb-4" />
+              <h3 className="text-xl font-medium text-gray-300 mb-2">No notifications found</h3>
+              <p className="text-gray-500">
+                {searchQuery 
+                  ? "No notifications match your search criteria" 
+                  : activeTab !== 'all' 
+                    ? `You don't have any ${activeTab} notifications yet` 
+                    : "You don't have any notifications yet"}
+              </p>
+            </div>
+          )}
         </div>
       </main>
       
       <Footer />
     </div>
   );
-  
-  function renderNotificationsList() {
-    if (loading) {
-      return (
-        <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Loading notifications...</p>
-        </div>
-      );
-    }
-    
-    if (filteredNotifications.length === 0) {
-      return (
-        <div className="p-8 text-center">
-          <Bell className="h-12 w-12 mx-auto text-gray-600 mb-4" />
-          <p className="text-gray-400">No notifications found</p>
-          {searchQuery && (
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => setSearchQuery('')}
-            >
-              Clear search
-            </Button>
-          )}
-        </div>
-      );
-    }
-    
-    return (
-      <div className="space-y-4">
-        {filteredNotifications.map((notification) => (
-          <Card 
-            key={notification.id}
-            id={`notification-${notification.id}`}
-            className={`bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors cursor-pointer ${
-              !notification.read ? 'border-l-4 border-l-purple-500' : ''
-            } ${notification.id === notificationId ? 'ring-2 ring-purple-500' : ''}`}
-            onClick={() => handleNotificationClick(notification)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start gap-4">
-                <div className={`p-3 rounded-full ${
-                  notification.type === 'dividend' ? 'bg-green-900/40' : 
-                  notification.type === 'price' ? 'bg-blue-900/40' : 
-                  notification.type === 'earnings' ? 'bg-purple-900/40' : 
-                  notification.type === 'news' ? 'bg-yellow-900/40' : 
-                  'bg-gray-700'
-                }`}>
-                  <NotificationIcon type={notification.type} />
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className={`text-lg font-medium ${
-                        notification.type === 'dividend' ? 'text-green-400' : 
-                        notification.type === 'price' ? 'text-blue-400' : 
-                        notification.type === 'earnings' ? 'text-purple-400' : 
-                        notification.type === 'news' ? 'text-yellow-400' : 
-                        'text-gray-300'
-                      }`}>
-                        {notification.title}
-                      </p>
-                      <p className="text-gray-300 mt-1">{notification.message}</p>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                      {!notification.read && (
-                        <span className="inline-block w-3 h-3 rounded-full bg-purple-500"></span>
-                      )}
-                      <Badge variant="outline" className="text-xs">
-                        {notification.type}
-                      </Badge>
-                    </div>
-                  </div>
-                  
-                  <div className="flex justify-between items-center mt-4">
-                    <span className="text-sm text-gray-500">
-                      {formatDate(notification.created_at)}
-                    </span>
-                    
-                    {notification.related_symbol && (
-                      <Badge className="bg-gray-700 hover:bg-gray-600">
-                        {notification.related_symbol}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-};
-
-export default Announcements;
+}

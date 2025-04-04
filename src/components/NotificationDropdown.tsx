@@ -49,82 +49,35 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
     setLoading(true);
     try {
       // Fetch dividend announcements from Supabase
-      const { data: divAnnouncements, error: divError } = await supabase
-        .from('dividend_announcements')
-        .select('*')
-        .order('date', { ascending: false })
-        .limit(5);
-      
-      if (divError) throw divError;
+      const divAnnouncements = await fetchDividendAnnouncements();
       
       // Convert dividend announcements to notification format
-      const dividendNotifications = divAnnouncements.map(announcement => ({
-        id: announcement.id,
-        type: 'dividend' as const,
-        title: announcement.header,
-        message: announcement.message,
-        related_symbol: announcement.symbol,
-        read: false,
-        created_at: announcement.created_at,
-      }));
+      const dividendNotifications = convertAnnouncementsToNotifications(divAnnouncements);
       
-      // Fetch news notifications (in a real app, you'd have a news table)
-      // For now, we'll simulate news notifications
-      const { data: newsData, error: newsError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('type', 'news')
-        .order('created_at', { ascending: false })
-        .limit(3)
-        .maybeSingle();
+      // Simulate news notifications
+      const newsNotifications: Notification[] = [
+        {
+          id: 'news1',
+          type: 'news',
+          title: 'Market Analysis Available',
+          message: 'New market analysis report is available',
+          news_id: '101',
+          read: false,
+          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
       
-      let newsNotifications: Notification[] = [];
-      
-      if (!newsError && newsData) {
-        // Real data exists
-        newsNotifications = Array.isArray(newsData) ? newsData : [newsData];
-      } else {
-        // Fallback to dummy data
-        newsNotifications = [
-          {
-            id: 'news1',
-            type: 'news',
-            title: 'Market Analysis Available',
-            message: 'New market analysis report is available',
-            news_id: '101',
-            read: false,
-            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ];
-      }
-      
-      // Fetch system notifications
-      const { data: systemData, error: systemError } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('type', 'system')
-        .order('created_at', { ascending: false })
-        .limit(2)
-        .maybeSingle();
-      
-      let systemNotifications: Notification[] = [];
-      
-      if (!systemError && systemData) {
-        // Real data exists
-        systemNotifications = Array.isArray(systemData) ? systemData : [systemData];
-      } else {
-        // Fallback to dummy data
-        systemNotifications = [
-          {
-            id: 'sys1',
-            type: 'system',
-            title: 'Welcome to Intelligent Investor',
-            message: 'Track your favorite dividend stocks and stay updated.',
-            read: true,
-            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-          }
-        ];
-      }
+      // Simulate system notifications
+      const systemNotifications: Notification[] = [
+        {
+          id: 'sys1',
+          type: 'system',
+          title: 'Welcome to Intelligent Investor',
+          message: 'Track your favorite dividend stocks and stay updated.',
+          read: true,
+          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
       
       // Combine all notifications and sort by created date
       const allNotifications = [
