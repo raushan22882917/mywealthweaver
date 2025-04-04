@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
-import { fetchDividendAnnouncements } from '@/utils/notifications';
+import { getUnreadNotificationCount } from '@/utils/notifications';
+import { supabase } from '@/integrations/supabase/client';
 
 const NavbarNotificationSection: React.FC = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -10,14 +11,49 @@ const NavbarNotificationSection: React.FC = () => {
   
   useEffect(() => {
     loadNotificationCount();
+    
+    // Set up a real-time subscription for new notifications
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'dividend_announcements'
+        },
+        () => {
+          // Refresh notification count when new dividend announcements are added
+          loadNotificationCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications'
+        },
+        () => {
+          // Refresh notification count when new notifications are added
+          loadNotificationCount();
+        }
+      )
+      .subscribe();
+    
+    // Check for new notifications every 2 minutes
+    const interval = setInterval(loadNotificationCount, 120000);
+    
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
   }, []);
   
   const loadNotificationCount = async () => {
     try {
-      const announcements = await fetchDividendAnnouncements();
-      // In a real app, you would check which ones are unread
-      // For now, we'll just show the number of recent announcements
-      setNotificationCount(announcements.length);
+      const count = await getUnreadNotificationCount();
+      setNotificationCount(count);
     } catch (error) {
       console.error('Error loading notification count:', error);
     }

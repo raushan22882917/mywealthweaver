@@ -1,10 +1,13 @@
+
 import { useState, useEffect } from "react";
+import { useParams, useLocation } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, Share2 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import Papa from 'papaparse';
 
 interface NewsItem {
@@ -23,10 +26,25 @@ const News = () => {
   const [newsData, setNewsData] = useState<NewsItem[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [highlightedNewsId, setHighlightedNewsId] = useState<string | null>(null);
   const newsPerPage = 10;
+  const { id } = useParams<{ id?: string }>();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const newsIdFromQuery = queryParams.get('id');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const newsId = id || newsIdFromQuery;
+    if (newsId) {
+      setHighlightedNewsId(newsId);
+    }
+  }, [id, newsIdFromQuery]);
 
   useEffect(() => {
     const fetchNewsData = async () => {
+      setLoading(true);
       try {
         const response = await fetch('/news/news_sentiment_analysis.csv');
         const csvText = await response.text();
@@ -42,28 +60,65 @@ const News = () => {
                 id: index + 1,
                 sentiment_score: item.sentiment_score === 'N/A' ? '0' : item.sentiment_score
               }));
+            
             setNewsData(processedNews);
+            
+            // If a specific news ID is provided, scroll to it
+            if (highlightedNewsId) {
+              setTimeout(() => {
+                const element = document.getElementById(`news-${highlightedNewsId}`);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                  element.classList.add('ring-2', 'ring-blue-500');
+                  toast({
+                    title: "News highlighted",
+                    description: "You were redirected to the specific news item.",
+                  });
+                }
+              }, 500);
+            }
+            
+            setLoading(false);
           }
         });
       } catch (error) {
         console.error('Error fetching news data:', error);
+        setLoading(false);
       }
     };
 
     fetchNewsData();
+    // Refresh data every 2 minutes
     const interval = setInterval(fetchNewsData, 120000);
     return () => clearInterval(interval);
-  }, []);
+  }, [highlightedNewsId, toast]);
 
-  const filteredNews = newsData.filter(news => 
-    news.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    news.news_title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter news based on search query and highlighted ID
+  const filteredNews = newsData.filter(news => {
+    const matchesSearch = news.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         news.news_title.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // If highlighting a specific ID, only show that news item first
+    if (highlightedNewsId && news.id?.toString() === highlightedNewsId) {
+      return true;
+    }
+    
+    return matchesSearch;
+  });
+
+  // Sort to ensure highlighted news appears at the top
+  const sortedFilteredNews = [...filteredNews].sort((a, b) => {
+    if (highlightedNewsId) {
+      if (a.id?.toString() === highlightedNewsId) return -1;
+      if (b.id?.toString() === highlightedNewsId) return 1;
+    }
+    return 0;
+  });
 
   const indexOfLastNews = currentPage * newsPerPage;
   const indexOfFirstNews = indexOfLastNews - newsPerPage;
-  const currentNews = filteredNews.slice(indexOfFirstNews, indexOfLastNews);
-  const totalPages = Math.ceil(filteredNews.length / newsPerPage);
+  const currentNews = sortedFilteredNews.slice(indexOfFirstNews, indexOfLastNews);
+  const totalPages = Math.ceil(sortedFilteredNews.length / newsPerPage);
 
   // Calculate sentiment counts for filtered news
   const getSentimentCounts = () => {
@@ -125,58 +180,69 @@ const News = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-3">
-            {currentNews.map((news) => (
-              <Card 
-                key={news.id} 
-                className="bg-[#1a1f2e] border-gray-700"
-              >
-                <div className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <a 
-                      href={news.original_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-base font-medium text-white hover:text-blue-400"
-                    >
-                      {news.news_title}
-                    </a>
-                    <Badge className="bg-[#2a3142] text-gray-300 border-0">
-                      {news.symbol}
-                    </Badge>
-                  </div>
-                  
-                  <div className="mt-3 flex items-center gap-4 text-sm text-gray-400">
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4" />
-                      {new Date(news.date).toLocaleDateString()}
+            {loading ? (
+              <div className="flex justify-center items-center h-60">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+              </div>
+            ) : currentNews.length > 0 ? (
+              currentNews.map((news) => (
+                <Card 
+                  key={news.id} 
+                  id={`news-${news.id}`}
+                  className={`bg-[#1a1f2e] border-gray-700 ${highlightedNewsId && news.id?.toString() === highlightedNewsId ? 'border-blue-500 bg-[#212738]' : ''}`}
+                >
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <a 
+                        href={news.original_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-base font-medium text-white hover:text-blue-400"
+                      >
+                        {news.news_title}
+                      </a>
+                      <Badge className="bg-[#2a3142] text-gray-300 border-0">
+                        {news.symbol}
+                      </Badge>
                     </div>
-                    <span className="text-gray-600">•</span>
-                    <span>{news.source}</span>
-                  </div>
+                    
+                    <div className="mt-3 flex items-center gap-4 text-sm text-gray-400">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        {new Date(news.date).toLocaleDateString()}
+                      </div>
+                      <span className="text-gray-600">•</span>
+                      <span>{news.source}</span>
+                    </div>
 
-                  <div className="mt-4 flex items-center gap-3">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-gray-300 border-gray-700 hover:bg-[#242938]"
-                    >
-                      Like
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-gray-300 border-gray-700 hover:bg-[#242938]"
-                    >
-                      <Share2 className="h-4 w-4 mr-1" />
-                      Share
-                    </Button>
+                    <div className="mt-4 flex items-center gap-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-gray-300 border-gray-700 hover:bg-[#242938]"
+                      >
+                        Like
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-gray-300 border-gray-700 hover:bg-[#242938]"
+                      >
+                        <Share2 className="h-4 w-4 mr-1" />
+                        Share
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            ) : (
+              <div className="bg-[#1a1f2e] rounded-lg border border-gray-700 p-8 text-center">
+                <p className="text-gray-400">No news found matching your search.</p>
+              </div>
+            )}
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {filteredNews.length > 0 && totalPages > 1 && (
               <div className="flex items-center justify-between mt-6 bg-[#1a1f2e] p-4 rounded-lg border border-gray-700">
                 <Button
                   variant="outline"

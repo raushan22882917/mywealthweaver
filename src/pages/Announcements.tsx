@@ -1,22 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Notification, fetchDividendAnnouncements, convertAnnouncementsToNotifications } from '@/utils/notifications';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, Calendar, DollarSign, TrendingUp, AlertCircle, Mail, Search, Filter, X } from 'lucide-react';
+import { Bell, Calendar, DollarSign, TrendingUp, AlertCircle, Mail, Search, X } from 'lucide-react';
+import { useToast } from "@/components/ui/use-toast";
 import { supabase } from '@/integrations/supabase/client';
-
-// Helper function to parse query parameters
-const useQueryParams = () => {
-  const { search } = useLocation();
-  return React.useMemo(() => new URLSearchParams(search), [search]);
-};
 
 const Announcements: React.FC = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -26,8 +21,11 @@ const Announcements: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
   
   const navigate = useNavigate();
-  const queryParams = useQueryParams();
-  const notificationId = queryParams.get('notification');
+  const { id } = useParams<{ id?: string }>();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const notificationId = queryParams.get('notification') || id;
+  const { toast } = useToast();
 
   useEffect(() => {
     loadAllNotifications();
@@ -69,12 +67,27 @@ const Announcements: React.FC = () => {
   const loadAllNotifications = async () => {
     setLoading(true);
     try {
-      // Fetch dividend announcements
-      const announcements = await fetchDividendAnnouncements();
-      const dividendNotifications = convertAnnouncementsToNotifications(announcements);
+      // Fetch dividend announcements from Supabase
+      const { data: divAnnouncements, error: divError } = await supabase
+        .from('dividend_announcements')
+        .select('*')
+        .order('date', { ascending: false });
       
-      // Fetch other types of notifications from Supabase (if you have tables for them)
-      // For now, we'll add some sample notifications
+      if (divError) throw divError;
+      
+      // Convert dividend announcements to notification format
+      const dividendNotifications = divAnnouncements.map(announcement => ({
+        id: announcement.id,
+        type: 'dividend' as const,
+        title: announcement.header,
+        message: announcement.message,
+        related_symbol: announcement.symbol,
+        read: false,
+        created_at: announcement.created_at,
+      }));
+      
+      // Fetch other types of notifications (if tables exist)
+      // For now we'll add some sample notifications
       
       const priceNotifications: Notification[] = [
         {
@@ -109,45 +122,73 @@ const Announcements: React.FC = () => {
         }
       ];
       
-      const newsNotifications: Notification[] = [
-        {
-          id: 'news1',
-          type: 'news',
-          title: 'Market Analysis Available',
-          message: 'New market analysis report is available',
-          news_id: '101',
-          read: false,
-          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'news2',
-          type: 'news',
-          title: 'Federal Reserve Meeting',
-          message: 'Federal Reserve announces interest rate decision',
-          news_id: '102',
-          read: true,
-          created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
+      // Fetch news notifications from any existing table or use sample
+      const { data: newsData, error: newsError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('type', 'news')
+        .order('created_at', { ascending: false });
       
-      const systemNotifications: Notification[] = [
-        {
-          id: 'sys1',
-          type: 'system',
-          title: 'Welcome to Intelligent Investor',
-          message: 'Track your favorite dividend stocks and stay updated.',
-          read: true,
-          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        },
-        {
-          id: 'sys2',
-          type: 'system',
-          title: 'New Features Available',
-          message: 'Check out our latest features for stock analysis.',
-          read: false,
-          created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
+      let newsNotifications: Notification[] = [];
+      
+      if (!newsError && newsData && newsData.length > 0) {
+        newsNotifications = newsData;
+      } else {
+        // Use sample data
+        newsNotifications = [
+          {
+            id: 'news1',
+            type: 'news',
+            title: 'Market Analysis Available',
+            message: 'New market analysis report is available',
+            news_id: '101',
+            read: false,
+            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'news2',
+            type: 'news',
+            title: 'Federal Reserve Meeting',
+            message: 'Federal Reserve announces interest rate decision',
+            news_id: '102',
+            read: true,
+            created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ];
+      }
+      
+      // Fetch system notifications
+      const { data: systemData, error: systemError } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('type', 'system')
+        .order('created_at', { ascending: false });
+      
+      let systemNotifications: Notification[] = [];
+      
+      if (!systemError && systemData && systemData.length > 0) {
+        systemNotifications = systemData;
+      } else {
+        // Use sample data
+        systemNotifications = [
+          {
+            id: 'sys1',
+            type: 'system',
+            title: 'Welcome to Intelligent Investor',
+            message: 'Track your favorite dividend stocks and stay updated.',
+            read: true,
+            created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          {
+            id: 'sys2',
+            type: 'system',
+            title: 'New Features Available',
+            message: 'Check out our latest features for stock analysis.',
+            read: false,
+            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString()
+          }
+        ];
+      }
       
       // Combine all notifications and sort by created date
       const allNotifications = [
@@ -169,6 +210,12 @@ const Announcements: React.FC = () => {
           if (element) {
             element.scrollIntoView({ behavior: 'smooth' });
             element.classList.add('bg-purple-900/20');
+            
+            toast({
+              title: "Notification highlighted",
+              description: "You were redirected to the specific notification.",
+            });
+            
             setTimeout(() => {
               element.classList.remove('bg-purple-900/20');
               element.classList.add('bg-gray-700/50');
@@ -178,19 +225,25 @@ const Announcements: React.FC = () => {
       }
     } catch (error) {
       console.error('Error loading notifications:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load notifications. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    // Mark as read logic would go here
+    // Mark as read logic would go here in a real app
+    // For this example, we'll simulate by setting read state
     
     // Handle redirection based on notification type
     if (notification.type === 'dividend' && notification.related_symbol) {
       navigate(`/dividend/${notification.related_symbol}`);
     } else if (notification.type === 'news' && notification.news_id) {
-      navigate(`/news?id=${notification.news_id}`);
+      navigate(`/news/${notification.news_id}`);
     } else if (notification.type === 'earnings' && notification.related_symbol) {
       navigate(`/stock/${notification.related_symbol}?tab=earnings`);
     } else if (notification.type === 'price' && notification.related_symbol) {
@@ -351,7 +404,7 @@ const Announcements: React.FC = () => {
             id={`notification-${notification.id}`}
             className={`bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors cursor-pointer ${
               !notification.read ? 'border-l-4 border-l-purple-500' : ''
-            }`}
+            } ${notification.id === notificationId ? 'ring-2 ring-purple-500' : ''}`}
             onClick={() => handleNotificationClick(notification)}
           >
             <CardContent className="p-4">

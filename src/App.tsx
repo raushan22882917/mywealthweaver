@@ -117,10 +117,12 @@ function App() {
           <Route path="/dividend/:symbol?" element={<Dividend />} />
           <Route path="/market-data" element={<MarketData />} />
           <Route path="/news" element={<News />} />
+          <Route path="/news/:id?" element={<News />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/announcements" element={<Announcements />} />
+          <Route path="/announcements/:id?" element={<Announcements />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster />

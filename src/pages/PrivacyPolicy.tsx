@@ -79,7 +79,7 @@ export default function PrivacyPolicy() {
               </div>
             </div>
 
-            <p className="text-gray-400 text-xs">Last updated: February 2025</p>
+            <p className="text-gray-400 text-xs">Last updated: April 2025</p>
           </CardContent>
         </Card>
       </div>

@@ -22,7 +22,7 @@ export interface DividendAnnouncement {
   created_at: string;
 }
 
-// Function to fetch dividend announcements
+// Function to fetch dividend announcements from Supabase
 export const fetchDividendAnnouncements = async (): Promise<DividendAnnouncement[]> => {
   try {
     const { data, error } = await supabase
@@ -54,7 +54,7 @@ export const convertAnnouncementsToNotifications = (
   }));
 };
 
-// Format date for notifications
+// Format date for notifications display
 export const formatNotificationDate = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
@@ -74,5 +74,72 @@ export const formatNotificationDate = (dateString: string): string => {
     return `${diffDays} days ago`;
   } else {
     return date.toLocaleDateString();
+  }
+};
+
+// Mark a notification as read
+export const markNotificationAsRead = async (notificationId: string): Promise<boolean> => {
+  try {
+    // First check which table the notification belongs to
+    const { data: divNotification, error: divError } = await supabase
+      .from('dividend_announcements')
+      .select('id')
+      .eq('id', notificationId)
+      .maybeSingle();
+    
+    if (!divError && divNotification) {
+      // This is a dividend announcement, we would update read status
+      // For now, we'll just return success as if it was updated
+      return true;
+    }
+    
+    // Check if it's in the notifications table
+    const { data: notification, error: notificationError } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('id', notificationId)
+      .maybeSingle();
+    
+    if (!notificationError && notification) {
+      // Update the read status
+      const { error: updateError } = await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+      
+      return !updateError;
+    }
+    
+    // If we reach here, the notification wasn't found in any table
+    return false;
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    return false;
+  }
+};
+
+// Function to get unread notification count
+export const getUnreadNotificationCount = async (): Promise<number> => {
+  try {
+    // Get count of unread notifications from the notifications table
+    const { count: notificationCount, error: notificationError } = await supabase
+      .from('notifications')
+      .select('*', { count: 'exact', head: true })
+      .eq('read', false);
+    
+    // Get recent dividend announcements (assuming they're all "unread")
+    const { data: divAnnouncements, error: divError } = await supabase
+      .from('dividend_announcements')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    const divCount = divAnnouncements?.length || 0;
+    const notifCount = notificationCount || 0;
+    
+    return divCount + notifCount;
+  } catch (error) {
+    console.error('Error getting unread notification count:', error);
+    return 0;
   }
 };
