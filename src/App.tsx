@@ -1,6 +1,6 @@
+
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -27,7 +27,7 @@ import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import { Session } from '@supabase/supabase-js';
 import TopStocks from "./components/TopStocks";
-import Policy from "./pages/Policy";
+import Policy from "./pages/policy";
 import Announcements from "./pages/Announcements";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
