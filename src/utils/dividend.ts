@@ -25,8 +25,8 @@ export interface DividendData {
   yieldRange: string;
   logo?: string;
   companyName?: string;
-  ExDividendDate?: string;
-  DividendDate?: string;
+  exdividenddate?: string;
+  dividenddate?: string;
 }
 
 export interface Holiday {

@@ -1,44 +1,44 @@
 
-import React, { useState, useEffect } from 'react';
-import { Bell, Calendar, DollarSign, TrendingUp, AlertCircle, Mail } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Notification, 
-  fetchDividendAnnouncements, 
-  convertAnnouncementsToNotifications, 
-  formatNotificationDate 
-} from '@/utils/notifications';
-import { supabase } from '@/integrations/supabase/client';
+import { Bell, X, Calendar, DollarSign, TrendingUp, Info, Star, AlertTriangle, Check } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Notification, formatNotificationDate, fetchDividendAnnouncements, convertAnnouncementsToNotifications } from '@/utils/notifications';
+import { useToast } from '@/components/ui/use-toast';
 
 interface NotificationDropdownProps {
   open: boolean;
   onClose: () => void;
 }
 
-const NotificationIcon = ({ type }: { type: string }) => {
-  switch (type) {
-    case 'dividend':
-      return <DollarSign className="h-4 w-4 text-green-400" />;
-    case 'price':
-      return <TrendingUp className="h-4 w-4 text-blue-400" />;
-    case 'earnings':
-      return <Calendar className="h-4 w-4 text-purple-400" />;
-    case 'news':
-      return <AlertCircle className="h-4 w-4 text-yellow-400" />;
-    case 'system':
-      return <Bell className="h-4 w-4 text-gray-400" />;
-    default:
-      return <Mail className="h-4 w-4 text-gray-400" />;
-  }
-};
-
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClose }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { toast } = useToast();
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    }
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [open, onClose]);
+
+  // Load notifications when dropdown opens
   useEffect(() => {
     if (open) {
       loadNotifications();
@@ -46,169 +46,128 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
   }, [open]);
 
   const loadNotifications = async () => {
-    setLoading(true);
     try {
-      // Fetch dividend announcements from Supabase
-      const divAnnouncements = await fetchDividendAnnouncements();
+      setLoading(true);
       
-      // Convert dividend announcements to notification format
-      const dividendNotifications = convertAnnouncementsToNotifications(divAnnouncements);
+      // Load dividend announcements
+      const announcements = await fetchDividendAnnouncements();
+      const notificationItems = convertAnnouncementsToNotifications(announcements);
       
-      // Simulate news notifications
-      const newsNotifications: Notification[] = [
-        {
-          id: 'news1',
-          type: 'news',
-          title: 'Market Analysis Available',
-          message: 'New market analysis report is available',
-          news_id: '101',
-          read: false,
-          created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
-      
-      // Simulate system notifications
-      const systemNotifications: Notification[] = [
-        {
-          id: 'sys1',
-          type: 'system',
-          title: 'Welcome to Intelligent Investor',
-          message: 'Track your favorite dividend stocks and stay updated.',
-          read: true,
-          created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-        }
-      ];
-      
-      // Combine all notifications and sort by created date
-      const allNotifications = [
-        ...dividendNotifications, 
-        ...newsNotifications, 
-        ...systemNotifications
-      ].sort((a, b) => 
-        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-      
-      setNotifications(allNotifications);
+      setNotifications(notificationItems);
     } catch (error) {
       console.error('Error loading notifications:', error);
+      toast({
+        title: "Failed to load notifications",
+        description: "Please try again later",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    onClose();
-    
-    // Handle redirection based on notification type
+    // Handle navigation based on notification type
     if (notification.type === 'dividend' && notification.related_symbol) {
-      // Redirect to the specific stock's dividend page
       navigate(`/dividend/${notification.related_symbol}`);
-    } else if (notification.type === 'news' && notification.news_id) {
-      // Redirect to the specific news article
-      navigate(`/news/${notification.news_id}`);
-    } else if (notification.type === 'earnings' && notification.related_symbol) {
-      // Redirect to the stock details with earnings tab
-      navigate(`/stock/${notification.related_symbol}?tab=earnings`);
     } else if (notification.type === 'price' && notification.related_symbol) {
-      // Redirect to the stock details
       navigate(`/stock/${notification.related_symbol}`);
-    } else if (notification.id) {
-      // For other types or when specific IDs aren't available, 
-      // redirect to the announcements page with the notification ID
-      navigate(`/announcements/${notification.id}`);
-    } else {
-      // Fallback to announcements page
+    } else if (notification.type === 'earnings' && notification.related_symbol) {
+      navigate(`/stock/${notification.related_symbol}`);
+    } else if (notification.type === 'news' && notification.news_id) {
+      navigate(`/news?id=${notification.news_id}`);
+    } else if (notification.type === 'announcement') {
       navigate('/announcements');
+    }
+    
+    // Close the dropdown after clicking
+    onClose();
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'dividend':
+        return <DollarSign className="h-5 w-5 text-green-400" />;
+      case 'price':
+        return <TrendingUp className="h-5 w-5 text-blue-400" />;
+      case 'earnings':
+        return <Calendar className="h-5 w-5 text-purple-400" />;
+      case 'news':
+        return <Info className="h-5 w-5 text-yellow-400" />;
+      case 'announcement':
+        return <Star className="h-5 w-5 text-amber-400" />;
+      case 'system':
+        return <AlertTriangle className="h-5 w-5 text-red-400" />;
+      default:
+        return <Bell className="h-5 w-5 text-gray-400" />;
     }
   };
 
   if (!open) return null;
 
   return (
-    <div className="absolute right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-      <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-        <h3 className="text-lg font-medium text-white">Notifications</h3>
-        <Badge className="bg-purple-600">{notifications.filter(n => !n.read).length} new</Badge>
-      </div>
-      
-      <div className="max-h-96 overflow-y-auto">
-        {loading ? (
-          <div className="p-4 text-center text-gray-400">
-            Loading notifications...
-          </div>
-        ) : notifications.length > 0 ? (
-          notifications.map((notification) => (
-            <div 
-              key={notification.id}
-              onClick={() => handleNotificationClick(notification)}
-              className={`p-4 border-b border-gray-700 hover:bg-gray-700 cursor-pointer transition-colors ${
-                !notification.read ? 'bg-gray-700/50' : ''
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div className={`p-2 rounded-full ${
-                  notification.type === 'dividend' ? 'bg-green-900/40' : 
-                  notification.type === 'price' ? 'bg-blue-900/40' : 
-                  notification.type === 'earnings' ? 'bg-purple-900/40' : 
-                  notification.type === 'news' ? 'bg-yellow-900/40' : 
-                  'bg-gray-800'
-                }`}>
-                  <NotificationIcon type={notification.type} />
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex justify-between items-start">
-                    <p className={`text-sm font-medium ${
-                      notification.type === 'dividend' ? 'text-green-400' : 
-                      notification.type === 'price' ? 'text-blue-400' : 
-                      notification.type === 'earnings' ? 'text-purple-400' : 
-                      notification.type === 'news' ? 'text-yellow-400' : 
-                      'text-gray-400'
-                    }`}>
-                      {notification.title}
-                    </p>
-                    {!notification.read && (
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                    )}
-                  </div>
-                  
-                  <p className="text-gray-300 text-sm mt-1">{notification.message}</p>
-                  
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-gray-500">
-                      {formatNotificationDate(notification.created_at)}
-                    </span>
-                    
-                    {notification.related_symbol && (
-                      <Badge variant="outline" className="text-xs border-gray-600">
-                        {notification.related_symbol}
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))
-        ) : (
-          <div className="p-8 text-center">
-            <Bell className="h-8 w-8 mx-auto text-gray-600 mb-2" />
-            <p className="text-gray-400">No notifications yet</p>
-          </div>
-        )}
-      </div>
-      
-      <div className="p-2 flex justify-center border-t border-gray-700">
+    <div 
+      ref={dropdownRef}
+      className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-gray-900 rounded-lg shadow-lg z-50 border border-gray-700"
+    >
+      <div className="p-3 border-b border-gray-700 flex justify-between items-center sticky top-0 bg-gray-800 z-10">
+        <h3 className="font-medium text-white">Notifications</h3>
         <Button 
-          variant="link"
-          className="w-full text-center text-blue-400 text-sm hover:text-blue-300"
-          onClick={() => {
-            onClose();
-            navigate('/announcements');
-          }}
+          variant="ghost" 
+          size="icon" 
+          onClick={onClose}
+          className="h-8 w-8 rounded-full hover:bg-gray-700"
         >
-          View all notifications
+          <X className="h-4 w-4 text-gray-400" />
         </Button>
       </div>
+      
+      {loading ? (
+        <div className="flex justify-center items-center p-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+        </div>
+      ) : notifications.length > 0 ? (
+        <div>
+          {notifications.map((notification) => (
+            <Card
+              key={notification.id}
+              className="border-none rounded-none hover:bg-gray-800 transition-colors cursor-pointer"
+              onClick={() => handleNotificationClick(notification)}
+            >
+              <div className="p-4 flex gap-3">
+                <div className="mt-1 flex-shrink-0">
+                  {getNotificationIcon(notification.type)}
+                </div>
+                <div>
+                  <p className="font-medium text-white">{notification.title}</p>
+                  <p className="text-sm text-gray-400 line-clamp-2 mb-1">{notification.message}</p>
+                  <p className="text-xs text-gray-500">{formatNotificationDate(notification.created_at)}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
+          
+          <div className="p-3 border-t border-gray-700 text-center">
+            <Button 
+              variant="ghost"
+              className="text-blue-400 hover:text-blue-300 text-sm"
+              onClick={() => {
+                navigate('/announcements');
+                onClose();
+              }}
+            >
+              View All Notifications
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="p-6 text-center">
+          <div className="mx-auto w-12 h-12 flex items-center justify-center rounded-full bg-gray-800 mb-4">
+            <Check className="h-6 w-6 text-gray-400" />
+          </div>
+          <p className="text-gray-400">No new notifications</p>
+        </div>
+      )}
     </div>
   );
 };

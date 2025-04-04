@@ -66,8 +66,8 @@ const StockHoverCard = ({ stock, children }: StockHoverCardProps) => {
             <div className="bg-gray-800/70 p-2 rounded-lg">
               <p className="text-gray-400 text-xs">Ex-Dividend</p>
               <p className="text-purple-400 font-medium">
-                {(stock.ExDividendDate || stock.exdividenddate) 
-                  ? format(new Date(stock.ExDividendDate || stock.exdividenddate), 'MMM d, yyyy') 
+                {(stock.exdividenddate) 
+                  ? format(new Date(stock.exdividenddate), 'MMM d, yyyy') 
                   : 'N/A'}
               </p>
             </div>
@@ -87,8 +87,8 @@ const StockHoverCard = ({ stock, children }: StockHoverCardProps) => {
           <div className="mt-3 text-xs text-gray-400 flex items-center justify-between">
             <div className="flex items-center">
               <CalendarDays className="w-3.5 h-3.5 mr-1" />
-              <span>Dividend: {(stock.DividendDate || stock.dividenddate) 
-                ? format(new Date(stock.DividendDate || stock.dividenddate), 'MMM d, yyyy') 
+              <span>Dividend: {(stock.dividenddate) 
+                ? format(new Date(stock.dividenddate), 'MMM d, yyyy') 
                 : 'N/A'}</span>
             </div>
             <div className="flex items-center text-blue-400 hover:text-blue-300 transition-colors">

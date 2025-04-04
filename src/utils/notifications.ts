@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface Notification {
   id: string;
-  type: 'dividend' | 'price' | 'earnings' | 'news' | 'system';
+  type: 'dividend' | 'price' | 'earnings' | 'news' | 'system' | string;
   title: string;
   message: string;
   related_symbol?: string;
@@ -104,7 +104,7 @@ export const markNotificationAsRead = async (notificationId: string): Promise<bo
 // Function to get unread notification count
 export const getUnreadNotificationCount = async (): Promise<number> => {
   try {
-    // Get count of unread notifications from the notifications table
+    // Get count of unread notifications from the dividend_announcements table
     let notificationCount = 0;
     
     // Get recent dividend announcements (assuming they're all "unread")
