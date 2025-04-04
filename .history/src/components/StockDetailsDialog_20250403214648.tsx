@@ -143,7 +143,7 @@ interface RankingDisplayData {
   sector: string;
 }
 
-interface fetchRankingData {
+interface RankingCSVData {
   symbol: string;
   score: string;
   rank: string;
@@ -181,51 +181,15 @@ interface SavedStock {
   is_favorite: boolean;
 }
 
-const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
-  const [timeLeft, setTimeLeft] = useState<{
-    buyDays: number;
-    buyHours: number;
-    payoutDays: number;
-    payoutHours: number;
-    isBuyPassed: boolean;
-    isPayoutPassed: boolean;
-  }>({
+const DividendCountdown: React.FC<{ dates: { buyDate: string; payoutDate: string } }> = ({ dates }) => {
+  const [timeLeft, setTimeLeft] = useState({
     buyDays: 0,
     buyHours: 0,
     payoutDays: 0,
     payoutHours: 0,
     isBuyPassed: false,
-    isPayoutPassed: false,
+    isPayoutPassed: false
   });
-  const [dates, setDates] = useState<{
-    buyDate: string;
-    payoutDate: string;
-  }>({
-    buyDate: '',
-    payoutDate: ''
-  });
-
-  useEffect(() => {
-    const fetchDates = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('dividend')
-          .select('*')
-          .eq('symbol', symbol)
-          .single();
-
-        if (error) throw error;
-        setDates({
-          buyDate: data.buy_date,
-          payoutDate: data.payoutdate
-        });
-      } catch (error) {
-        console.error('Error fetching dates:', error);
-      }
-    };
-
-    fetchDates();
-  }, [symbol]);
 
   useEffect(() => {
     if (!dates.buyDate && !dates.payoutDate) return;
@@ -233,12 +197,10 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     const calculateTimeLeft = () => {
       const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
       
-      // Calculate buy date countdown
       const buyExDate = new Date(dates.buyDate);
       buyExDate.setHours(16, 0, 0, 0);
       const buyDifference = buyExDate.getTime() - now.getTime();
 
-      // Calculate payout date countdown
       const payoutExDate = new Date(dates.payoutDate);
       payoutExDate.setHours(16, 0, 0, 0);
       const payoutDifference = payoutExDate.getTime() - now.getTime();
@@ -253,8 +215,8 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
       });
     };
 
-    const timer = setInterval(calculateTimeLeft, 1000 * 60 * 60); // Update every hour
     calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000 * 60 * 60); // Update every hour
 
     return () => clearInterval(timer);
   }, [dates]);
@@ -262,44 +224,42 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
   if (!dates.buyDate && !dates.payoutDate) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-4 w-full">
-      <Card className="w-full p-8 bg-gradient-to-br from-gray-900 to-blue-900 shadow-lg rounded-xl text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center"></div>
-        <div className="relative z-10">
-          <div className="text-center">
-            {!timeLeft.isBuyPassed ? (
-              <div className="flex items-center justify-center gap-3 mb-8">
-                <Calendar className="w-8 h-8 text-blue-400" />
-                <h3 className="text-2xl font-bold text-white">Time until Buy Date</h3>
-              </div>
-            ) : (
-              <div className="text-3xl font-bold text-red-500 animate-pulse flex items-center justify-center gap-3">
-                <AlertCircle className="w-8 h-8" />
-                Ex-Dividend Date Has Passed
-              </div>
-            )}
-            
-            {!timeLeft.isBuyPassed && (
-              <div className="flex justify-center items-center gap-12">
-                {[
-                  { label: "Days", value: timeLeft.buyDays, color: "text-white" },
-                  { label: "Hours", value: timeLeft.buyHours, color: timeLeft.buyDays === 0 ? "text-red-500" : "text-white" }
-                ].map((item, index) => (
-                  <div key={index} className="flex flex-col items-center bg-black/20 px-8 py-6 rounded-xl">
-                    <div className={`text-7xl font-bold ${item.color} mb-3 font-mono tracking-wider`}>
-                      {String(item.value).padStart(2, '0')}
-                    </div>
-                    <div className="text-xl text-blue-200 font-medium uppercase tracking-wide">
-                      {item.label}
-                    </div>
+    <Card className="w-full p-6 bg-gradient-to-br from-gray-900 to-blue-900 shadow-lg rounded-xl text-white relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center"></div>
+      <div className="relative z-10">
+        <div className="text-center">
+          {!timeLeft.isBuyPassed ? (
+            <div className="flex items-center justify-center gap-3 mb-6">
+              <Calendar className="w-6 h-6 text-blue-400" />
+              <h3 className="text-xl font-bold text-white">Time until Buy Date</h3>
+            </div>
+          ) : (
+            <div className="text-2xl font-bold text-red-500 animate-pulse flex items-center justify-center gap-3">
+              <AlertCircle className="w-6 h-6" />
+              Ex-Dividend Date Has Passed
+            </div>
+          )}
+          
+          {!timeLeft.isBuyPassed && (
+            <div className="flex justify-center items-center gap-8">
+              {[
+                { label: "Days", value: timeLeft.buyDays, color: "text-white" },
+                { label: "Hours", value: timeLeft.buyHours, color: timeLeft.buyDays === 0 ? "text-red-500" : "text-white" }
+              ].map((item, index) => (
+                <div key={index} className="flex flex-col items-center bg-black/20 px-6 py-4 rounded-xl">
+                  <div className={`text-5xl font-bold ${item.color} mb-2 font-mono tracking-wider`}>
+                    {String(item.value).padStart(2, '0')}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                  <div className="text-lg text-blue-200 font-medium uppercase tracking-wide">
+                    {item.label}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </Card>
-    </div>
+      </div>
+    </Card>
   );
 };
 
@@ -432,15 +392,15 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       
       try {
         const { data, error } = await supabase
-          .from('top_stocks')
+          .from('stock_rankings')
           .select('*')
           .eq('symbol', stock.Symbol)
           .single();
 
         if (error) throw error;
         setRankingCSVData({
-          Rank: data.Rank,
-          Score: data.Score,
+          rank: data.rank,
+          score: data.score,
           sector: data.sector,
           industry: data.industry
         });
@@ -470,7 +430,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
           .select('*')
-          .in('Symbol', similarData.map(company => company.similar_symbol));
+          .in('symbol', similarData.map(company => company.similar_symbol));
     
         if (logoError) throw logoError;
     
@@ -478,9 +438,9 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const combinedData: SimilarCompany[] = similarData.map(company => ({
           symbol: company.similar_symbol,
           similar_symbol: company.similar_symbol,
-          similar_company: company.company_name,
+          similar_company: company.similar_company,
           revenue_2024: company.revenue_2024,
-          logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL || null
+          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.LogoURL || null
         }));
     
         setSimilarCompanies(combinedData);
@@ -543,11 +503,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           const { data, error } = await supabase
             .from('company_logos')
             .select('*')
-            .eq('Symbol', stock.Symbol)
+            .eq('symbol', stock.Symbol)
             .single();
 
           if (error) throw error;
-          setLogoURL(data.LogoURL);
+          setLogoURL(data.logo_url);
         } catch (error) {
           console.error('Error fetching logo:', error);
         }
@@ -571,13 +531,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           const { data: logoData, error: logoError } = await supabase
             .from('company_logos')
             .select('*')
-            .in('Symbol', similarData.map(company => company.similar_symbol));
+            .in('symbol', similarData.map(company => company.similar_symbol));
 
           if (logoError) throw logoError;
 
           const combinedData = similarData.map(company => ({
             ...company,
-            logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
+            logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.logo_url
           }));
 
           setSimilarStocks(combinedData);
@@ -758,7 +718,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           user_id: user.id,
           symbol: stock.Symbol,
           company_name: stock.title,
-          LogoURL: stock.LogoURL || '',
+          logo_url: stock.LogoURL || '',
           price: parseFloat(stock.marketCap) || 0,
           dividend_yield: parseFloat(stock.dividendYield) || 0,
           next_dividend_date: stock['Ex-Dividend Date'],
@@ -1262,7 +1222,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     </button>
   </div>
 
-
   {/* Short Name Below Symbol & Save Button */}
   <div className="text-sm font-bold text-gray-700 dark:text-gray-300">
     {stock?.title}
@@ -1343,7 +1302,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           <div
             className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
             style={{
-              backgroundImage: `url(${similarStock.LogoURL || "/default-logo.png"})`
+              backgroundImage: `url(${similarStock.logo || "/default-logo.png"})`
             }}
           />
           <div className="text-sm font-semibold text-center">{similarStock.symbol}</div>
@@ -1355,7 +1314,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
   </DialogTitle>
 </DialogHeader>
-
 
 
 

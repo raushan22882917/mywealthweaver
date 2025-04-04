@@ -12,36 +12,26 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { TrendingUp, TrendingDown, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import { Search } from 'lucide-react';
 
 interface Stock {
-  cik_str: string;
-  symbol?: string;
-  title?: string;
-  price?: number;
-  change_value?: number;
-  change_percent?: number;
+  industry: string;
+  sector: string;
+  symbol: string;
+  Score: number;
+  Rank: number;
 }
 
-interface TopStocksProps {
-  limit?: number;
-  compact?: boolean;
-  showNavbar?: boolean;
-  transparentBg?: boolean;
-}
-
-const TopStocks: React.FC<TopStocksProps> = ({ 
-  limit = 10, 
-  compact = false, 
-  showNavbar = true,
-  transparentBg = false 
-}) => {
+const TopStocks: React.FC = () => {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [industryFilter, setIndustryFilter] = useState<string | null>(null);
+  const [sectorFilter, setSectorFilter] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -56,8 +46,8 @@ const TopStocks: React.FC<TopStocksProps> = ({
       const { data, error } = await supabase
         .from('top_stocks')
         .select('*')
-        .order('change_percent', { ascending: false });
-      
+        .order('Score', { ascending: false });
+
       if (error) throw error;
       setStocks(data);
     } catch (err: any) {
@@ -68,40 +58,68 @@ const TopStocks: React.FC<TopStocksProps> = ({
     }
   };
 
+  const industries = Array.from(new Set(stocks.map((s) => s.industry)));
+  const sectors = Array.from(new Set(stocks.filter((s) => !industryFilter || s.industry === industryFilter).map((s) => s.sector)));
+
   const filteredStocks = stocks.filter(
     (stock) =>
-      (stock.symbol && stock.symbol.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (stock.title && stock.title.toLowerCase().includes(searchTerm.toLowerCase()))
+      (!industryFilter || stock.industry === industryFilter) &&
+      (!sectorFilter || stock.sector === sectorFilter) &&
+      (stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const totalPages = Math.ceil(filteredStocks.length / itemsPerPage);
   const paginatedStocks = filteredStocks.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
-    <div className={`flex flex-col ${transparentBg ? 'bg-transparent' : 'bg-background'}`}>
-      {showNavbar && <Navbar />}
-      <main className={`flex-1 container mx-auto px-4 py-8 ${compact ? 'py-2' : 'py-8'}`}>
-        {!compact && (
-          <>
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold mb-2">Top Performing Stocks</h1>
-              <p className="text-muted-foreground">
-                Track the market's top performers and trending stocks
-              </p>
-            </div>
+    <div className="flex flex-col bg-background">
+      <Navbar />
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">Top Performing Stocks</h1>
+          <p className="text-muted-foreground">Track the market's top performers</p>
+        </div>
 
-            <div className="relative w-full md:w-auto mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search by symbol or company name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 w-full md:w-[300px]"
-              />
-            </div>
-          </>
-        )}
+        <div className="flex flex-wrap gap-4 mb-6">
+          <div className="relative w-full md:w-[300px]">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              type="text"
+              placeholder="Search by symbol..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <Select onValueChange={(value) => setIndustryFilter(value === "all" ? null : value)} value={industryFilter || "all"}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by Industry" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Industries</SelectItem>
+              {industries.map((industry) => (
+                <SelectItem key={industry} value={industry}>
+                  {industry}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select onValueChange={(value) => setSectorFilter(value === "all" ? null : value)} value={sectorFilter || "all"} disabled={!industryFilter}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Filter by Sector" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Sectors</SelectItem>
+              {sectors.map((sector) => (
+                <SelectItem key={sector} value={sector}>
+                  {sector}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {isLoading ? (
           <div className="flex justify-center my-12">
@@ -112,44 +130,30 @@ const TopStocks: React.FC<TopStocksProps> = ({
             <p>{error}</p>
           </div>
         ) : (
-          <Card className={`${transparentBg ? 'bg-transparent border-0 shadow-none' : 'shadow-lg'}`}>
-            {!compact && (
-              <CardHeader>
-                <CardTitle>Market Movers</CardTitle>
-              </CardHeader>
-            )}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>Market Movers</CardTitle>
+            </CardHeader>
             <CardContent>
               <Table>
-                {!compact && (
-                  <TableCaption>
-                    Top performing stocks in the market today
-                  </TableCaption>
-                )}
+                <TableCaption>Top performing stocks in the market today</TableCaption>
                 <TableHeader>
                   <TableRow>
                     <TableHead>Symbol</TableHead>
-                    <TableHead>Company</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Change</TableHead>
-                    <TableHead className="text-right">% Change</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Sector</TableHead>
+                    <TableHead className="text-right">Score</TableHead>
+                    <TableHead className="text-right">Rank</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedStocks.map((stock) => (
-                    <TableRow key={stock.symbol || stock.cik_str}>
-                      <TableCell className="font-medium">{stock.symbol || 'N/A'}</TableCell>
-                      <TableCell>{stock.title || 'N/A'}</TableCell>
-                      <TableCell className="text-right">${stock.price?.toFixed(2) || '0.00'}</TableCell>
-                      <TableCell className="text-right">
-                        <span className={stock.change_value && stock.change_value >= 0 ? 'text-green-500' : 'text-red-500'}>
-                          {stock.change_value && stock.change_value >= 0 ? '+' : ''}{stock.change_value?.toFixed(2) || '0.00'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span className={stock.change_percent && stock.change_percent >= 0 ? 'text-green-500' : 'text-red-500'}>
-                          {stock.change_percent && stock.change_percent >= 0 ? '+' : ''}{stock.change_percent?.toFixed(2) || '0.00'}%
-                        </span>
-                      </TableCell>
+                    <TableRow key={stock.symbol}>
+                      <TableCell className="font-medium">{stock.symbol}</TableCell>
+                      <TableCell>{stock.industry}</TableCell>
+                      <TableCell>{stock.sector}</TableCell>
+                      <TableCell className="text-right">{stock.Score}</TableCell>
+                      <TableCell className="text-right font-bold">{stock.Rank}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -167,6 +171,7 @@ const TopStocks: React.FC<TopStocksProps> = ({
           </Card>
         )}
       </main>
+      <Footer />
     </div>
   );
 };

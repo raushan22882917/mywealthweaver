@@ -143,7 +143,7 @@ interface RankingDisplayData {
   sector: string;
 }
 
-interface fetchRankingData {
+interface RankingCSVData {
   symbol: string;
   score: string;
   rank: string;
@@ -209,7 +209,7 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     const fetchDates = async () => {
       try {
         const { data, error } = await supabase
-          .from('dividend')
+          .from('dividend_dates')
           .select('*')
           .eq('symbol', symbol)
           .single();
@@ -217,7 +217,7 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
         if (error) throw error;
         setDates({
           buyDate: data.buy_date,
-          payoutDate: data.payoutdate
+          payoutDate: data.payout_date
         });
       } catch (error) {
         console.error('Error fetching dates:', error);
@@ -432,15 +432,15 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       
       try {
         const { data, error } = await supabase
-          .from('top_stocks')
+          .from('stock_rankings')
           .select('*')
           .eq('symbol', stock.Symbol)
           .single();
 
         if (error) throw error;
         setRankingCSVData({
-          Rank: data.Rank,
-          Score: data.Score,
+          rank: data.rank,
+          score: data.score,
           sector: data.sector,
           industry: data.industry
         });
@@ -470,7 +470,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
           .select('*')
-          .in('Symbol', similarData.map(company => company.similar_symbol));
+          .in('symbol', similarData.map(company => company.similar_symbol));
     
         if (logoError) throw logoError;
     
@@ -478,9 +478,9 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const combinedData: SimilarCompany[] = similarData.map(company => ({
           symbol: company.similar_symbol,
           similar_symbol: company.similar_symbol,
-          similar_company: company.company_name,
+          similar_company: company.similar_company,
           revenue_2024: company.revenue_2024,
-          logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL || null
+          logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.LogoURL || null
         }));
     
         setSimilarCompanies(combinedData);
@@ -543,11 +543,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           const { data, error } = await supabase
             .from('company_logos')
             .select('*')
-            .eq('Symbol', stock.Symbol)
+            .eq('symbol', stock.Symbol)
             .single();
 
           if (error) throw error;
-          setLogoURL(data.LogoURL);
+          setLogoURL(data.logo_url);
         } catch (error) {
           console.error('Error fetching logo:', error);
         }
@@ -571,13 +571,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           const { data: logoData, error: logoError } = await supabase
             .from('company_logos')
             .select('*')
-            .in('Symbol', similarData.map(company => company.similar_symbol));
+            .in('symbol', similarData.map(company => company.similar_symbol));
 
           if (logoError) throw logoError;
 
           const combinedData = similarData.map(company => ({
             ...company,
-            logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
+            logo: logoData.find(logo => logo.symbol === company.similar_symbol)?.logo_url
           }));
 
           setSimilarStocks(combinedData);
@@ -758,7 +758,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           user_id: user.id,
           symbol: stock.Symbol,
           company_name: stock.title,
-          LogoURL: stock.LogoURL || '',
+          logo_url: stock.LogoURL || '',
           price: parseFloat(stock.marketCap) || 0,
           dividend_yield: parseFloat(stock.dividendYield) || 0,
           next_dividend_date: stock['Ex-Dividend Date'],
@@ -1262,7 +1262,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     </button>
   </div>
 
-
   {/* Short Name Below Symbol & Save Button */}
   <div className="text-sm font-bold text-gray-700 dark:text-gray-300">
     {stock?.title}
@@ -1343,7 +1342,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           <div
             className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
             style={{
-              backgroundImage: `url(${similarStock.LogoURL || "/default-logo.png"})`
+              backgroundImage: `url(${similarStock.logo || "/default-logo.png"})`
             }}
           />
           <div className="text-sm font-semibold text-center">{similarStock.symbol}</div>
@@ -1355,7 +1354,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
   </DialogTitle>
 </DialogHeader>
-
 
 
 

@@ -1,0 +1,79 @@
+industry,sector,symbol,Score,Rank
+Financial Services,Banks - Regional,FITB,0.805268265,1
+Financial Services,Banks - Regional,USB,0.758562127,2
+Financial Services,Banks - Regional,RF,0.754357166,3
+Financial Services,Banks - Regional,MTB,0.638441801,4
+Financial Services,Banks - Regional,PNC,0.628091764,5
+Financial Services,Banks - Regional,TFC,0.486708865,6
+Financial Services,Banks - Regional,HBAN,0.426311313,7
+Financial Services,Banks - Regional,CFG,0.409953085,8
+Financial Services,Banks - Regional,KEY,0.4,9
+Financial Services,Banks - Diversified,JPM,0.740565596,1
+Financial Services,Banks - Diversified,WFC,0.654519769,2
+Financial Services,Banks - Diversified,BK,0.611947441,3
+Financial Services,Banks - Diversified,BAC,0.545449226,4
+Financial Services,Banks - Diversified,C,0.52481542,5
+Financial Services,Asset Management,BX,0.656504649,1
+Financial Services,Asset Management,TROW,0.459265726,2
+Financial Services,Asset Management,PFG,0.44707561,3
+Financial Services,Asset Management,BEN,0.441655845,4
+Financial Services,Asset Management,IVZ,0.429577031,5
+Financial Services,Asset Management,STT,0.423511351,6
+Financial Services,Asset Management,RJF,0.375539319,7
+Financial Services,Asset Management,NTRS,0.342549347,8
+Financial Services,Asset Management,AMP,0.306688768,9
+Financial Services,Asset Management,BLK,0.300397054,10
+Financial Services,Asset Management,APO,0.295569366,11
+Financial Services,Asset Management,KKR,0.248516223,12
+Energy,Oil & Gas E&P,COP,0.616006022,1
+Energy,Oil & Gas E&P,TPL,0.57953463,2
+Energy,Oil & Gas E&P,FANG,0.520682583,3
+Energy,Oil & Gas E&P,APA,0.493463185,4
+Energy,Oil & Gas E&P,OXY,0.485788655,5
+Energy,Oil & Gas E&P,HES,0.385628562,6
+Energy,Oil & Gas E&P,CTRA,0.359655322,7
+Energy,Oil & Gas E&P,EQT,0.140906616,8
+Energy,Oil & Gas E&P,EOG,-0.046598126,9
+Energy,Oil & Gas E&P,DVN,-0.300549027,10
+Consumer Defensive,Packaged Foods,LW,0.699254764,1
+Consumer Defensive,Packaged Foods,KHC,0.49509905,2
+Consumer Defensive,Packaged Foods,MKC,0.486889035,3
+Consumer Defensive,Packaged Foods,HRL,0.455988352,4
+Consumer Defensive,Packaged Foods,CPB,0.446551589,5
+Consumer Defensive,Packaged Foods,GIS,0.441945506,6
+Consumer Defensive,Packaged Foods,SJM,0.404913098,7
+Consumer Defensive,Packaged Foods,CAG,0.4,8
+Consumer Defensive,Packaged Foods,K,0.330608509,9
+Consumer Defensive,Household & Personal Products,PG,0.833247352,1
+Consumer Defensive,Household & Personal Products,KMB,0.768621009,2
+Consumer Defensive,Household & Personal Products,KVUE,0.675132289,3
+Consumer Defensive,Household & Personal Products,CL,0.660513516,4
+Consumer Defensive,Household & Personal Products,CLX,0.588445136,5
+Consumer Defensive,Household & Personal Products,CHD,0.530017389,6
+Consumer Defensive,Household & Personal Products,EL,-3.276662436,7
+Consumer Cyclical,Restaurants,DPZ,0.679097712,1
+Consumer Cyclical,Restaurants,MCD,0.626620059,2
+Consumer Cyclical,Restaurants,DRI,0.552617238,3
+Consumer Cyclical,Restaurants,SBUX,0.548067167,4
+Consumer Cyclical,Restaurants,YUM,0.507015843,5
+Consumer Cyclical,Packaging & Containers,AVY,0.718768874,1
+Consumer Cyclical,Packaging & Containers,AMCR,0.711632346,2
+Consumer Cyclical,Packaging & Containers,SW,0.340711462,3
+Consumer Cyclical,Packaging & Containers,PKG,0.336764182,4
+Consumer Cyclical,Packaging & Containers,BALL,0.275374992,5
+Communication Services,Entertainment,FOX,0.808369197,1
+Communication Services,Entertainment,FOXA,0.794809898,2
+Communication Services,Entertainment,PARA,0.4,3
+Communication Services,Entertainment,NWSA,0.291920792,4
+Communication Services,Entertainment,NWS,0.2715818,5
+Communication Services,Entertainment,DIS,-1.454539602,6
+Basic Materials,Specialty Chemicals,LYB,0.731516692,1
+Basic Materials,Specialty Chemicals,ECL,0.654894189,2
+Basic Materials,Specialty Chemicals,SHW,0.570956487,3
+Basic Materials,Specialty Chemicals,EMN,0.48200977,4
+Basic Materials,Specialty Chemicals,LIN,0.435545931,5
+Basic Materials,Specialty Chemicals,PPG,0.417496189,6
+Basic Materials,Specialty Chemicals,DD,0.405918169,7
+Basic Materials,Specialty Chemicals,APD,0.349651601,8
+Basic Materials,Specialty Chemicals,ALB,0.335616259,9
+Basic Materials,Specialty Chemicals,IFF,-1.156526852,10
