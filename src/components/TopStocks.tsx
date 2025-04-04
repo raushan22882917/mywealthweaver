@@ -99,45 +99,7 @@ const TopStocks: React.FC = () => {
           <p className="text-muted-foreground">Track the market's top performers ranked by performance metrics</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20 dark:bg-gradient-to-br dark:from-blue-900/20 dark:to-blue-800/10 dark:border-blue-800/30">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Top Ranked Stock</p>
-                  <h3 className="text-2xl font-bold mt-1">
-                    {stocks.find(s => s.Rank === 1)?.symbol || 'Loading...'}
-                  </h3>
-                </div>
-                <Award className="h-8 w-8 text-yellow-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="dark:bg-[#1a1f2e] dark:border-gray-700">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Ranked Stocks</p>
-                  <h3 className="text-2xl font-bold mt-1">{stocks.length}</h3>
-                </div>
-                <BarChart2 className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="dark:bg-[#1a1f2e] dark:border-gray-700">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Industries</p>
-                  <h3 className="text-2xl font-bold mt-1">{industries.length}</h3>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        
 
         <div className="flex flex-wrap gap-4 mb-6">
           <div className="relative w-full md:w-[300px]">
