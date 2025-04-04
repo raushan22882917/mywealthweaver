@@ -66,6 +66,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
           type: 'news',
           title: 'Market Analysis Available',
           message: 'New market analysis report is available',
+          news_id: '101', // Adding a news ID for specific redirection
           read: false,
           created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString() // 2 days ago
         }
@@ -91,11 +92,25 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
   const handleNotificationClick = (notification: Notification) => {
     onClose();
     
-    if (notification.related_symbol) {
+    // Handle redirection based on notification type
+    if (notification.type === 'dividend' && notification.related_symbol) {
+      // Redirect to the specific stock's dividend page
+      navigate(`/dividend/${notification.related_symbol}`);
+    } else if (notification.type === 'news' && notification.news_id) {
+      // Redirect to the specific news article
+      navigate(`/news?id=${notification.news_id}`);
+    } else if (notification.type === 'earnings' && notification.related_symbol) {
+      // Redirect to the stock details with earnings tab
+      navigate(`/stock/${notification.related_symbol}?tab=earnings`);
+    } else if (notification.type === 'price' && notification.related_symbol) {
+      // Redirect to the stock details
       navigate(`/stock/${notification.related_symbol}`);
-    } else if (notification.type === 'news') {
-      navigate('/news');
+    } else if (notification.id) {
+      // For other types or when specific IDs aren't available, 
+      // redirect to the announcements page with a filter
+      navigate(`/announcements?notification=${notification.id}`);
     } else {
+      // Fallback to announcements page
       navigate('/announcements');
     }
   };

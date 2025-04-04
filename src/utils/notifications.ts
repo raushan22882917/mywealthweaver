@@ -7,6 +7,7 @@ export interface Notification {
   title: string;
   message: string;
   related_symbol?: string;
+  news_id?: string;        // Added for news redirection
   read: boolean;
   created_at: string;
 }

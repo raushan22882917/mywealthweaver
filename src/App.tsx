@@ -27,7 +27,7 @@ import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import { Session } from '@supabase/supabase-js';
 import TopStocks from "./components/TopStocks";
-import Policy from "./pages/policy";
+import PrivacyPolicyPage from "./pages/policy";
 import Announcements from "./pages/Announcements";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -107,7 +107,7 @@ function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/team" element={<Team />} />
-          <Route path="/policy" element={<Policy />} />
+          <Route path="/policy" element={<PrivacyPolicyPage />} />
           <Route path="/updown" element={<UpDown />} />
           <Route path="/education" element={<Education />} />
           <Route path="/ticker/:symbol" element={<TickerDetail />} />
