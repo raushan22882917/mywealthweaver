@@ -147,12 +147,12 @@ const TopStocks: React.FC = () => {
               placeholder="Search by symbol..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 dark:bg-[#151a27] dark:border-gray-700 dark:text-gray-200"
+              className="pl-10"
             />
           </div>
 
           <Select onValueChange={(value) => setIndustryFilter(value === "all" ? null : value)} value={industryFilter || "all"}>
-            <SelectTrigger className="w-[200px] dark:bg-[#151a27] dark:border-gray-700 dark:text-gray-200">
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by Industry" />
             </SelectTrigger>
             <SelectContent>
@@ -166,7 +166,7 @@ const TopStocks: React.FC = () => {
           </Select>
 
           <Select onValueChange={(value) => setSectorFilter(value === "all" ? null : value)} value={sectorFilter || "all"} disabled={!industryFilter}>
-            <SelectTrigger className="w-[200px] dark:bg-[#151a27] dark:border-gray-700 dark:text-gray-200">
+            <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="Filter by Sector" />
             </SelectTrigger>
             <SelectContent>
@@ -198,9 +198,9 @@ const TopStocks: React.FC = () => {
             </CardHeader>
             <CardContent>
               <TooltipProvider>
-                <Table className="dark:border-gray-700">
-                  <TableCaption className="dark:text-gray-400">Top performing stocks in the market today</TableCaption>
-                  <TableHeader className="dark:bg-[#151a27]">
+                <Table>
+                  <TableCaption>Top performing stocks in the market today</TableCaption>
+                  <TableHeader>
                     <TableRow>
                       <TableHead>Rank</TableHead>
                       <TableHead>Symbol</TableHead>
@@ -266,7 +266,7 @@ const TopStocks: React.FC = () => {
                                       </TooltipContent>
                                     </Tooltip>
                                   )}
-                                  <Badge variant={rank <= 3 ? "default" : "outline"} className={`font-bold ${rank > 3 ? 'dark:bg-[#151a27] dark:border-gray-700' : ''}`}>
+                                  <Badge variant={rank <= 3 ? "default" : "outline"} className="font-bold">
                                     {rank}
                                   </Badge>
                                 </div>
@@ -278,7 +278,7 @@ const TopStocks: React.FC = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="font-normal dark:bg-[#151a27] dark:border-gray-700">
+                                <Badge variant="outline" className="font-normal">
                                   {stock.industry}
                                 </Badge>
                               </TableCell>
@@ -317,7 +317,7 @@ const TopStocks: React.FC = () => {
                     size="sm"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
-                    className="h-8 w-8 p-0 dark:bg-[#151a27] dark:border-gray-700 dark:hover:bg-[#1f2937]"
+                    className="h-8 w-8 p-0"
                   >
                     <span className="sr-only">Previous</span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
@@ -332,7 +332,7 @@ const TopStocks: React.FC = () => {
                     size="sm"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
-                    className="h-8 w-8 p-0 dark:bg-[#151a27] dark:border-gray-700 dark:hover:bg-[#1f2937]"
+                    className="h-8 w-8 p-0"
                   >
                     <span className="sr-only">Next</span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">

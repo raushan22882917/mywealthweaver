@@ -129,8 +129,8 @@ interface RankingData {
   industry: string;
   sector: string;
   Symbol: string;
-  Score: string;
-  Rank: string;
+  score: string;
+  rank: string;
 }
 
 interface RankingDisplayData {
@@ -439,8 +439,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
         if (error) throw error;
         setRankingCSVData({
-          Rank: data.Rank,
-          Score: data.Score,
+          rank: data.rank,
+          score: data.score,
           sector: data.sector,
           industry: data.industry
         });

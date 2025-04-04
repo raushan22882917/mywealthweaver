@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -23,7 +23,7 @@ const Announcements = () => {
   const [activeFilter, setActiveFilter] = useState<string>(type);
   const { toast } = useToast();
 
-  const loadNotifications = useCallback(async () => {
+  const loadNotifications = async () => {
     try {
       setLoading(true);
 
@@ -71,7 +71,7 @@ const Announcements = () => {
     } finally {
       setLoading(false);
     }
-  }, [highlightId, toast]);
+  };
 
   useEffect(() => {
     // Load notifications when component mounts
@@ -109,7 +109,7 @@ const Announcements = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [loadNotifications]);
+  }, [highlightId, toast, loadNotifications]);
 
 
 

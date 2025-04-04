@@ -155,12 +155,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
                 <div>
                   <p className="font-medium text-white">{notification.title}</p>
                   <p className="text-sm text-gray-400 line-clamp-2 mb-1">{notification.message}</p>
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs text-gray-500">{formatNotificationDate(notification.created_at)}</p>
-                    {notification.weblink && (
-                      <ExternalLink className="h-3 w-3 text-blue-400 ml-2" />
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-500">{formatNotificationDate(notification.created_at)}</p>
                 </div>
               </div>
             </Card>

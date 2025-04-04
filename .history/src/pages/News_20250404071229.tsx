@@ -8,12 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { createClient } from '@supabase/supabase-js';
-
-// Create a generic Supabase client without type constraints
-const supabaseUrl = "https://imrrxaziqfppoiubayrs.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltcnJ4YXppcWZwcG9pdWJheXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4NzEzNTQsImV4cCI6MjA1ODQ0NzM1NH0.hgpp54SWTMNSdMDC5_DE1Sl_tmxE_BAfcYxkIHrp3lg";
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "@/integrations/supabase/client";
 
 interface NewsItem {
   news_title: string;
@@ -51,7 +46,6 @@ const News = () => {
     const fetchNewsData = async () => {
       setLoading(true);
       try {
-        // Using the generic Supabase client to query the news table
         const { data, error } = await supabase
           .from('news')
           .select('*');
@@ -60,18 +54,12 @@ const News = () => {
 
         if (data) {
           const processedNews = data
-            .filter((item) => item.news_title && item.weblink)
-            .map((item, index) => ({
-              news_title: item.news_title,
-              weblink: item.weblink,
-              source: item.source,
-              date: item.date,
-              symbol: item.symbol,
-              original_link: item.original_link || item.weblink,
-              sentiment_score: item.sentiment_score === 'N/A' ? '0' : item.sentiment_score,
-              sentiment: item.sentiment,
-              id: item.id || index + 1
-            } as NewsItem));
+            .filter((item: any) => item.news_title && item.weblink)
+            .map((item: NewsItem, index: number) => ({
+              ...item,
+              id: item.id || index + 1,
+              sentiment_score: item.sentiment_score === 'N/A' ? '0' : item.sentiment_score
+            }));
 
           setNewsData(processedNews);
 

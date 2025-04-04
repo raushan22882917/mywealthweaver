@@ -8,12 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { createClient } from '@supabase/supabase-js';
-
-// Create a generic Supabase client without type constraints
-const supabaseUrl = "https://imrrxaziqfppoiubayrs.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltcnJ4YXppcWZwcG9pdWJheXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4NzEzNTQsImV4cCI6MjA1ODQ0NzM1NH0.hgpp54SWTMNSdMDC5_DE1Sl_tmxE_BAfcYxkIHrp3lg";
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { supabase } from "@/integrations/supabase/client";
 
 interface NewsItem {
   news_title: string;
@@ -51,10 +46,11 @@ const News = () => {
     const fetchNewsData = async () => {
       setLoading(true);
       try {
-        // Using the generic Supabase client to query the news table
+        // Since the 'news' table might not be typed in the Database interface,
+        // we're using the generic version of the query
         const { data, error } = await supabase
           .from('news')
-          .select('*');
+          .select('*') as { data: any[], error: any };
 
         if (error) throw error;
 

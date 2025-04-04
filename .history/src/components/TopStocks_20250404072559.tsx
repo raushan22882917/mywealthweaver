@@ -266,7 +266,7 @@ const TopStocks: React.FC = () => {
                                       </TooltipContent>
                                     </Tooltip>
                                   )}
-                                  <Badge variant={rank <= 3 ? "default" : "outline"} className={`font-bold ${rank > 3 ? 'dark:bg-[#151a27] dark:border-gray-700' : ''}`}>
+                                  <Badge variant={rank <= 3 ? "default" : "outline"} className="font-bold">
                                     {rank}
                                   </Badge>
                                 </div>
@@ -278,7 +278,7 @@ const TopStocks: React.FC = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <Badge variant="outline" className="font-normal dark:bg-[#151a27] dark:border-gray-700">
+                                <Badge variant="outline" className="font-normal">
                                   {stock.industry}
                                 </Badge>
                               </TableCell>
@@ -317,7 +317,7 @@ const TopStocks: React.FC = () => {
                     size="sm"
                     disabled={currentPage === 1}
                     onClick={() => setCurrentPage(currentPage - 1)}
-                    className="h-8 w-8 p-0 dark:bg-[#151a27] dark:border-gray-700 dark:hover:bg-[#1f2937]"
+                    className="h-8 w-8 p-0"
                   >
                     <span className="sr-only">Previous</span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
@@ -332,7 +332,7 @@ const TopStocks: React.FC = () => {
                     size="sm"
                     disabled={currentPage === totalPages}
                     onClick={() => setCurrentPage(currentPage + 1)}
-                    className="h-8 w-8 p-0 dark:bg-[#151a27] dark:border-gray-700 dark:hover:bg-[#1f2937]"
+                    className="h-8 w-8 p-0"
                   >
                     <span className="sr-only">Next</span>
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">

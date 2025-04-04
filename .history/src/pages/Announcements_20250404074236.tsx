@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -23,7 +23,44 @@ const Announcements = () => {
   const [activeFilter, setActiveFilter] = useState<string>(type);
   const { toast } = useToast();
 
-  const loadNotifications = useCallback(async () => {
+  useEffect(() => {
+    loadNotifications();
+
+    // Set up a real-time subscription for new notifications
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'dividend_announcements'
+        },
+        () => {
+          // Refresh notification data when new dividend announcements are added
+          loadNotifications();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'news'
+        },
+        () => {
+          // Refresh notification data when new news items are added
+          loadNotifications();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const loadNotifications = async () => {
     try {
       setLoading(true);
 
@@ -71,47 +108,7 @@ const Announcements = () => {
     } finally {
       setLoading(false);
     }
-  }, [highlightId, toast]);
-
-  useEffect(() => {
-    // Load notifications when component mounts
-    loadNotifications();
-
-    // Set up a real-time subscription for new notifications
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'dividend_announcements'
-        },
-        () => {
-          // Refresh notification data when new dividend announcements are added
-          loadNotifications();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'news'
-        },
-        () => {
-          // Refresh notification data when new news items are added
-          loadNotifications();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [loadNotifications]);
-
-
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -146,7 +143,13 @@ const Announcements = () => {
     }
   };
 
-
+  const handleNotificationAction = (notification: Notification) => {
+    if (notification.type === 'news' && notification.weblink) {
+      window.open(notification.weblink, '_blank');
+    } else if (notification.related_symbol) {
+      navigate(`/stock/${notification.related_symbol}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-950">

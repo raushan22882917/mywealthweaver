@@ -8,10 +8,10 @@ import { supabase } from '@/integrations/supabase/client';
 const NavbarNotificationSection: React.FC = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notificationCount, setNotificationCount] = useState(0);
-
+  
   useEffect(() => {
     loadNotificationCount();
-
+    
     // Set up a real-time subscription for new notifications
     const channel = supabase
       .channel('schema-db-changes')
@@ -27,29 +27,17 @@ const NavbarNotificationSection: React.FC = () => {
           loadNotificationCount();
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'news'
-        },
-        () => {
-          // Refresh notification count when new news items are added
-          loadNotificationCount();
-        }
-      )
       .subscribe();
-
+    
     // Check for new notifications every 2 minutes
     const interval = setInterval(loadNotificationCount, 120000);
-
+    
     return () => {
       supabase.removeChannel(channel);
       clearInterval(interval);
     };
   }, []);
-
+  
   const loadNotificationCount = async () => {
     try {
       const count = await getUnreadNotificationCount();
@@ -58,10 +46,10 @@ const NavbarNotificationSection: React.FC = () => {
       console.error('Error loading notification count:', error);
     }
   };
-
+  
   return (
     <div className="relative">
-      <button
+      <button 
         onClick={() => setNotificationsOpen(!notificationsOpen)}
         className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors relative"
         aria-label="Open notifications"
@@ -73,10 +61,10 @@ const NavbarNotificationSection: React.FC = () => {
           </span>
         )}
       </button>
-
-      <NotificationDropdown
-        open={notificationsOpen}
-        onClose={() => setNotificationsOpen(false)}
+      
+      <NotificationDropdown 
+        open={notificationsOpen} 
+        onClose={() => setNotificationsOpen(false)} 
       />
     </div>
   );

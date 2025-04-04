@@ -1,13 +1,13 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DollarSign, Calendar, Info, Search, Bell, TrendingUp, ExternalLink } from 'lucide-react';
-import { fetchDividendAnnouncements, convertAnnouncementsToNotifications, fetchNewsItems, convertNewsToNotifications, formatNotificationDate, Notification } from '@/utils/notifications';
+import { DollarSign, Calendar, Info, Search, Bell, TrendingUp } from 'lucide-react';
+import { fetchDividendAnnouncements, convertAnnouncementsToNotifications, formatNotificationDate, Notification } from '@/utils/notifications';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -16,65 +16,14 @@ const Announcements = () => {
   const navigate = useNavigate();
   const highlightId = searchParams.get('id');
   const type = searchParams.get('type') || 'all';
-
+  
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<string>(type);
   const { toast } = useToast();
 
-  const loadNotifications = useCallback(async () => {
-    try {
-      setLoading(true);
-
-      // Load dividend announcements
-      const announcements = await fetchDividendAnnouncements();
-      const dividendNotifications = convertAnnouncementsToNotifications(announcements);
-
-      // Load news items
-      const newsItems = await fetchNewsItems();
-      const newsNotifications = convertNewsToNotifications(newsItems);
-
-      // Combine all notifications
-      const allNotifications = [...dividendNotifications, ...newsNotifications].sort((a, b) => {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
-
-      if (allNotifications.length === 0) {
-        toast({
-          title: "No notifications found",
-          description: "There are currently no notifications available.",
-          variant: "default",
-        });
-      }
-
-      setNotifications(allNotifications);
-
-      // If we have a highlighted ID, show a toast to highlight it
-      if (highlightId) {
-        const notification = allNotifications.find(n => n.id === highlightId);
-        if (notification) {
-          toast({
-            title: "Notification highlighted",
-            description: notification.title,
-          });
-        }
-      }
-
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-      toast({
-        title: "Failed to load notifications",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [highlightId, toast]);
-
   useEffect(() => {
-    // Load notifications when component mounts
     loadNotifications();
 
     // Set up a real-time subscription for new notifications
@@ -92,26 +41,54 @@ const Announcements = () => {
           loadNotifications();
         }
       )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'news'
-        },
-        () => {
-          // Refresh notification data when new news items are added
-          loadNotifications();
-        }
-      )
       .subscribe();
-
+    
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [loadNotifications]);
+  }, []);
 
-
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      
+      // Load dividend announcements
+      const announcements = await fetchDividendAnnouncements();
+      console.log('Fetched announcements:', announcements);
+      
+      if (announcements.length === 0) {
+        toast({
+          title: "No announcements found",
+          description: "There are currently no dividend announcements available.",
+          variant: "default",
+        });
+      }
+      
+      const notificationItems = convertAnnouncementsToNotifications(announcements);
+      setNotifications(notificationItems);
+      
+      // If we have a highlighted ID, show a toast to highlight it
+      if (highlightId) {
+        const notification = notificationItems.find(n => n.id === highlightId);
+        if (notification) {
+          toast({
+            title: "Notification highlighted",
+            description: notification.title,
+          });
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error loading notifications:', error);
+      toast({
+        title: "Failed to load notifications",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -130,13 +107,13 @@ const Announcements = () => {
 
   // Filter notifications based on search term and active filter
   const filteredNotifications = notifications.filter(notification => {
-    const matchesSearch =
+    const matchesSearch = 
       notification.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       notification.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (notification.related_symbol && notification.related_symbol.toLowerCase().includes(searchTerm.toLowerCase()));
-
+    
     const matchesFilter = activeFilter === 'all' || notification.type === activeFilter;
-
+    
     return matchesSearch && matchesFilter;
   });
 
@@ -146,18 +123,16 @@ const Announcements = () => {
     }
   };
 
-
-
   return (
     <div className="min-h-screen bg-gray-950">
       <Navbar />
-
+      
       <div className="max-w-6xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-white mb-2">Notifications</h1>
         <p className="text-gray-400 mb-8">
           Stay updated with the latest financial news and announcements.
         </p>
-
+        
         {/* Search and Filter */}
         <div className="mb-8">
           <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -197,7 +172,7 @@ const Announcements = () => {
             </div>
           </div>
         </div>
-
+        
         {/* Notifications List */}
         {loading ? (
           <div className="flex justify-center items-center py-12">
@@ -222,29 +197,18 @@ const Announcements = () => {
                       <span className="text-xs text-gray-500">{formatNotificationDate(notification.created_at)}</span>
                     </div>
                     <p className="text-gray-400 mt-2">{notification.message}</p>
-                    <div className="mt-3 flex gap-2">
-                      {notification.related_symbol && (
-                        <Button
-                          variant="outline"
+                    {notification.related_symbol && (
+                      <div className="mt-3">
+                        <Button 
+                          variant="outline" 
                           size="sm"
                           className="text-blue-400 border-blue-800 hover:bg-blue-900/20"
                           onClick={() => handleStockClick(notification.related_symbol)}
                         >
                           View Stock Details
                         </Button>
-                      )}
-                      {notification.type === 'news' && notification.weblink && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-green-400 border-green-800 hover:bg-green-900/20 flex items-center gap-1"
-                          onClick={() => window.open(notification.weblink, '_blank')}
-                        >
-                          <ExternalLink className="h-3 w-3" />
-                          Read Full Article
-                        </Button>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -255,16 +219,16 @@ const Announcements = () => {
             <Bell className="mx-auto h-12 w-12 text-gray-700 mb-4" />
             <h3 className="text-xl font-medium text-gray-300 mb-2">No notifications found</h3>
             <p className="text-gray-500">
-              {searchTerm
+              {searchTerm 
                 ? `No results matching "${searchTerm}"`
-                : activeFilter !== 'all'
+                : activeFilter !== 'all' 
                   ? `No ${activeFilter} notifications available`
                   : "You don't have any notifications yet"}
             </p>
           </div>
         )}
       </div>
-
+      
       <Footer />
     </div>
   );

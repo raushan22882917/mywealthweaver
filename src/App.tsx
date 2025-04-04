@@ -115,6 +115,7 @@ function App() {
           <Route path="/reporting" element={<Reporting />} />
           <Route path="/dividend" element={<Dividend />} />
           <Route path="/dividend/:symbol?" element={<Dividend />} />
+          <Route path="/top-stocks" element={<TopStocks />}/>
           <Route path="/market-data" element={<MarketData />} />
           <Route path="/news" element={<News />} />
           <Route path="/news/:id?" element={<News />} />

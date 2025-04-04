@@ -10,8 +10,6 @@ export interface Notification {
   news_id?: string;        // Added for news redirection
   read: boolean;
   created_at: string;
-  source?: string;         // Added for news source
-  weblink?: string;        // Added for news link
 }
 
 export interface DividendAnnouncement {
@@ -24,18 +22,6 @@ export interface DividendAnnouncement {
   created_at: string;
 }
 
-export interface NewsItem {
-  id: string;
-  news_title: string;
-  weblink: string;
-  source: string;
-  date: string;
-  symbol?: string;
-  sentiment_score?: string;
-  sentiment?: string;
-  original_link?: string;
-}
-
 // Function to fetch dividend announcements from Supabase
 export const fetchDividendAnnouncements = async (): Promise<DividendAnnouncement[]> => {
   try {
@@ -44,28 +30,11 @@ export const fetchDividendAnnouncements = async (): Promise<DividendAnnouncement
       .select('*')
       .order('date', { ascending: false })
       .limit(5);
-
+    
     if (error) throw error;
     return data || [];
   } catch (error) {
     console.error('Error fetching dividend announcements:', error);
-    return [];
-  }
-};
-
-// Function to fetch news from Supabase
-export const fetchNewsItems = async (): Promise<NewsItem[]> => {
-  try {
-    const { data, error } = await supabase
-      .from('news')
-      .select('*')
-      .order('date', { ascending: false })
-      .limit(5);
-
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error('Error fetching news items:', error);
     return [];
   }
 };
@@ -85,31 +54,13 @@ export const convertAnnouncementsToNotifications = (
   }));
 };
 
-// Convert news items to notifications format
-export const convertNewsToNotifications = (
-  newsItems: NewsItem[]
-): Notification[] => {
-  return newsItems.map((news) => ({
-    id: news.id,
-    type: 'news',
-    title: `${news.symbol ? `${news.symbol}: ` : ''}${news.news_title}`,
-    message: `${news.source} - ${news.sentiment ? `Sentiment: ${news.sentiment}` : 'Latest market news'}`,
-    related_symbol: news.symbol,
-    news_id: news.id,
-    read: false,
-    created_at: news.date,
-    source: news.source,
-    weblink: news.weblink || news.original_link,
-  }));
-};
-
 // Format date for notifications display
 export const formatNotificationDate = (dateString: string): string => {
   const date = new Date(dateString);
   const now = new Date();
   const diffTime = Math.abs(now.getTime() - date.getTime());
   const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
+  
   if (diffDays === 0) {
     const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
     if (diffHours === 0) {
@@ -135,13 +86,13 @@ export const markNotificationAsRead = async (notificationId: string): Promise<bo
       .select('id')
       .eq('id', notificationId)
       .maybeSingle();
-
+    
     if (!divError && divNotification) {
       // This is a dividend announcement, we would update read status
       // For now, we'll just return success as if it was updated
       return true;
     }
-
+    
     // If we reach here, the notification wasn't found in any table
     return false;
   } catch (error) {
@@ -153,28 +104,19 @@ export const markNotificationAsRead = async (notificationId: string): Promise<bo
 // Function to get unread notification count
 export const getUnreadNotificationCount = async (): Promise<number> => {
   try {
-    // Get count of unread notifications from both tables
+    // Get count of unread notifications from the dividend_announcements table
     let notificationCount = 0;
-
+    
     // Get recent dividend announcements (assuming they're all "unread")
     const { data: divAnnouncements, error: divError } = await supabase
       .from('dividend_announcements')
       .select('id')
       .order('created_at', { ascending: false })
       .limit(5);
-
+    
     const divCount = divAnnouncements?.length || 0;
-
-    // Get recent news items (assuming they're all "unread")
-    const { data: newsItems, error: newsError } = await supabase
-      .from('news')
-      .select('id')
-      .order('date', { ascending: false })
-      .limit(5);
-
-    const newsCount = newsItems?.length || 0;
-
-    return divCount + newsCount + notificationCount;
+    
+    return divCount + notificationCount;
   } catch (error) {
     console.error('Error getting unread notification count:', error);
     return 0;

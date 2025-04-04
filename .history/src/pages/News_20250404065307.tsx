@@ -8,12 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Search, Clock, Share2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { createClient } from '@supabase/supabase-js';
-
-// Create a generic Supabase client without type constraints
-const supabaseUrl = "https://imrrxaziqfppoiubayrs.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltcnJ4YXppcWZwcG9pdWJheXJzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI4NzEzNTQsImV4cCI6MjA1ODQ0NzM1NH0.hgpp54SWTMNSdMDC5_DE1Sl_tmxE_BAfcYxkIHrp3lg";
-const supabase = createClient(supabaseUrl, supabaseKey);
+import Papa from 'papaparse';
 
 interface NewsItem {
   news_title: string;
@@ -51,48 +46,41 @@ const News = () => {
     const fetchNewsData = async () => {
       setLoading(true);
       try {
-        // Using the generic Supabase client to query the news table
-        const { data, error } = await supabase
-          .from('news')
-          .select('*');
-
-        if (error) throw error;
-
-        if (data) {
-          const processedNews = data
-            .filter((item) => item.news_title && item.weblink)
-            .map((item, index) => ({
-              news_title: item.news_title,
-              weblink: item.weblink,
-              source: item.source,
-              date: item.date,
-              symbol: item.symbol,
-              original_link: item.original_link || item.weblink,
-              sentiment_score: item.sentiment_score === 'N/A' ? '0' : item.sentiment_score,
-              sentiment: item.sentiment,
-              id: item.id || index + 1
-            } as NewsItem));
-
-          setNewsData(processedNews);
-
-          // If a specific news ID is provided, scroll to it
-          if (highlightedNewsId) {
-            setTimeout(() => {
-              const element = document.getElementById(`news-${highlightedNewsId}`);
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-                element.classList.add('ring-2', 'ring-blue-500');
-                toast({
-                  title: "News highlighted",
-                  description: "You were redirected to the specific news item.",
-                });
-              }
-            }, 500);
+        const response = await fetch('/news/news_sentiment_analysis.csv');
+        const csvText = await response.text();
+        
+        Papa.parse(csvText, {
+          header: true,
+          delimiter: ',',
+          complete: (results) => {
+            const processedNews = results.data
+              .filter((item: any) => item.news_title && item.weblink)
+              .map((item: NewsItem, index: number) => ({
+                ...item,
+                id: index + 1,
+                sentiment_score: item.sentiment_score === 'N/A' ? '0' : item.sentiment_score
+              }));
+            
+            setNewsData(processedNews);
+            
+            // If a specific news ID is provided, scroll to it
+            if (highlightedNewsId) {
+              setTimeout(() => {
+                const element = document.getElementById(`news-${highlightedNewsId}`);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth' });
+                  element.classList.add('ring-2', 'ring-blue-500');
+                  toast({
+                    title: "News highlighted",
+                    description: "You were redirected to the specific news item.",
+                  });
+                }
+              }, 500);
+            }
+            
+            setLoading(false);
           }
-
-          setLoading(false);
-        }
-
+        });
       } catch (error) {
         console.error('Error fetching news data:', error);
         setLoading(false);
@@ -107,14 +95,14 @@ const News = () => {
 
   // Filter news based on search query and highlighted ID
   const filteredNews = newsData.filter(news => {
-    const matchesSearch = news.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch = news.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          news.news_title.toLowerCase().includes(searchQuery.toLowerCase());
-
+    
     // If highlighting a specific ID, only show that news item first
     if (highlightedNewsId && news.id?.toString() === highlightedNewsId) {
       return true;
     }
-
+    
     return matchesSearch;
   });
 
@@ -198,14 +186,14 @@ const News = () => {
               </div>
             ) : currentNews.length > 0 ? (
               currentNews.map((news) => (
-                <Card
-                  key={news.id}
+                <Card 
+                  key={news.id} 
                   id={`news-${news.id}`}
                   className={`bg-[#1a1f2e] border-gray-700 ${highlightedNewsId && news.id?.toString() === highlightedNewsId ? 'border-blue-500 bg-[#212738]' : ''}`}
                 >
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
-                      <a
+                      <a 
                         href={news.original_link}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -217,7 +205,7 @@ const News = () => {
                         {news.symbol}
                       </Badge>
                     </div>
-
+                    
                     <div className="mt-3 flex items-center gap-4 text-sm text-gray-400">
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
@@ -228,15 +216,15 @@ const News = () => {
                     </div>
 
                     <div className="mt-4 flex items-center gap-3">
-                      <Button
-                        variant="outline"
+                      <Button 
+                        variant="outline" 
                         size="sm"
                         className="text-gray-300 border-gray-700 hover:bg-[#242938]"
                       >
                         Like
                       </Button>
-                      <Button
-                        variant="outline"
+                      <Button 
+                        variant="outline" 
                         size="sm"
                         className="text-gray-300 border-gray-700 hover:bg-[#242938]"
                       >
@@ -297,7 +285,7 @@ const News = () => {
                   const stats = getSentimentCounts();
                   const count = stats.counts[sentiment as keyof typeof stats.counts];
                   const percentage = stats.percentages[sentiment as keyof typeof stats.percentages];
-
+                  
                   return (
                     <div key={sentiment} className="space-y-2">
                       <div className="flex justify-between items-center text-gray-300">
@@ -310,7 +298,7 @@ const News = () => {
                         </div>
                       </div>
                       <div className="h-1.5 bg-[#2a3142] rounded-full overflow-hidden">
-                        <div
+                        <div 
                           className={`h-full rounded-full transition-all duration-500 ${
                             sentiment === "Positive" ? "bg-green-500" :
                             sentiment === "Negative" ? "bg-red-500" :
