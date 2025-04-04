@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -28,6 +27,8 @@ import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import { Session } from '@supabase/supabase-js';
 import TopStocks from "./components/TopStocks";
+import Policy from "./pages/Policy";
+import Announcements from "./pages/Announcements";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -59,7 +60,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => {
+function App() {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -98,124 +99,35 @@ const App = () => {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/education" element={<Education />} />
-              <Route 
-                path="/market-data" 
-                element={
-                  <ProtectedRoute>
-                    <MarketData />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/news" 
-                element={
-                  <ProtectedRoute>
-                    <News />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/dividend" 
-                element={
-                  <ProtectedRoute>
-                    <Dividend />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/updown" 
-                element={
-                  <ProtectedRoute>
-                    <UpDown />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/Topstock" 
-                element={
-                  <ProtectedRoute>
-                    <TickerDetail />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/top-stocks" 
-                element={
-                  <ProtectedRoute>
-                    <TopStocks />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/dashboard" 
-                element={
-                  session ? (
-                    <Dashboard session={session} />
-                  ) : (
-                    <Navigate to="/auth" replace />
-                  )
-                }
-              />
-              <Route 
-                path="/settings" 
-                element={
-                  <ProtectedRoute>
-                    <Settings />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/notifications" 
-                element={
-                  <ProtectedRoute>
-                    <Notifications />
-                  </ProtectedRoute>
-                } 
-              />
-              <Route 
-                path="/policy" 
-                element={
-                  <ProtectedRoute>
-                    <PrivacyPolicy />
-                  </ProtectedRoute>
-                }
-              />
-              <Route 
-                path="/reporting" 
-                element={
-                  <ProtectedRoute>
-                    <Reporting />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/stock/:symbol" element={<StockDetails />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-          {selectedStock && (
-            <StockDetailsDialog
-              stock={selectedStock}
-              isOpen={isDialogOpen}
-              setIsOpen={setIsDialogOpen}
-            />
-          )}
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/policy" element={<Policy />} />
+          <Route path="/updown" element={<UpDown />} />
+          <Route path="/education" element={<Education />} />
+          <Route path="/ticker/:symbol" element={<TickerDetail />} />
+          <Route path="/stock/:symbol" element={<StockDetails />} />
+          <Route path="/education/topic/:id" element={<Education />} />
+          <Route path="/reporting" element={<Reporting />} />
+          <Route path="/dividend" element={<Dividend />} />
+          <Route path="/dividend/:symbol?" element={<Dividend />} />
+          <Route path="/market-data" element={<MarketData />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/notifications" element={<Notifications />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/announcements" element={<Announcements />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
-};
+}
 
 export default App;

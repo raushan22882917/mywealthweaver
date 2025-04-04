@@ -1076,31 +1076,28 @@ export type Database = {
       }
       top_stocks: {
         Row: {
-          change_percent: number | null
-          change_value: number | null
-          cik_str: string
           id: number
-          price: number | null
+          industry: string
+          Rank: number | null
+          Score: number | null
+          sector: string | null
           symbol: string
-          title: string
         }
         Insert: {
-          change_percent?: number | null
-          change_value?: number | null
-          cik_str: string
           id?: number
-          price?: number | null
+          industry: string
+          Rank?: number | null
+          Score?: number | null
+          sector?: string | null
           symbol: string
-          title: string
         }
         Update: {
-          change_percent?: number | null
-          change_value?: number | null
-          cik_str?: string
           id?: number
-          price?: number | null
+          industry?: string
+          Rank?: number | null
+          Score?: number | null
+          sector?: string | null
           symbol?: string
-          title?: string
         }
         Relationships: []
       }

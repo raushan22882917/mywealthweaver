@@ -1,4 +1,3 @@
-
 import { Search, Sun, Moon, LogOut, Home, ChevronDown, CalendarDays, DollarSign, User, LayoutDashboard, Shield, Bell, Settings, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
@@ -7,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
 import StockDetailsDialog from "./StockDetailsDialog";
+import NavbarNotificationSection from './NavbarNotificationSection';
 
 interface Stock {
   cik_str: string;
@@ -377,44 +377,8 @@ const Navbar = () => {
               )}
             </button>
             
-            {/* Notifications */}
-            <div className="relative">
-              <button 
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors relative"
-              >
-                <Bell className="h-5 w-5 text-gray-300" />
-                <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">3</span>
-              </button>
-              
-              {notificationsOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                  <div className="p-4 border-b border-gray-700">
-                    <h3 className="text-lg font-medium text-white">Notifications</h3>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    <div className="p-4 border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
-                      <p className="text-blue-400 text-sm font-medium">Dividend Alert</p>
-                      <p className="text-gray-300 text-sm">AAPL is paying a dividend soon!</p>
-                      <p className="text-gray-500 text-xs mt-1">2 hours ago</p>
-                    </div>
-                    <div className="p-4 border-b border-gray-700 hover:bg-gray-700 cursor-pointer">
-                      <p className="text-green-400 text-sm font-medium">Price Alert</p>
-                      <p className="text-gray-300 text-sm">MSFT has increased by 5%</p>
-                      <p className="text-gray-500 text-xs mt-1">5 hours ago</p>
-                    </div>
-                    <div className="p-4 hover:bg-gray-700 cursor-pointer">
-                      <p className="text-yellow-400 text-sm font-medium">News Alert</p>
-                      <p className="text-gray-300 text-sm">New market analysis available</p>
-                      <p className="text-gray-500 text-xs mt-1">1 day ago</p>
-                    </div>
-                  </div>
-                  <div className="p-2 flex justify-center border-t border-gray-700">
-                    <button className="w-full text-center text-blue-400 text-sm hover:underline">View all notifications</button>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Notifications - Replace with our new component */}
+            <NavbarNotificationSection />
             
             {/* User Menu */}
             <div className="relative">
@@ -553,7 +517,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
-
-
-
