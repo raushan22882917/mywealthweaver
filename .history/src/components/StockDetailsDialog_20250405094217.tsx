@@ -184,37 +184,51 @@ interface SavedStock {
 
 const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
   const [timeLeft, setTimeLeft] = useState<{
-    exDividendDays: number;
-    exDividendHours: number;
-    isExDividendPassed: boolean;
+    buyDays: number;
+    buyHours: number;
+    payoutDays: number;
+    payoutHours: number;
+    isBuyPassed: boolean;
+    isPayoutPassed: boolean;
   }>({
-    exDividendDays: 0,
-    exDividendHours: 0,
-    isExDividendPassed: false,
+    buyDays: 0,
+    buyHours: 0,
+    payoutDays: 0,
+    payoutHours: 0,
+    isBuyPassed: false,
+    isPayoutPassed: false,
   });
-
-  const [exDividendDate, setExDividendDate] = useState<string | null>(null);
+  const [dates, setDates] = useState<{
+    buyDate: string | null;
+    payoutDate: string | null;
+  }>({
+    buyDate: null,
+    payoutDate: null
+  });
 
   useEffect(() => {
     const fetchDates = async () => {
       try {
         const { data, error } = await supabase
           .from('dividend')
-          .select('buy_date')
+          .select('*')
           .eq('symbol', symbol)
           .single();
 
         if (error) throw error;
 
-        if (data?.buy_date) {
-          setExDividendDate(data.buy_date);
-          console.log('Ex-Dividend Date for', symbol, data.buy_date);
-        } else {
-          setExDividendDate(null);
+        if (data) {
+          setDates({
+            buyDate: data.buy_date || null,
+            payoutDate: data.payoutdate || null
+          });
+
+          // Log the full dividend data for debugging
+          console.log('Dividend data for symbol:', symbol, data);
         }
       } catch (error) {
-        console.error('Error fetching ex-dividend date:', error);
-        setExDividendDate(null);
+        console.error('Error fetching dates:', error);
+        setDates({ buyDate: null, payoutDate: null });
       }
     };
 
@@ -222,37 +236,53 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
   }, [symbol]);
 
   useEffect(() => {
-    if (!exDividendDate) return;
+    if (!dates.buyDate && !dates.payoutDate) return;
 
     const calculateTimeLeft = () => {
       const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
-      const exDate = new Date(exDividendDate);
-      exDate.setHours(16, 0, 0, 0);
 
-      const diff = exDate.getTime() - now.getTime();
+      let buyDifference = 0;
+      let payoutDifference = 0;
+
+      if (dates.buyDate) {
+        const buyExDate = new Date(dates.buyDate);
+        buyExDate.setHours(16, 0, 0, 0);
+        buyDifference = buyExDate.getTime() - now.getTime();
+      }
+
+      if (dates.payoutDate) {
+        const payoutExDate = new Date(dates.payoutDate);
+        payoutExDate.setHours(16, 0, 0, 0);
+        payoutDifference = payoutExDate.getTime() - now.getTime();
+      }
 
       setTimeLeft({
-        exDividendDays: Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24))),
-        exDividendHours: Math.max(0, Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))),
-        isExDividendPassed: diff < 0,
+        buyDays: Math.max(0, Math.floor(buyDifference / (1000 * 60 * 60 * 24))),
+        buyHours: Math.max(0, Math.floor((buyDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))),
+        payoutDays: Math.max(0, Math.floor(payoutDifference / (1000 * 60 * 60 * 24))),
+        payoutHours: Math.max(0, Math.floor((payoutDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))),
+        isBuyPassed: buyDifference < 0,
+        isPayoutPassed: payoutDifference < 0
       });
     };
 
-    const timer = setInterval(calculateTimeLeft, 1000 * 60); // every minute
+    const timer = setInterval(calculateTimeLeft, 1000 * 60); // Update every minute
     calculateTimeLeft();
 
     return () => clearInterval(timer);
-  }, [exDividendDate]);
+  }, [dates]);
 
-  if (!exDividendDate) {
+  if (!dates.buyDate && !dates.payoutDate) {
     return (
       <div className="grid grid-cols-1 gap-4 w-full">
         <Card className="w-full p-8 bg-gradient-to-br from-gray-900 to-blue-900 shadow-lg rounded-xl text-white relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center"></div>
-          <div className="relative z-10 text-center">
-            <div className="text-2xl font-bold text-yellow-500 flex items-center justify-center gap-3">
-              <AlertCircle className="w-8 h-8" />
-              No Ex-Dividend Date Available
+          <div className="relative z-10">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-yellow-500 flex items-center justify-center gap-3">
+                <AlertCircle className="w-8 h-8" />
+                No Dividend Dates Available
+              </div>
             </div>
           </div>
         </Card>
@@ -264,35 +294,37 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     <div className="grid grid-cols-1 gap-4 w-full">
       <Card className="w-full p-8 bg-gradient-to-br from-gray-900 to-blue-900 shadow-lg rounded-xl text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center"></div>
-        <div className="relative z-10 text-center">
-          {!timeLeft.isExDividendPassed ? (
-            <>
-              <div className="flex items-center justify-center gap-3 mb-8">
-                <Calendar className="w-8 h-8 text-blue-400" />
-                <h3 className="text-2xl font-bold text-white">Time until Ex-Dividend Date</h3>
-              </div>
-              <div className="flex justify-center items-center gap-12">
-                {[
-                  { label: "Days", value: timeLeft.exDividendDays },
-                  { label: "Hours", value: timeLeft.exDividendHours, color: timeLeft.exDividendDays === 0 ? "text-red-500" : "text-white" }
-                ].map((item, index) => (
-                  <div key={index} className="flex flex-col items-center bg-black/20 px-8 py-6 rounded-xl">
-                    <div className={`text-7xl font-bold ${item.color || "text-white"} mb-3 font-mono tracking-wider`}>
-                      {String(item.value).padStart(2, '0')}
+        <div className="relative z-10">
+          <div className="text-center">
+            {!timeLeft.isBuyPassed ? (
+              <>
+                <div className="flex items-center justify-center gap-3 mb-8">
+                  <Calendar className="w-8 h-8 text-blue-400" />
+                  <h3 className="text-2xl font-bold text-white">Time until Buy Date</h3>
+                </div>
+                <div className="flex justify-center items-center gap-12">
+                  {[
+                    { label: "Days", value: timeLeft.buyDays, color: "text-white" },
+                    { label: "Hours", value: timeLeft.buyHours, color: timeLeft.buyDays === 0 ? "text-red-500" : "text-white" }
+                  ].map((item, index) => (
+                    <div key={index} className="flex flex-col items-center bg-black/20 px-8 py-6 rounded-xl">
+                      <div className={`text-7xl font-bold ${item.color} mb-3 font-mono tracking-wider`}>
+                        {String(item.value).padStart(2, '0')}
+                      </div>
+                      <div className="text-xl text-blue-200 font-medium uppercase tracking-wide">
+                        {item.label}
+                      </div>
                     </div>
-                    <div className="text-xl text-blue-200 font-medium uppercase tracking-wide">
-                      {item.label}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-3xl font-bold text-red-500 animate-pulse flex items-center justify-center gap-3">
+                <AlertCircle className="w-8 h-8" />
+                Ex-Dividend Date Has Passed
               </div>
-            </>
-          ) : (
-            <div className="text-3xl font-bold text-red-500 animate-pulse flex items-center justify-center gap-3">
-              <AlertCircle className="w-8 h-8" />
-              Ex-Dividend Date Has Passed
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </Card>
     </div>
@@ -357,14 +389,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     quarterly: string | null;
     annualDate: string | null;
     quarterlyDate: string | null;
-    annual: string | null;
   }>({
     dividend: null,
-    dividendrate: null,
     quarterly: null,
     annualDate: null,
-    quarterlyDate: null,
-    annual: null
+    quarterlyDate: null
   });
   const [similarStocks, setSimilarStocks] = useState<Array<{
     symbol: string;
@@ -411,27 +440,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
             // Update latest dividends
             setLatestDividends({
-              dividend: data.dividend?.toString() || '',
-              dividendrate: data.dividendrate?.toString() || '',
-              annual: data.dividendrate?.toString() || '',
-              quarterly: data.dividend?.toString() || '',
-              annualDate: data.exdividenddate || '',
-              quarterlyDate: data.payoutdate || ''
+              annual: data.dividend?.toString() || null,
+              quarterly: (data.dividend / 4)?.toFixed(2) || null,
+              annualDate: data.exdividenddate || null,
+              quarterlyDate: data.payoutdate || null
             });
-
-            console.log('Dividend data mapped:', {
-              dividend: data.dividend,
-              dividendrate: data.dividendrate,
-              annual: data.dividendrate,
-              quarterly: data.dividend,
-              annualDate: data.exdividenddate,
-              quarterlyDate: data.payoutdate
-            });
-
-            // Log the ex-dividend date for debugging
-            if (data.exdividenddate) {
-              console.log('Ex-Dividend Date:', new Date(data.exdividenddate).toLocaleDateString());
-            }
           }
         });
       }
@@ -1432,14 +1445,14 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   <div className="flex flex-col">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold text-green-500">
-                        {latestDividends.dividendrate
+                        {latestDividends.annual
                           ? `$${Number(latestDividends.dividendrate).toFixed(2)}`
                           : 'N/A'}
                       </span>
                     </div>
                     {latestDividends.annualDate && (
                       <div className="text-xs text-gray-500 mt-1">
-                        Ex-Date: {new Date(latestDividends.annualDate).toLocaleDateString()}
+                        Ex-Date: {new Date(latestDividends.dividend).toLocaleDateString()}
                       </div>
                     )}
                   </div>
@@ -1451,8 +1464,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   <div className="flex flex-col">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold text-blue-500">
-                        {latestDividends.dividend
-                          ? `$${Number(latestDividends.dividend).toFixed(2)}`
+                        {latestDividends.quarterly
+                          ? `$${Number(latestDividends.quarterly).toFixed(2)}`
                           : 'N/A'}
                       </span>
                     </div>
@@ -1487,7 +1500,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               </div>
             </Card>
             <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-600">Next Ex-Dividend Date</div>
+              <div className="text-sm text-gray-600">Next Dividend Date</div>
               <div className="text-lg font-bold">
                 {latestDividends.annualDate ?
                   new Date(latestDividends.annualDate).toLocaleDateString() :
@@ -1497,16 +1510,16 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
               <div className="text-sm text-gray-600">Dividend Status</div>
               <div className="text-lg font-bold">
-                {latestDividends.dividendrate ?
-                  Number(latestDividends.dividendrate) > 0 ? 'Dividend Paying' : 'Non-Dividend' :
+                {latestDividends.annual ?
+                  Number(latestDividends.annual) > 0 ? 'Dividend Paying' : 'Non-Dividend' :
                   'Unknown'}
               </div>
             </Card>
             <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
               <div className="text-sm text-gray-600">Dividend Yield</div>
               <div className="text-lg font-bold">
-                {latestDividends.dividendrate && Number(latestDividends.dividendrate) > 0 ?
-                  `${Number(latestDividends.dividendrate).toFixed(2)}%` :
+                {latestDividends.annual && Number(latestDividends.annual) > 0 ?
+                  `${((Number(latestDividends.annual) / 100) * 100).toFixed(2)}%` :
                   'N/A'}
               </div>
             </Card>
@@ -1590,3 +1603,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 };
 
 export default StockDetailsDialog;
+
+
+
+
+
