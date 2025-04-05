@@ -27,10 +27,10 @@ interface DividendData {
   payoutRatio: string;
   AnnualRate: string;
   message: string;
-  exdividenddate: string;
+  ExDividendDate: string;
   buy_date: string;
   DividendDate: string;
-  earningsdate: string;
+  EarningsDate: string;
   payoutdate: string;
   hist: string;
   insight: string;
@@ -58,7 +58,7 @@ interface DividendData {
 
 interface HoveredStockDetails {
   stock: DividendData;
-  exdividenddate: string;
+  exDividendDate: string;
   dividendDate: string;
   position: { x: number; y: number; };
 }
@@ -132,7 +132,7 @@ const Dividend: React.FC = () => {
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>("");
 
-  const [dateType, setDateType] = useState<'exdividenddate' | 'payoutdate'>('exdividenddate');
+  const [dateType, setDateType] = useState<'ExDividendDate' | 'payoutdate'>('ExDividendDate');
 
   const [totalSymbolCount, setTotalSymbolCount] = useState<number>(0);
   const [currentMonthStockCount, setCurrentMonthStockCount] = useState<number>(0);
@@ -173,7 +173,7 @@ const Dividend: React.FC = () => {
     if (type === 'paid') {
       setDateType('payoutdate');
     } else {
-      setDateType('exdividenddate');
+      setDateType('ExDividendDate');
     }
   }, []);
 
@@ -212,14 +212,14 @@ const Dividend: React.FC = () => {
         const logoMap = new Map();
         logoData?.forEach(item => {
           if (item.Symbol) {
-            logoMap.set(item.Symbol, item);
+            logoMap.set(item.Symbol.toUpperCase(), item);
           }
         });
 
         const transformedData = (dividendData || []).map((stock: any) => {
           const safetyInfo = safetyMap.get(stock.symbol);
           // Use uppercase for consistent matching with Symbol column
-          const logoInfo = logoMap.get(stock.Symbol || stock.symbol);
+          const logoInfo = logoMap.get(stock.Symbol?.toUpperCase() || stock.symbol?.toUpperCase());
 
           const newData: DividendData = {
             Symbol: stock.symbol,
@@ -231,9 +231,9 @@ const Dividend: React.FC = () => {
             payoutRatio: stock.payoutratio?.toString() || '0',
             AnnualRate: stock.annualrate?.toString() || '0',
             message: stock.message || '',
-            exdividenddate: stock.exdividenddate || '',
+            ExDividendDate: stock.exdividenddate || '',
             DividendDate: stock.dividenddate || '',
-            earningsdate: stock.earningsdate || '',
+            EarningsDate: stock.earningsdate || '',
             payoutdate: stock.payoutdate || '',
             buy_date: stock.buy_date || '',
             hist: stock.hist || '',
@@ -323,7 +323,7 @@ const Dividend: React.FC = () => {
         const logoMap = new Map();
         data.forEach(row => {
           if (row.Symbol) {
-            logoMap.set(row.Symbol, row.LogoURL);
+            logoMap.set(row.Symbol.toUpperCase(), row.LogoURL);
             // Log a few entries to verify the column names
             if (logoMap.size <= 5) {
               console.log(`Logo entry ${logoMap.size}:`, row.Symbol, '→', row.LogoURL);
@@ -448,6 +448,13 @@ const Dividend: React.FC = () => {
     });
   };
 
+  // Update current month stock count whenever relevant data changes
+  useEffect(() => {
+    const monthStocks = getMonthStocks();
+    setCurrentMonthStockCount(monthStocks.length);
+    console.log(`Current month (${currentMonth.toLocaleString('default', { month: 'long' })}) has ${monthStocks.length} stocks with ${dateType === 'ExDividendDate' ? 'ex-dividend' : 'payout'} dates`);
+  }, [filteredDividendData, currentMonth, dateType]);
+
   const getRunningHistory = () => {
     const stocks = viewMode === 'weekly' ? getWeekStocks() : getMonthStocks();
     return stocks.map(stock => stock.hist).join(' | ');
@@ -478,7 +485,7 @@ const Dividend: React.FC = () => {
     setHoveredStockDetails({
       stock,
       position: { x: event.clientX || 0, y: event.clientY || 0 },
-      exdividenddate: stock.exdividenddate,
+      exDividendDate: stock.ExDividendDate,
       dividendDate: stock.DividendDate
     });
   }, [autoCloseTimer]);
@@ -592,8 +599,8 @@ const Dividend: React.FC = () => {
       )
     )
     .sort((a, b) => {
-      const symbolA = a.Symbol || '';
-      const symbolB = b.Symbol || '';
+      const symbolA = a.Symbol?.toUpperCase() || '';
+      const symbolB = b.Symbol?.toUpperCase() || '';
       return symbolA.localeCompare(symbolB);
     });
 
@@ -612,7 +619,7 @@ const Dividend: React.FC = () => {
       >
         <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
           <img
-            src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
+            src={companyLogos.get(stock.Symbol?.toUpperCase()) || stock.LogoURL || 'stock.avif'}
             alt={stock.Symbol}
             className="w-full h-full object-contain"
             loading="lazy"
@@ -677,8 +684,8 @@ const Dividend: React.FC = () => {
     const stocksForDate = filteredDividendData
       .filter((stock) => stock && stock[dateType] === dateString)
       .sort((a, b) => {
-        const symbolA = a.Symbol || '';
-        const symbolB = b.Symbol || '';
+        const symbolA = a.Symbol?.toUpperCase() || '';
+        const symbolB = b.Symbol?.toUpperCase() || '';
         return symbolA.localeCompare(symbolB);
       });
 
@@ -957,6 +964,9 @@ const Dividend: React.FC = () => {
                   <div className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
                     Total Stocks: {totalSymbolCount}
                   </div>
+                  <div className="flex items-center bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm font-medium">
+                    {formatMonth(currentMonth)} {dateType === 'ExDividendDate' ? 'Ex-Div' : 'Payout'}: {currentMonthStockCount}
+                  </div>
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full md:w-auto">
@@ -1125,7 +1135,7 @@ const Dividend: React.FC = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-300">Ex-Dividend Date:</span>
               <span className="font-medium">
-                {new Date(hoveredStockDetails.exdividenddate)
+                {new Date(hoveredStockDetails.exDividendDate)
                 .toISOString()
                 .split('T')[0]}
               </span>
@@ -1241,7 +1251,7 @@ const Dividend: React.FC = () => {
                   <div>
                     <span className="font-medium">Ex-Dividend Date:</span>
                     <span className="ml-2">
-                      {new Date(expandedStock.exdividenddate)
+                      {new Date(expandedStock.ExDividendDate)
                       .toISOString()
                       .split('T')[0]}
                     </span>
@@ -1259,7 +1269,7 @@ const Dividend: React.FC = () => {
                   <div>
                     <span className="font-medium">Earnings Date:</span>
                     <span className="ml-2">
-                      {new Date(expandedStock.earningsdate)
+                      {new Date(expandedStock.EarningsDate)
                       .toISOString()
                       .split('T')[0]}
                     </span>
@@ -1377,6 +1387,99 @@ const Dividend: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Monthly Stocks Table */}
+      <Card className="p-8 shadow-xl border border-gray-100 dark:border-gray-800 relative overflow-hidden rounded-xl mt-6 container mx-auto px-4 py-6 max-w-[1400px]">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {formatMonth(currentMonth)} {dateType === 'ExDividendDate' ? 'Ex-Dividend' : 'Payout'} Stocks
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              {currentMonthStockCount} stocks with {dateType === 'ExDividendDate' ? 'ex-dividend' : 'payout'} dates in {formatMonth(currentMonth)}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search stocks..."
+                className="px-4 py-2 pr-10 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-gray-200"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value.toLowerCase())}
+              />
+              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100 dark:bg-gray-800 text-left">
+                <th className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300">Symbol</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300">Company</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300">Ex-Dividend Date</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300">Payout Date</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300">Dividend</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300">Yield</th>
+                <th className="px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-300">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {getMonthStocks()
+                .filter(stock =>
+                  searchTerm === '' ||
+                  stock.Symbol?.toLowerCase().includes(searchTerm) ||
+                  stock.title?.toLowerCase().includes(searchTerm)
+                )
+                .map((stock, index) => (
+                  <tr
+                    key={index}
+                    className={`border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 ${index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-850'}`}
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                          <img
+                            src={companyLogos.get(stock.Symbol?.toUpperCase()) || stock.LogoURL || 'stock.avif'}
+                            alt={stock.Symbol}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'stock.avif';
+                            }}
+                          />
+                        </div>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{stock.Symbol}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{stock.title}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{stock.ExDividendDate}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{stock.DividendDate}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">${stock.dividendRate?.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">{(stock.dividendYield * 100).toFixed(2)}%</td>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        className="px-3 py-1 bg-blue-500 text-white rounded-md text-xs hover:bg-blue-600 transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStockClick(stock, e);
+                        }}
+                      >
+                        Details
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 };

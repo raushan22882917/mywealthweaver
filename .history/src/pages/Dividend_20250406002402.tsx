@@ -30,7 +30,7 @@ interface DividendData {
   exdividenddate: string;
   buy_date: string;
   DividendDate: string;
-  earningsdate: string;
+  EarningsDate: string;
   payoutdate: string;
   hist: string;
   insight: string;
@@ -233,7 +233,7 @@ const Dividend: React.FC = () => {
             message: stock.message || '',
             exdividenddate: stock.exdividenddate || '',
             DividendDate: stock.dividenddate || '',
-            earningsdate: stock.earningsdate || '',
+            EarningsDate: stock.earningsdate || '',
             payoutdate: stock.payoutdate || '',
             buy_date: stock.buy_date || '',
             hist: stock.hist || '',
@@ -1259,7 +1259,7 @@ const Dividend: React.FC = () => {
                   <div>
                     <span className="font-medium">Earnings Date:</span>
                     <span className="ml-2">
-                      {new Date(expandedStock.earningsdate)
+                      {new Date(expandedStock.EarningsDate)
                       .toISOString()
                       .split('T')[0]}
                     </span>

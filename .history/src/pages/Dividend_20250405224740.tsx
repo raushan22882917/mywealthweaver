@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon, Bell } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import { supabase } from "@/lib/supabase/client";
+import Papa from "papaparse";
 import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -27,10 +28,10 @@ interface DividendData {
   payoutRatio: string;
   AnnualRate: string;
   message: string;
-  exdividenddate: string;
+  ExDividendDate: string;
   buy_date: string;
   DividendDate: string;
-  earningsdate: string;
+  EarningsDate: string;
   payoutdate: string;
   hist: string;
   insight: string;
@@ -58,7 +59,7 @@ interface DividendData {
 
 interface HoveredStockDetails {
   stock: DividendData;
-  exdividenddate: string;
+  exDividendDate: string;
   dividendDate: string;
   position: { x: number; y: number; };
 }
@@ -132,10 +133,7 @@ const Dividend: React.FC = () => {
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>("");
 
-  const [dateType, setDateType] = useState<'exdividenddate' | 'payoutdate'>('exdividenddate');
-
-  const [totalSymbolCount, setTotalSymbolCount] = useState<number>(0);
-  const [currentMonthStockCount, setCurrentMonthStockCount] = useState<number>(0);
+  const [dateType, setDateType] = useState<'ExDividendDate' | 'payoutdate'>('ExDividendDate');
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +171,7 @@ const Dividend: React.FC = () => {
     if (type === 'paid') {
       setDateType('payoutdate');
     } else {
-      setDateType('exdividenddate');
+      setDateType('ExDividendDate');
     }
   }, []);
 
@@ -181,17 +179,6 @@ const Dividend: React.FC = () => {
     const fetchDividendData = async () => {
       try {
         setIsLoading(true);
-
-        // Get total count of symbols in dividend table
-        const { count, error: countError } = await supabase
-          .from('dividend')
-          .select('symbol', { count: 'exact', head: true });
-
-        if (countError) throw new Error(`Count error: ${countError.message}`);
-
-        // Set the total count
-        setTotalSymbolCount(count || 0);
-        console.log('Total symbols in dividend table:', count);
 
         const [
           { data: dividendData, error: dividendError },
@@ -208,18 +195,11 @@ const Dividend: React.FC = () => {
         if (logoError) throw new Error(`Logo data error: ${logoError.message}`);
 
         const safetyMap = new Map(safetyData?.map(item => [item.symbol, item]) || []);
-        // Create a case-insensitive map for logos
-        const logoMap = new Map();
-        logoData?.forEach(item => {
-          if (item.Symbol) {
-            logoMap.set(item.Symbol, item);
-          }
-        });
+        const logoMap = new Map(logoData?.map(item => [item.Symbol, item]) || []);
 
         const transformedData = (dividendData || []).map((stock: any) => {
           const safetyInfo = safetyMap.get(stock.symbol);
-          // Use uppercase for consistent matching with Symbol column
-          const logoInfo = logoMap.get(stock.Symbol || stock.symbol);
+          const logoInfo = logoMap.get(stock.symbol);
 
           const newData: DividendData = {
             Symbol: stock.symbol,
@@ -231,9 +211,9 @@ const Dividend: React.FC = () => {
             payoutRatio: stock.payoutratio?.toString() || '0',
             AnnualRate: stock.annualrate?.toString() || '0',
             message: stock.message || '',
-            exdividenddate: stock.exdividenddate || '',
+            ExDividendDate: stock.exdividenddate || '',
             DividendDate: stock.dividenddate || '',
-            earningsdate: stock.earningsdate || '',
+            EarningsDate: stock.earningsdate || '',
             payoutdate: stock.payoutdate || '',
             buy_date: stock.buy_date || '',
             hist: stock.hist || '',
@@ -313,31 +293,17 @@ const Dividend: React.FC = () => {
   useEffect(() => {
     const loadCompanyLogos = async () => {
       try {
-        const { data, error } = await supabase
-          .from('company_logos')
-          .select('Symbol, LogoURL');
-
-        if (error) throw error;
-
-        // Create a case-insensitive map for logos
-        const logoMap = new Map();
-        data.forEach(row => {
-          if (row.Symbol) {
-            logoMap.set(row.Symbol, row.LogoURL);
-            // Log a few entries to verify the column names
-            if (logoMap.size <= 5) {
-              console.log(`Logo entry ${logoMap.size}:`, row.Symbol, '→', row.LogoURL);
-            }
+        const response = await fetch('/sp500_company_logos.csv');
+        const csvText = await response.text();
+        Papa.parse(csvText, {
+          header: true,
+          complete: (results) => {
+            const logoMap = new Map(
+              results.data.map((row: any) => [row.Symbol, row.LogoURL])
+            );
+            setCompanyLogos(logoMap);
           }
         });
-        setCompanyLogos(logoMap);
-
-        // Log some sample entries to verify
-        if (data.length > 0) {
-          console.log('Sample logo entry from data:', data[0]);
-          console.log('Available columns:', Object.keys(data[0]).join(', '));
-        }
-        console.log('Loaded company logos from Supabase:', data.length);
       } catch (error) {
         console.error('Error loading company logos:', error);
       }
@@ -346,25 +312,14 @@ const Dividend: React.FC = () => {
     loadCompanyLogos();
   }, []);
 
-  interface Holiday {
-    date: string;
-    name: string;
-    description: string;
-  }
-
   const [holidayData, setHolidayData] = useState<Holiday[]>([]);
 
   useEffect(() => {
     const fetchHolidayData = async () => {
       try {
-        const { data, error } = await supabase
-          .from('holidays')
-          .select('date, name, description');
-
-        if (error) throw error;
-
-        setHolidayData(data || []);
-        console.log('Loaded holiday data from Supabase:', data?.length || 0);
+        const response = await fetch('/calender/holiday.json');
+        const data = await response.json();
+        setHolidayData(data.holidays);
       } catch (error) {
         console.error('Error loading holiday data:', error);
       }
@@ -419,7 +374,16 @@ const Dividend: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // This function is now replaced by the useCallback version below
+  const handleStockClick = (stock: DividendData) => {
+    const stockData: Stock = {
+      cik_str: "",
+      Symbol: stock.Symbol,
+      title: stock.title
+    };
+    setSelectedStock(stockData);
+    setDialogOpen(true);
+    handleCloseExpanded();
+  };
 
   const isCurrentWeek = (date: Date) => {
     const today = new Date();
@@ -453,35 +417,24 @@ const Dividend: React.FC = () => {
     return stocks.map(stock => stock.hist).join(' | ');
   };
 
-  const handleStockClick = useCallback((stock: DividendData, event: React.MouseEvent) => {
+  const handleStockHover = useCallback((stock: DividendData) => {
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer);
     }
 
-    // Open the stock details dialog directly on click
-    const stockData: Stock = {
-      cik_str: "",
-      Symbol: stock.Symbol,
-      title: stock.title
-    };
-    setSelectedStock(stockData);
-    setDialogOpen(true);
-    setHoveredStockDetails(null);
-  }, [autoCloseTimer, setDialogOpen, setSelectedStock]);
+    setHoveredStock(stock);
 
-  // Function to show stock details on hover/click without opening dialog
-  const handleStockHover = useCallback((stock: DividendData, event: React.MouseEvent) => {
-    if (autoCloseTimer) {
-      clearTimeout(autoCloseTimer);
-    }
+    const event = window.event as MouseEvent;
 
     setHoveredStockDetails({
       stock,
-      position: { x: event.clientX || 0, y: event.clientY || 0 },
-      exdividenddate: stock.exdividenddate,
+      position: { x: event?.clientX || 0, y: event?.clientY || 0 },
+      exDividendDate: stock.ExDividendDate,
       dividendDate: stock.DividendDate
     });
-  }, [autoCloseTimer]);
+
+
+  }, [autoCloseTimer, isTouched]);
 
   const handleStockLeave = () => {
     setHoveredStockDetails(null);
@@ -592,8 +545,8 @@ const Dividend: React.FC = () => {
       )
     )
     .sort((a, b) => {
-      const symbolA = a.Symbol || '';
-      const symbolB = b.Symbol || '';
+      const symbolA = a.Symbol?.toUpperCase() || '';
+      const symbolB = b.Symbol?.toUpperCase() || '';
       return symbolA.localeCompare(symbolB);
     });
 
@@ -604,8 +557,16 @@ const Dividend: React.FC = () => {
   const renderStockCard = (stock: DividendData, borderColorClass: string) => (
     <div
       className="relative group stock-element w-[50px] h-[50px] mt-2"
-      onClick={(e) => handleStockClick(stock, e)}
-      onMouseEnter={(e) => handleStockHover(stock, e)}
+      onMouseEnter={() => handleStockHover(stock)}
+
+      onClick={() => {
+        setIsTouched(true);
+        handleStockHover(stock);
+      }}
+      onTouchStart={() => {
+        setIsTouched(true);
+        handleStockHover(stock);
+      }}
     >
       <div
         className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
@@ -614,11 +575,10 @@ const Dividend: React.FC = () => {
           <img
             src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
             alt={stock.Symbol}
-            className="w-full h-full object-contain"
+            className="object-contain"
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'stock.avif';
-              console.log('Failed to load logo for:', stock.Symbol);
             }}
           />
         </div>
@@ -677,13 +637,13 @@ const Dividend: React.FC = () => {
     const stocksForDate = filteredDividendData
       .filter((stock) => stock && stock[dateType] === dateString)
       .sort((a, b) => {
-        const symbolA = a.Symbol || '';
-        const symbolB = b.Symbol || '';
+        const symbolA = a.Symbol?.toUpperCase() || '';
+        const symbolB = b.Symbol?.toUpperCase() || '';
         return symbolA.localeCompare(symbolB);
       });
 
     const hasMoreStocks = stocksForDate.length > 6;
-    const displayStocks = hasMoreStocks ? stocksForDate.slice(0, 6) : stocksForDate;
+    const displayStocks = hasMoreStocks && !isExpanded ? stocksForDate.slice(0, 6) : stocksForDate;
 
     const isToday = new Date().toDateString() === date.toDateString();
     const currentWeek = isCurrentWeek(date);
@@ -710,20 +670,13 @@ const Dividend: React.FC = () => {
         >
           <div className="flex justify-between items-start">
             <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${
-                  isToday
-                    ? 'bg-purple-100/90 text-purple-700 dark:bg-purple-900/80 dark:text-purple-300'
-                    : 'bg-gray-100/90 text-gray-700 dark:bg-gray-800/80 dark:text-gray-300'
-                }`}>
-                  {date.getDate()}
-                </span>
-                {stocksForDate.length > 0 && (
-                  <div className="flex items-center justify-center bg-blue-500 dark:bg-blue-600 text-white rounded-full w-6 h-6 text-xs font-bold">
-                    {stocksForDate.length}
-                  </div>
-                )}
-              </div>
+              <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${
+                isToday
+                  ? 'bg-purple-100/90 text-purple-700 dark:bg-purple-900/80 dark:text-purple-300'
+                  : 'bg-gray-100/90 text-gray-700 dark:bg-gray-800/80 dark:text-gray-300'
+              }`}>
+                {date.getDate()}
+              </span>
               {holiday && (
                 <div className="w-[200px] h-[150px] ml-2 mt-2 p-3 rounded-lg bg-red-100/90 dark:bg-red-900/50 border border-red-300 dark:border-red-700 shadow-sm">
                   <p className="text-sm font-semibold text-red-800 dark:text-red-200">{holiday.name}</p>
@@ -731,10 +684,22 @@ const Dividend: React.FC = () => {
                 </div>
               )}
             </div>
-
+            {stocksForDate.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePopup(dateString);
+                }}
+                className="hover:bg-gray-100/80 dark:hover:bg-gray-800/80 z-20"
+              >
+                {showPopup[dateString] ? <Minimize className="h-4 w-4" /> : <Expand className="h-4 w-4" />}
+              </Button>
+            )}
           </div>
 
-          <div className="grid grid-cols-3 gap-2 mt-3">
+          <div className={`grid gap-2 mt-3 ${isExpanded ? 'grid-cols-4' : 'grid-cols-3'}`}>
             {displayStocks.map((stock, index) => (
               <div
                 key={index}
@@ -744,8 +709,8 @@ const Dividend: React.FC = () => {
               >
                 <div
                   className="cursor-pointer"
-                  onClick={(e) => {
-                    handleStockClick(stock, e);
+                  onClick={() => {
+                    handleStockClick(stock);
                   }}
                 >
                   {renderStockCard(stock, getStatusBorderColor(stock.status))}
@@ -801,8 +766,8 @@ const Dividend: React.FC = () => {
                       >
                         <div
                           className="cursor-pointer"
-                          onClick={(e) => {
-                            handleStockClick(stock, e);
+                          onClick={() => {
+                            handleStockClick(stock);
                           }}
                         >
                           {renderStockCard(stock, getStatusBorderColor(stock.status))}
@@ -937,7 +902,7 @@ const Dividend: React.FC = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <main className="container mx-auto px-4 py-6 max-w-[1400px]">
+      <main className="container ml-[150px] mr-[100px] px-4 py-6">
         <div className="grid grid-cols-1 gap-6">
           <Card className="p-8 shadow-xl border border-gray-100 dark:border-gray-800 relative overflow-hidden rounded-xl">
             <div
@@ -950,14 +915,9 @@ const Dividend: React.FC = () => {
 
             <div className="relative z-10">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div className="flex items-center gap-4">
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-                    {formatMonth(currentMonth)}
-                  </h1>
-                  <div className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
-                    Total Stocks: {totalSymbolCount}
-                  </div>
-                </div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
+                  {formatMonth(currentMonth)}
+                </h1>
 
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full md:w-auto">
                   <div className="mb-3">
@@ -1001,7 +961,7 @@ const Dividend: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-5 gap-2 md:gap-4 mb-4">
+              <div className="grid grid-cols-5 gap-4 mb-4">
                 {["MON", "TUE", "WED", "THU", "FRI"].map(day => (
                   <div
                     key={day}
@@ -1015,7 +975,7 @@ const Dividend: React.FC = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-6">
+              <div className="grid grid-cols-5 gap-6">
                 {renderCalendar()}
               </div>
             </div>
@@ -1046,7 +1006,9 @@ const Dividend: React.FC = () => {
           onMouseLeave={() => {
             if (!isHoveringSymbol) {
               const timer = setTimeout(() => {
+                setHoveredStock(null);
                 setHoveredStockDetails(null);
+                setIsTouched(false);
                 setIsHoveringSymbol(false);
               }, 1000);
               setAutoCloseTimer(timer);
@@ -1086,8 +1048,8 @@ const Dividend: React.FC = () => {
                 <div
                   className="w-8 h-8 bg-center bg-no-repeat bg-contain aspect-square border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
                   style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'})` }}
-                  onClick={(e) => {
-                    handleStockClick(hoveredStockDetails.stock, e);
+                  onClick={() => {
+                    handleStockClick(hoveredStockDetails.stock);
                     setHoveredStockDetails(null);
                   }}
 
@@ -1095,8 +1057,8 @@ const Dividend: React.FC = () => {
                 <div>
                   <div
                     className="font-semibold cursor-pointer hover:text-blue-500 transition-colors"
-                    onClick={(e) => {
-                      handleStockClick(hoveredStockDetails.stock, e);
+                    onClick={() => {
+                      handleStockClick(hoveredStockDetails.stock);
                       setHoveredStockDetails(null);
                     }}
 
@@ -1112,6 +1074,7 @@ const Dividend: React.FC = () => {
             <button
               onClick={(e) => {
                 e.stopPropagation();
+                setIsTouched(false);
                 handleCloseHover();
               }}
               className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
@@ -1125,7 +1088,7 @@ const Dividend: React.FC = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-300">Ex-Dividend Date:</span>
               <span className="font-medium">
-                {new Date(hoveredStockDetails.exdividenddate)
+                {new Date(hoveredStockDetails.exDividendDate)
                 .toISOString()
                 .split('T')[0]}
               </span>
@@ -1192,16 +1155,16 @@ const Dividend: React.FC = () => {
                 <div
                   className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
                   style={{ backgroundImage: `url(${companyLogos.get(expandedStock.Symbol) || expandedStock.LogoURL || 'stock.avif'})` }}
-                  onClick={(e) => {
-                    handleStockClick(expandedStock, e);
+                  onClick={() => {
+                    handleStockClick(expandedStock);
                     handleCloseExpanded();
                   }}
                 />
                 <h3 className="text-lg font-bold">
                   <span
                     className="cursor-pointer hover:text-blue-500 transition-colors"
-                    onClick={(e) => {
-                      handleStockClick(expandedStock, e);
+                    onClick={() => {
+                      handleStockClick(expandedStock);
                       handleCloseExpanded();
                     }}
                   >
@@ -1241,7 +1204,7 @@ const Dividend: React.FC = () => {
                   <div>
                     <span className="font-medium">Ex-Dividend Date:</span>
                     <span className="ml-2">
-                      {new Date(expandedStock.exdividenddate)
+                      {new Date(expandedStock.ExDividendDate)
                       .toISOString()
                       .split('T')[0]}
                     </span>
@@ -1259,7 +1222,7 @@ const Dividend: React.FC = () => {
                   <div>
                     <span className="font-medium">Earnings Date:</span>
                     <span className="ml-2">
-                      {new Date(expandedStock.earningsdate)
+                      {new Date(expandedStock.EarningsDate)
                       .toISOString()
                       .split('T')[0]}
                     </span>
@@ -1363,11 +1326,11 @@ const Dividend: React.FC = () => {
                   <div
                     className="cursor-pointer transition-transform hover:scale-105"
                     onClick={(e) => {
-                      handleStockClick(stock, e);
+                      handleStockClick(stock);
                       e.stopPropagation();
                     }}
-                    onMouseEnter={() => {}}
-                    onMouseLeave={() => {}}
+                    onMouseEnter={() => setHoveredStock(stock)}
+                    onMouseLeave={() => setHoveredStock(null)}
                   >
                     {renderStockCard(stock, getStatusBorderColor(stock.status))}
                   </div>

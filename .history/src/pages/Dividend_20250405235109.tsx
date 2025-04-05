@@ -27,10 +27,10 @@ interface DividendData {
   payoutRatio: string;
   AnnualRate: string;
   message: string;
-  exdividenddate: string;
+  ExDividendDate: string;
   buy_date: string;
   DividendDate: string;
-  earningsdate: string;
+  EarningsDate: string;
   payoutdate: string;
   hist: string;
   insight: string;
@@ -58,7 +58,7 @@ interface DividendData {
 
 interface HoveredStockDetails {
   stock: DividendData;
-  exdividenddate: string;
+  exDividendDate: string;
   dividendDate: string;
   position: { x: number; y: number; };
 }
@@ -132,10 +132,9 @@ const Dividend: React.FC = () => {
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string>("");
 
-  const [dateType, setDateType] = useState<'exdividenddate' | 'payoutdate'>('exdividenddate');
+  const [dateType, setDateType] = useState<'ExDividendDate' | 'payoutdate'>('ExDividendDate');
 
   const [totalSymbolCount, setTotalSymbolCount] = useState<number>(0);
-  const [currentMonthStockCount, setCurrentMonthStockCount] = useState<number>(0);
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +172,7 @@ const Dividend: React.FC = () => {
     if (type === 'paid') {
       setDateType('payoutdate');
     } else {
-      setDateType('exdividenddate');
+      setDateType('ExDividendDate');
     }
   }, []);
 
@@ -212,14 +211,14 @@ const Dividend: React.FC = () => {
         const logoMap = new Map();
         logoData?.forEach(item => {
           if (item.Symbol) {
-            logoMap.set(item.Symbol, item);
+            logoMap.set(item.Symbol.toUpperCase(), item);
           }
         });
 
         const transformedData = (dividendData || []).map((stock: any) => {
           const safetyInfo = safetyMap.get(stock.symbol);
-          // Use uppercase for consistent matching with Symbol column
-          const logoInfo = logoMap.get(stock.Symbol || stock.symbol);
+          // Use uppercase for consistent matching
+          const logoInfo = logoMap.get(stock.symbol?.toUpperCase());
 
           const newData: DividendData = {
             Symbol: stock.symbol,
@@ -231,9 +230,9 @@ const Dividend: React.FC = () => {
             payoutRatio: stock.payoutratio?.toString() || '0',
             AnnualRate: stock.annualrate?.toString() || '0',
             message: stock.message || '',
-            exdividenddate: stock.exdividenddate || '',
+            ExDividendDate: stock.exdividenddate || '',
             DividendDate: stock.dividenddate || '',
-            earningsdate: stock.earningsdate || '',
+            EarningsDate: stock.earningsdate || '',
             payoutdate: stock.payoutdate || '',
             buy_date: stock.buy_date || '',
             hist: stock.hist || '',
@@ -323,19 +322,14 @@ const Dividend: React.FC = () => {
         const logoMap = new Map();
         data.forEach(row => {
           if (row.Symbol) {
-            logoMap.set(row.Symbol, row.LogoURL);
-            // Log a few entries to verify the column names
-            if (logoMap.size <= 5) {
-              console.log(`Logo entry ${logoMap.size}:`, row.Symbol, '→', row.LogoURL);
-            }
+            logoMap.set(row.Symbol.toUpperCase(), row.LogoURL);
           }
         });
         setCompanyLogos(logoMap);
 
         // Log some sample entries to verify
         if (data.length > 0) {
-          console.log('Sample logo entry from data:', data[0]);
-          console.log('Available columns:', Object.keys(data[0]).join(', '));
+          console.log('Sample logo entry:', data[0].Symbol, data[0].LogoURL);
         }
         console.log('Loaded company logos from Supabase:', data.length);
       } catch (error) {
@@ -478,7 +472,7 @@ const Dividend: React.FC = () => {
     setHoveredStockDetails({
       stock,
       position: { x: event.clientX || 0, y: event.clientY || 0 },
-      exdividenddate: stock.exdividenddate,
+      exDividendDate: stock.ExDividendDate,
       dividendDate: stock.DividendDate
     });
   }, [autoCloseTimer]);
@@ -592,8 +586,8 @@ const Dividend: React.FC = () => {
       )
     )
     .sort((a, b) => {
-      const symbolA = a.Symbol || '';
-      const symbolB = b.Symbol || '';
+      const symbolA = a.Symbol?.toUpperCase() || '';
+      const symbolB = b.Symbol?.toUpperCase() || '';
       return symbolA.localeCompare(symbolB);
     });
 
@@ -618,7 +612,6 @@ const Dividend: React.FC = () => {
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'stock.avif';
-              console.log('Failed to load logo for:', stock.Symbol);
             }}
           />
         </div>
@@ -677,8 +670,8 @@ const Dividend: React.FC = () => {
     const stocksForDate = filteredDividendData
       .filter((stock) => stock && stock[dateType] === dateString)
       .sort((a, b) => {
-        const symbolA = a.Symbol || '';
-        const symbolB = b.Symbol || '';
+        const symbolA = a.Symbol?.toUpperCase() || '';
+        const symbolB = b.Symbol?.toUpperCase() || '';
         return symbolA.localeCompare(symbolB);
       });
 
@@ -1125,7 +1118,7 @@ const Dividend: React.FC = () => {
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-300">Ex-Dividend Date:</span>
               <span className="font-medium">
-                {new Date(hoveredStockDetails.exdividenddate)
+                {new Date(hoveredStockDetails.exDividendDate)
                 .toISOString()
                 .split('T')[0]}
               </span>
@@ -1241,7 +1234,7 @@ const Dividend: React.FC = () => {
                   <div>
                     <span className="font-medium">Ex-Dividend Date:</span>
                     <span className="ml-2">
-                      {new Date(expandedStock.exdividenddate)
+                      {new Date(expandedStock.ExDividendDate)
                       .toISOString()
                       .split('T')[0]}
                     </span>
@@ -1259,7 +1252,7 @@ const Dividend: React.FC = () => {
                   <div>
                     <span className="font-medium">Earnings Date:</span>
                     <span className="ml-2">
-                      {new Date(expandedStock.earningsdate)
+                      {new Date(expandedStock.EarningsDate)
                       .toISOString()
                       .split('T')[0]}
                     </span>
