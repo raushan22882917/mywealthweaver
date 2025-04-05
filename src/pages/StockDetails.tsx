@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
@@ -16,11 +17,10 @@ import {
   AlertCircle,
   ChevronLeft,
   LineChart,
-  Book,
-  TrendingDown
+  Book
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,7 +30,6 @@ import { StockData } from '@/utils/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AIStockAnalysis from '@/components/AIStockAnalysis';
-import { Loader } from '@/components/ui/loader';
 
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 
@@ -160,15 +159,7 @@ const StockDetails = () => {
           title: stockInfo.symbol,
           logo_url: logoData?.LogoURL || `/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png`,
           ExDividendDate: stockInfo.exdividenddate,
-          id: String(stockInfo.id || 'mock-id'), // Convert id to string to match StockData type
-          dividend_yield: typeof stockInfo.dividendyield === 'string' 
-            ? parseFloat(stockInfo.dividendyield) 
-            : stockInfo.dividendyield || 0,
-          currentprice: stockInfo.currentprice,
-          previousclose: stockInfo.previousclose,
-          dividendrate: stockInfo.dividendrate,
-          dividendyield: stockInfo.dividendyield,
-          payoutratio: stockInfo.payoutratio
+          id: String(stockInfo.id || 'mock-id') // Convert id to string to match StockData type
         });
         setLogoUrl(logoData?.LogoURL || `/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png`);
         setCompanyProfile(profileData || generateMockCompanyProfile(symbol));
@@ -197,20 +188,20 @@ const StockDetails = () => {
       symbol: symbol,
       company_name: popularStocks.find(s => s.symbol === symbol)?.name || `${symbol} Corporation`,
       currentprice: 100 + Math.random() * 200,
-      previousclose: 98 + Math.random() * 200,
-      dividend: 2.5 + Math.random() * 2,
-      dividendrate: 3.2 + Math.random() * 2,
-      dividendyield: 2.0 + Math.random() * 3,
-      payoutratio: 40 + Math.random() * 30,
-      exdividenddate: new Date(Date.now() + Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      earningsdate: new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      id: 'mock-id',
-      title: symbol,
-      hist: '',
-      insight: 'This is a mock insight.',
-      message: 'This is a mock message.',
+      previousClose: 95 + Math.random() * 200,
+      dividend: 1 + Math.random() * 2,
+      dividendrate: 1 + Math.random() * 2,
+      dividendyield: 1 + Math.random() * 4,
+      payoutratio: 0.3 + Math.random() * 0.4,
+      exdividenddate: new Date().toISOString().split('T')[0],
+      earningsdate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      buy_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      payoutdate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      shortname: symbol,
       quotetype: 'EQUITY',
-      shortname: popularStocks.find(s => s.symbol === symbol)?.name || `${symbol} Corporation`
+      hist: '',
+      message: '',
+      insight: ''
     };
   };
 

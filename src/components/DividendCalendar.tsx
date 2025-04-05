@@ -121,10 +121,10 @@ const DividendCalendar = () => {
             revenue: Math.random() * 50000000000,
             earningsPerShare: Math.random() * 10,
             // Original properties with capitalization for compatibility
-            Sector: "Technology" as string,
-            Exchange: "NASDAQ" as string,
-            Revenue: Math.random() * 50000000000 as number,
-            Earnings_per_share: Math.random() * 10 as number
+            Sector: "Technology",
+            Exchange: "NASDAQ",
+            Revenue: Math.random() * 50000000000,
+            Earnings_per_share: Math.random() * 10
           }));
           
           setStockFilterData(transformedData);
@@ -149,10 +149,10 @@ const DividendCalendar = () => {
             revenue: filterData.Revenue !== undefined ? filterData.Revenue : Math.random() * 50000000000,
             earningsPerShare: filterData.Earnings_per_share !== undefined ? filterData.Earnings_per_share : Math.random() * 10,
             // Original properties with capitalization for compatibility
-            Sector: filterData.Sector || "Technology" as string,
-            Exchange: filterData.Exchange || "NASDAQ" as string, 
-            Revenue: filterData.Revenue as number,
-            Earnings_per_share: filterData.Earnings_per_share as number
+            Sector: filterData.Sector || "Technology",
+            Exchange: filterData.Exchange || "NASDAQ", 
+            Revenue: filterData.Revenue,
+            Earnings_per_share: filterData.Earnings_per_share
           };
         });
         
@@ -172,10 +172,10 @@ const DividendCalendar = () => {
           revenue: Math.random() * 50000000000,
           earningsPerShare: Math.random() * 10,
           // Original properties with capitalization for compatibility
-          Sector: "Technology" as string,
-          Exchange: "NASDAQ" as string,
-          Revenue: Math.random() * 50000000000 as number,
-          Earnings_per_share: Math.random() * 10 as number
+          Sector: "Technology",
+          Exchange: "NASDAQ",
+          Revenue: Math.random() * 50000000000,
+          Earnings_per_share: Math.random() * 10
         }));
         
         setStockFilterData(transformedData);
@@ -477,7 +477,7 @@ const DividendCalendar = () => {
         </div>
       </div>
 
-      <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/60 backdrop-blur-lg rounded-2xl p-6 border border-gray-800 shadow-2xl">
+      <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/60 backdrop-blur-lg rounded-2xl p-6 border border-gray-800/80 shadow-2xl">
         {renderCalendarGrid()}
       </div>
 

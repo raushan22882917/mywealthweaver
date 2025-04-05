@@ -26,10 +26,6 @@ const Reporting = () => {
   const [chartType, setChartType] = useState('bar');
   const [reportType, setReportType] = useState('dividend-income');
 
-  const handleDateChange = (newDateRange: DateRange) => {
-    setDateRange(newDateRange);
-  };
-
   const handleDateRangeChange = (range: ReactDayPickerDateRange | undefined) => {
     if (range?.from) {
       // Convert from react-day-picker DateRange to our DateRange
@@ -282,8 +278,8 @@ const Reporting = () => {
                 <div className="mt-4">
                   <p className="text-sm text-gray-400 mb-2">Date Range</p>
                   <DateRangePicker
-                    value={dateRange}
-                    onChange={handleDateChange}
+                    date={dateRange}
+                    onDateChange={handleDateRangeChange}
                   />
                 </div>
                 

@@ -1,3 +1,4 @@
+
 export interface SimilarCompany {
   symbol: string;
   similar_symbol: string;
@@ -6,9 +7,6 @@ export interface SimilarCompany {
   logo?: string | null;
   LogoURL?: string | null;
   company_name?: string;
-  company?: string;
-  description?: string;
-  logoUrl?: string;
 }
 
 export interface CompanyProfile {
@@ -89,10 +87,6 @@ export interface CompanyProfile {
 export interface DividendHistory {
   date: string;
   dividend: number;
-  dividends?: number;
-  id?: number;
-  symbol?: string;
-  created_at?: string;
 }
 
 export interface RankingDisplayData {
@@ -124,20 +118,15 @@ export interface Stock {
 export interface StockData {
   symbol: string;
   title: string;
-  id?: string;
+  id?: string; // Changed from number to string to fix type incompatibilities
   company_name?: string;
   logo_url?: string;
-  LogoURL?: string;
   price?: number;
   dividend_yield?: number;
-  dividendYield?: number;
   marketCap?: string | number;
-  currentprice?: number;
-  previousclose?: number;
-  dividendrate?: number;
-  dividendyield?: number;
-  payoutratio?: number;
+  dividendYield?: string | number;
   next_dividend_date?: string;
+  LogoURL?: string;
   ExDividendDate?: string;
   is_favorite?: boolean;
 }
@@ -188,7 +177,7 @@ export interface StockAnalysis {
 }
 
 export interface NewsItem {
-  id: string;
+  id: string; // Changed from number to string
   date: string;
   news_title: string;
   original_link: string;
