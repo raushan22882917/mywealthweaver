@@ -1,141 +1,182 @@
 
-import { supabase } from '@/lib/supabase/client';
-import { NewsItem } from '@/utils/types';
+import { supabase } from '@/integrations/supabase/client';
 
-export const fetchLatestAnnouncements = async (limit = 5) => {
+export interface Notification {
+  id: string;
+  type: 'dividend' | 'price' | 'earnings' | 'news' | 'system' | string;
+  title: string;
+  message: string;
+  related_symbol?: string;
+  news_id?: string;        // Added for news redirection
+  read: boolean;
+  created_at: string;
+  source?: string;         // Added for news source
+  weblink?: string;        // Added for news link
+}
+
+export interface DividendAnnouncement {
+  id: string;
+  header: string;
+  message: string;
+  symbol: string;
+  amount: number;
+  date: string;
+  created_at: string;
+}
+
+export interface NewsItem {
+  id: string;
+  news_title: string;
+  weblink: string;
+  source: string;
+  date: string;
+  symbol?: string;
+  sentiment_score?: string;
+  sentiment?: string;
+  original_link?: string;
+}
+
+// Function to fetch dividend announcements from Supabase
+export const fetchDividendAnnouncements = async (): Promise<DividendAnnouncement[]> => {
   try {
     const { data, error } = await supabase
       .from('dividend_announcements')
       .select('*')
       .order('date', { ascending: false })
-      .limit(limit);
-      
+      .limit(5);
+
     if (error) throw error;
-    
-    return data;
+    return data || [];
   } catch (error) {
-    console.error('Error fetching announcements:', error);
+    console.error('Error fetching dividend announcements:', error);
     return [];
   }
 };
 
-export const fetchUpcomingEarnings = async (limit = 5) => {
-  try {
-    const now = new Date();
-    const formattedDate = now.toISOString().split('T')[0];
-    
-    const { data, error } = await supabase
-      .from('next_week_earnings')
-      .select('*')
-      .gte('report_date', formattedDate)
-      .order('report_date', { ascending: true })
-      .limit(limit);
-      
-    if (error) throw error;
-    
-    return data;
-  } catch (error) {
-    console.error('Error fetching upcoming earnings:', error);
-    return [];
-  }
-};
-
-export const fetchStockUpgrades = async (limit = 5) => {
-  try {
-    const { data, error } = await supabase
-      .from('stock_upgrades')
-      .select('*')
-      .order('grade_date', { ascending: false })
-      .limit(limit);
-      
-    if (error) throw error;
-    
-    return data;
-  } catch (error) {
-    console.error('Error fetching stock upgrades:', error);
-    return [];
-  }
-};
-
-export const fetchNewsForStock = async (symbol: string, limit = 5) => {
-  try {
-    const { data, error } = await supabase
-      .from('news')
-      .select('*')
-      .eq('symbol', symbol)
-      .order('date', { ascending: false })
-      .limit(limit);
-      
-    if (error) throw error;
-    
-    // Convert id from number to string to match the NewsItem type
-    return data.map(item => ({
-      ...item,
-      id: String(item.id)
-    })) as NewsItem[];
-  } catch (error) {
-    console.error(`Error fetching news for ${symbol}:`, error);
-    return [];
-  }
-};
-
-export const fetchLatestNews = async (limit = 10) => {
+// Function to fetch news from Supabase
+export const fetchNewsItems = async (): Promise<NewsItem[]> => {
   try {
     const { data, error } = await supabase
       .from('news')
       .select('*')
       .order('date', { ascending: false })
-      .limit(limit);
-      
+      .limit(5);
+
     if (error) throw error;
-    
-    // Convert id from number to string to match the NewsItem type
-    return data.map(item => ({
-      ...item,
-      id: String(item.id)
-    })) as NewsItem[];
+    return data || [];
   } catch (error) {
-    console.error('Error fetching latest news:', error);
+    console.error('Error fetching news items:', error);
     return [];
   }
 };
 
-export const fetchAllNotifications = async (limit = 20) => {
+// Convert dividend announcements to notifications format
+export const convertAnnouncementsToNotifications = (
+  announcements: DividendAnnouncement[]
+): Notification[] => {
+  return announcements.map((announcement) => ({
+    id: announcement.id,
+    type: 'dividend',
+    title: announcement.header,
+    message: announcement.message,
+    related_symbol: announcement.symbol,
+    read: false,
+    created_at: announcement.created_at,
+  }));
+};
+
+// Convert news items to notifications format
+export const convertNewsToNotifications = (
+  newsItems: NewsItem[]
+): Notification[] => {
+  return newsItems.map((news) => ({
+    id: news.id,
+    type: 'news',
+    title: `${news.symbol ? `${news.symbol}: ` : ''}${news.news_title}`,
+    message: `${news.source} - ${news.sentiment ? `Sentiment: ${news.sentiment}` : 'Latest market news'}`,
+    related_symbol: news.symbol,
+    news_id: news.id,
+    read: false,
+    created_at: news.date,
+    source: news.source,
+    weblink: news.weblink || news.original_link,
+  }));
+};
+
+// Format date for notifications display
+export const formatNotificationDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - date.getTime());
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    if (diffHours === 0) {
+      const diffMinutes = Math.floor(diffTime / (1000 * 60));
+      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
+    }
+    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+  } else if (diffDays === 1) {
+    return 'Yesterday';
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  } else {
+    return date.toLocaleDateString();
+  }
+};
+
+// Mark a notification as read
+export const markNotificationAsRead = async (notificationId: string): Promise<boolean> => {
   try {
-    const [announcements, earnings, upgrades, news] = await Promise.all([
-      fetchLatestAnnouncements(limit / 4),
-      fetchUpcomingEarnings(limit / 4),
-      fetchStockUpgrades(limit / 4),
-      fetchLatestNews(limit / 4)
-    ]);
-    
-    const combinedNotifications = [
-      ...announcements.map(item => ({
-        ...item,
-        type: 'announcement'
-      })),
-      ...earnings.map(item => ({
-        ...item,
-        type: 'earnings'
-      })),
-      ...upgrades.map(item => ({
-        ...item,
-        type: 'upgrade'
-      })),
-      ...news.map(item => ({
-        ...item,
-        type: 'news'
-      }))
-    ];
-    
-    // Sort by date descending
-    return combinedNotifications.sort((a, b) => {
-      const dateA = new Date(a.date);
-      const dateB = new Date(b.date);
-      return dateB.getTime() - dateA.getTime();
-    });
+    // First check which table the notification belongs to
+    const { data: divNotification, error: divError } = await supabase
+      .from('dividend_announcements')
+      .select('id')
+      .eq('id', notificationId)
+      .maybeSingle();
+
+    if (!divError && divNotification) {
+      // This is a dividend announcement, we would update read status
+      // For now, we'll just return success as if it was updated
+      return true;
+    }
+
+    // If we reach here, the notification wasn't found in any table
+    return false;
   } catch (error) {
-    console.error('Error fetching all notifications:', error);
-    return [];
+    console.error('Error marking notification as read:', error);
+    return false;
+  }
+};
+
+// Function to get unread notification count
+export const getUnreadNotificationCount = async (): Promise<number> => {
+  try {
+    // Get count of unread notifications from both tables
+    let notificationCount = 0;
+
+    // Get recent dividend announcements (assuming they're all "unread")
+    const { data: divAnnouncements, error: divError } = await supabase
+      .from('dividend_announcements')
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const divCount = divAnnouncements?.length || 0;
+
+    // Get recent news items (assuming they're all "unread")
+    const { data: newsItems, error: newsError } = await supabase
+      .from('news')
+      .select('id')
+      .order('date', { ascending: false })
+      .limit(5);
+
+    const newsCount = newsItems?.length || 0;
+
+    return divCount + newsCount + notificationCount;
+  } catch (error) {
+    console.error('Error getting unread notification count:', error);
+    return 0;
   }
 };

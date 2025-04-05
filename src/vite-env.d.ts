@@ -1,10 +1,14 @@
-
 /// <reference types="vite/client" />
 
-interface ImportMetaEnv {
-  readonly VITE_GROQ_API_KEY: string;
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
+declare module '*.csv' {
+  const content: Array<{
+    'EPS Estimate': string;
+    'Reported EPS': string;
+    'Surprise(%)': string;
+    stock: string;
+    report_date: string;
+    Earnings_Date: string;
+    day: string;
+  }>;
+  export default content;
 }

@@ -876,51 +876,6 @@ export type Database = {
         }
         Relationships: []
       }
-      stock_analysis: {
-        Row: {
-          analysis_date: string
-          analysis_text: string
-          created_at: string
-          id: string
-          opportunity: string | null
-          price_target: number | null
-          recommendation: string | null
-          sentiment: string | null
-          strength: string | null
-          symbol: string
-          threat: string | null
-          weakness: string | null
-        }
-        Insert: {
-          analysis_date: string
-          analysis_text: string
-          created_at?: string
-          id?: string
-          opportunity?: string | null
-          price_target?: number | null
-          recommendation?: string | null
-          sentiment?: string | null
-          strength?: string | null
-          symbol: string
-          threat?: string | null
-          weakness?: string | null
-        }
-        Update: {
-          analysis_date?: string
-          analysis_text?: string
-          created_at?: string
-          id?: string
-          opportunity?: string | null
-          price_target?: number | null
-          recommendation?: string | null
-          sentiment?: string | null
-          strength?: string | null
-          symbol?: string
-          threat?: string | null
-          weakness?: string | null
-        }
-        Relationships: []
-      }
       stock_filter: {
         Row: {
           "5-Year-Dividend-Yield": number | null

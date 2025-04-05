@@ -1,4 +1,3 @@
-
 export interface SimilarCompany {
   symbol: string;
   similar_symbol: string;
@@ -118,7 +117,6 @@ export interface Stock {
 export interface StockData {
   symbol: string;
   title: string;
-  id?: string; // Changed from number to string to fix type incompatibilities
   company_name?: string;
   logo_url?: string;
   price?: number;
@@ -128,7 +126,6 @@ export interface StockData {
   next_dividend_date?: string;
   LogoURL?: string;
   ExDividendDate?: string;
-  is_favorite?: boolean;
 }
 
 export interface Holiday {
@@ -143,14 +140,6 @@ export interface StockFilterData {
   exchange?: string;
   revenue?: number;
   earnings_per_share?: number;
-  Sector?: string;
-  Exchange?: string;
-  Revenue?: number;
-  Earnings_per_share?: number;
-  "Dividend-Yield"?: number;
-  "Payout Ratio"?: number;
-  "Financial-Health-Score"?: number;
-  "Debt Levels"?: number;
 }
 
 export interface DividendHistoryData {
@@ -161,33 +150,6 @@ export interface DividendHistoryData {
   created_at: string;
 }
 
-export interface StockAnalysis {
-  id?: string;
-  symbol: string;
-  analysis_text: string;
-  analysis_date: string;
-  sentiment: string;
-  strength?: string;
-  weakness?: string;
-  opportunity?: string;
-  threat?: string;
-  price_target?: number;
-  recommendation?: string;
-  created_at?: string;
-}
-
-export interface NewsItem {
-  id: string; // Changed from number to string
-  date: string;
-  news_title: string;
-  original_link: string;
-  sentiment: string;
-  sentiment_score: string;
-  source: string;
-  symbol: string;
-  weblink: string;
-}
-
 export function mapDatabaseToFilterData(data: any): StockFilterData {
   return {
     symbol: data.Symbol || data.symbol,
@@ -195,10 +157,6 @@ export function mapDatabaseToFilterData(data: any): StockFilterData {
     exchange: data.Exchange || data.exchange,
     revenue: data.Revenue || data.revenue,
     earnings_per_share: data.Earnings_per_share || data.earnings_per_share,
-    Sector: data.Sector,
-    Exchange: data.Exchange,
-    Revenue: data.Revenue,
-    Earnings_per_share: data.Earnings_per_share
   };
 }
 

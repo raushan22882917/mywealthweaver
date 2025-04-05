@@ -120,11 +120,6 @@ const DividendCalendar = () => {
             debtLevels: Math.floor(Math.random() * 10) + 1,
             revenue: Math.random() * 50000000000,
             earningsPerShare: Math.random() * 10,
-            // Original properties with capitalization for compatibility
-            Sector: "Technology",
-            Exchange: "NASDAQ",
-            Revenue: Math.random() * 50000000000,
-            Earnings_per_share: Math.random() * 10
           }));
           
           setStockFilterData(transformedData);
@@ -148,11 +143,6 @@ const DividendCalendar = () => {
             debtLevels: filterData["Debt Levels"] !== undefined ? filterData["Debt Levels"] : Math.floor(Math.random() * 10) + 1,
             revenue: filterData.Revenue !== undefined ? filterData.Revenue : Math.random() * 50000000000,
             earningsPerShare: filterData.Earnings_per_share !== undefined ? filterData.Earnings_per_share : Math.random() * 10,
-            // Original properties with capitalization for compatibility
-            Sector: filterData.Sector || "Technology",
-            Exchange: filterData.Exchange || "NASDAQ", 
-            Revenue: filterData.Revenue,
-            Earnings_per_share: filterData.Earnings_per_share
           };
         });
         
@@ -171,11 +161,6 @@ const DividendCalendar = () => {
           debtLevels: Math.floor(Math.random() * 10) + 1,
           revenue: Math.random() * 50000000000,
           earningsPerShare: Math.random() * 10,
-          // Original properties with capitalization for compatibility
-          Sector: "Technology",
-          Exchange: "NASDAQ",
-          Revenue: Math.random() * 50000000000,
-          Earnings_per_share: Math.random() * 10
         }));
         
         setStockFilterData(transformedData);
