@@ -1,11 +1,11 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
-import { Mail, Lock, User, Facebook, ArrowRight, Loader } from "lucide-react";
+import { Mail, Lock, User, Facebook, ArrowRight } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -16,28 +16,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [checkingSession, setCheckingSession] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  // Check if user is already logged in
-  useEffect(() => {
-    const checkSession = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-          // User is already logged in, redirect to dashboard
-          navigate('/dashboard');
-        }
-      } catch (error) {
-        console.error('Error checking session:', error);
-      } finally {
-        setCheckingSession(false);
-      }
-    };
-
-    checkSession();
-  }, [navigate]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,13 +30,7 @@ const Auth = () => {
           password,
         });
         if (error) throw error;
-
-        toast({
-          title: "Login Successful",
-          description: "Welcome back! Redirecting to your dashboard...",
-        });
-
-        navigate("/dashboard");
+        navigate("/");
       } else {
         const { error: signUpError, data } = await supabase.auth.signUp({
           email,
@@ -70,7 +44,7 @@ const Auth = () => {
             .insert([{ id: data.user.id, username }]);
           if (profileError) throw profileError;
         }
-
+        
         toast({
           title: "Success!",
           description: "Please check your email to verify your account.",
@@ -91,7 +65,7 @@ const Auth = () => {
     <div className="min-h-screen flex flex-col bg-[url('/market.webm')] bg-cover bg-center relative">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
       <Navbar />
-
+      
       <div className="flex-grow flex items-center justify-center p-4 relative z-10">
         <div className="w-full max-w-5xl bg-black/40 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
           <div className="flex flex-col lg:flex-row h-full">
@@ -160,7 +134,7 @@ const Auth = () => {
                       </div>
                     </div>
                   )}
-
+                  
                   <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-300">Email</label>
                     <div className="relative">
