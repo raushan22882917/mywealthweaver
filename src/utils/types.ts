@@ -1,3 +1,4 @@
+
 export interface SimilarCompany {
   symbol: string;
   similar_symbol: string;
@@ -126,6 +127,8 @@ export interface StockData {
   next_dividend_date?: string;
   LogoURL?: string;
   ExDividendDate?: string;
+  is_favorite?: boolean;
+  id?: string;
 }
 
 export interface Holiday {
@@ -148,6 +151,21 @@ export interface DividendHistoryData {
   symbol: string;
   id: number;
   created_at: string;
+}
+
+export interface StockAnalysis {
+  id?: string;
+  symbol: string;
+  analysis_text: string;
+  analysis_date: string;
+  sentiment: string;
+  strength?: string;
+  weakness?: string;
+  opportunity?: string;
+  threat?: string;
+  price_target?: number;
+  recommendation?: string;
+  created_at?: string;
 }
 
 export function mapDatabaseToFilterData(data: any): StockFilterData {

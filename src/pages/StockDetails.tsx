@@ -16,7 +16,8 @@ import {
   Heart,
   AlertCircle,
   ChevronLeft,
-  LineChart
+  LineChart,
+  Book
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -28,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { StockData } from '@/utils/types';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import AIStockAnalysis from '@/components/AIStockAnalysis';
 
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
 
@@ -63,8 +65,8 @@ const StockDetails = () => {
         // Fetch logo
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
-          .select('logo_url')
-          .eq('symbol', symbol)
+          .select('logo_url, LogoURL')
+          .eq('Symbol', symbol)
           .single();
 
         // Fetch company profile
@@ -106,14 +108,15 @@ const StockDetails = () => {
           const { data: similarLogos } = await supabase
             .from('company_logos')
             .select('*')
-            .in('symbol', symbols);
+            .in('Symbol', symbols);
             
           // Combine logo data with stock data
           const combinedSimilarStocks = similarStocksData?.map(stock => {
-            const logoInfo = similarLogos?.find(logo => logo.symbol === stock.symbol);
+            const logoInfo = similarLogos?.find(logo => logo.Symbol === stock.symbol);
             return {
               ...stock,
-              logo_url: logoInfo?.logo_url || '/stock.avif'
+              logo_url: logoInfo?.LogoURL || '/stock.avif',
+              title: stock.symbol
             };
           }) || [];
           
@@ -123,8 +126,13 @@ const StockDetails = () => {
         // Check if stock is user's favorite
         checkFavoriteStatus(symbol);
 
-        setStock(stockData);
-        setLogoUrl(logoData?.logo_url || '/stock.avif');
+        setStock({
+          ...stockData,
+          title: stockData.symbol,
+          logo_url: logoData?.LogoURL || logoData?.logo_url,
+          ExDividendDate: stockData.exdividenddate
+        });
+        setLogoUrl(logoData?.LogoURL || logoData?.logo_url || '/stock.avif');
         setCompanyProfile(profileData);
         setPriceHistory(mockPriceHistory);
         setDividendHistory(dividendData || []);
@@ -344,7 +352,7 @@ const StockDetails = () => {
                 Ex-Dividend Date
               </p>
               <p className="text-2xl font-bold text-white">
-                {stock.exdividenddate ? new Date(stock.exdividenddate).toLocaleDateString() : 'N/A'}
+                {stock.ExDividendDate ? new Date(stock.ExDividendDate).toLocaleDateString() : 'N/A'}
               </p>
             </div>
             
@@ -364,6 +372,7 @@ const StockDetails = () => {
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="mb-8">
           <TabsList className="bg-gray-900/60 backdrop-blur-sm rounded-xl border border-gray-800 p-1 mb-8">
             <TabsTrigger value="overview" className="data-[state=active]:bg-purple-900/50">Overview</TabsTrigger>
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-purple-900/50">AI Analysis</TabsTrigger>
             <TabsTrigger value="dividend" className="data-[state=active]:bg-purple-900/50">Dividend History</TabsTrigger>
             <TabsTrigger value="price" className="data-[state=active]:bg-purple-900/50">Price History</TabsTrigger>
             <TabsTrigger value="similar" className="data-[state=active]:bg-purple-900/50">Similar Stocks</TabsTrigger>
@@ -450,8 +459,8 @@ const StockDetails = () => {
                     <p className="text-xl font-bold">
                       {companyProfile?.exDividendDate ? 
                         new Date(companyProfile.exDividendDate).toLocaleDateString() : 
-                        stock.exdividenddate ? 
-                          new Date(stock.exdividenddate).toLocaleDateString() : 
+                        stock.ExDividendDate ? 
+                          new Date(stock.ExDividendDate).toLocaleDateString() : 
                           'N/A'}
                     </p>
                   </div>
@@ -463,6 +472,19 @@ const StockDetails = () => {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="analysis" className="focus-visible:outline-none focus-visible:ring-0">
+            <div className="bg-gray-900/60 backdrop-blur-sm rounded-xl border border-gray-800">
+              <div className="p-6">
+                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+                  <Book className="h-5 w-5 text-blue-400" />
+                  Stock Analysis
+                </h2>
+                
+                <AIStockAnalysis symbol={symbol || ''} companyData={{...stock, ...companyProfile}} />
               </div>
             </div>
           </TabsContent>
@@ -675,7 +697,7 @@ const StockDetails = () => {
                           <div className="p-3 rounded-lg bg-gray-800/60">
                             <p className="text-xs font-medium text-gray-400 mb-1">Ex-Div Date</p>
                             <p className="text-md font-bold text-white truncate">
-                              {stock.exdividenddate ? new Date(stock.exdividenddate).toLocaleDateString() : 'N/A'}
+                              {stock.ExDividendDate ? new Date(stock.ExDividendDate).toLocaleDateString() : 'N/A'}
                             </p>
                           </div>
                         </div>
