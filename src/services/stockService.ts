@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface StockData {
@@ -111,11 +110,20 @@ const mockStocks: Record<string, StockData> = {
   }
 };
 
+// Define table names
+const stockTables = {
+  STOCK_FILTER: 'stock_filter',
+  TOP_STOCKS: 'top_stocks',
+  STOCK_PRICES: 'stock_prices',
+  STOCK_HISTORICAL_PRICES: 'stock_historical_prices',
+  SIMILAR_STOCKS: 'similar_stocks'
+};
+
 export const fetchStockData = async (symbol: string): Promise<StockData> => {
   try {
     // First try to fetch from Supabase stock_filter table
     const { data: stockFilterData, error: stockFilterError } = await supabase
-      .from('stock_filter')
+      .from(stockTables.STOCK_FILTER)
       .select('*')
       .eq('Symbol', symbol.toUpperCase())
       .single();
@@ -126,7 +134,7 @@ export const fetchStockData = async (symbol: string): Promise<StockData> => {
 
     // Also try to fetch from top_stocks table
     const { data: topStockData, error: topStockError } = await supabase
-      .from('top_stocks')
+      .from(stockTables.TOP_STOCKS)
       .select('*')
       .eq('symbol', symbol.toUpperCase())
       .single();
@@ -149,16 +157,16 @@ export const fetchStockData = async (symbol: string): Promise<StockData> => {
         sector: stockFilterData?.Sector || topStockData?.sector || 'N/A',
         industry: stockFilterData?.['Sub-Sector'] || topStockData?.industry || 'N/A',
         exchange: stockFilterData?.Exchange || 'N/A',
-      };
+      } as StockData;
 
       // Fetch additional price data if available
-      const { data: priceData, error: priceError } = await supabase
-        .from('stock_prices')
+      const { data: priceData } = await supabase
+        .from(stockTables.STOCK_PRICES)
         .select('*')
         .eq('symbol', symbol.toUpperCase())
         .single();
 
-      if (!priceError && priceData) {
+      if (priceData) {
         combinedData.regularMarketPrice = priceData.current_price || 0;
         combinedData.regularMarketChange = priceData.price_change || 0;
         combinedData.regularMarketChangePercent = priceData.percent_change || 0;
@@ -174,7 +182,7 @@ export const fetchStockData = async (symbol: string): Promise<StockData> => {
         combinedData.marketCap = stockFilterData.Revenue || 0;
       }
 
-      return combinedData as StockData;
+      return combinedData;
     }
 
     // Fallback to mock data if no Supabase data is available
@@ -198,13 +206,13 @@ export const fetchStockData = async (symbol: string): Promise<StockData> => {
 export const fetchChartData = async (symbol: string): Promise<ChartData[]> => {
   try {
     // Try to fetch historical price data from Supabase
-    const { data: historicalData, error } = await supabase
-      .from('stock_historical_prices')
+    const { data: historicalData } = await supabase
+      .from(stockTables.STOCK_HISTORICAL_PRICES)
       .select('date, price')
       .eq('symbol', symbol.toUpperCase())
       .order('date', { ascending: true });
 
-    if (!error && historicalData && historicalData.length > 0) {
+    if (historicalData && historicalData.length > 0) {
       return historicalData.map(item => ({
         date: item.date,
         price: Number(item.price)
@@ -255,51 +263,34 @@ export const fetchChartData = async (symbol: string): Promise<ChartData[]> => {
   }
 };
 
-// Function to fetch similar stocks (People Also Follow)
 export interface SimilarStock {
   symbol: string;
-  lastPrice: number;
+  last_price: number;
   change: number;
-  changePercent: number;
-  companyName?: string;
+  change_percent: number;
+  company_name: string;
 }
 
 export const fetchSimilarStocks = async (symbol: string): Promise<SimilarStock[]> => {
   try {
-    // Try to fetch similar stocks from Supabase
-    const { data, error } = await supabase
-      .from('similar_stocks')
+    const { data: similarData } = await supabase
+      .from(stockTables.SIMILAR_STOCKS)
       .select('*')
-      .eq('base_symbol', symbol.toUpperCase());
+      .eq('symbol', symbol.toUpperCase());
 
-    if (!error && data && data.length > 0) {
-      return data.map(item => ({
-        symbol: item.symbol,
-        lastPrice: item.last_price,
-        change: item.change,
-        changePercent: item.change_percent,
-        companyName: item.company_name
+    if (similarData && similarData.length > 0) {
+      return similarData.map(item => ({
+        symbol: item.similar_symbol,
+        last_price: item.last_price || 0,
+        change: item.change || 0,
+        change_percent: item.change_percent || 0,
+        company_name: item.company_name || item.similar_symbol
       }));
     }
 
-    // Fallback to mock data
-    return [
-      { symbol: 'HOG', lastPrice: 21.94, change: -1.05, changePercent: -4.65, companyName: 'Harley-Davidson, Inc.' },
-      { symbol: 'HBI', lastPrice: 4.74, change: -0.18, changePercent: -3.66, companyName: 'Hanesbrands Inc.' },
-      { symbol: 'M', lastPrice: 11.32, change: -0.09, changePercent: -0.79, companyName: 'Macy\'s, Inc.' },
-      { symbol: 'KSS', lastPrice: 6.95, change: 0.31, changePercent: 4.67, companyName: 'Kohl\'s Corporation' },
-      { symbol: 'NWL', lastPrice: 5.14, change: -0.33, changePercent: -5.95, companyName: 'Newell Brands Inc.' }
-    ];
+    return [];
   } catch (error) {
     console.error('Error fetching similar stocks:', error);
-
-    // Fallback to mock data
-    return [
-      { symbol: 'HOG', lastPrice: 21.94, change: -1.05, changePercent: -4.65, companyName: 'Harley-Davidson, Inc.' },
-      { symbol: 'HBI', lastPrice: 4.74, change: -0.18, changePercent: -3.66, companyName: 'Hanesbrands Inc.' },
-      { symbol: 'M', lastPrice: 11.32, change: -0.09, changePercent: -0.79, companyName: 'Macy\'s, Inc.' },
-      { symbol: 'KSS', lastPrice: 6.95, change: 0.31, changePercent: 4.67, companyName: 'Kohl\'s Corporation' },
-      { symbol: 'NWL', lastPrice: 5.14, change: -0.33, changePercent: -5.95, companyName: 'Newell Brands Inc.' }
-    ];
+    return [];
   }
 };

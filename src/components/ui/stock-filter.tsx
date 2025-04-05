@@ -10,8 +10,27 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase";
-import { StockFilterData, mapDatabaseToFilterData } from "@/utils/dividend";
 import { toast } from "sonner";
+
+export interface StockFilterData {
+  symbol: string;
+  sector?: string;
+  exchange?: string;
+  dividendYield?: number;
+  payoutRatio?: number;
+  financialHealthScore?: number;
+  debtLevels?: number;
+  revenue?: number;
+  earningsPerShare?: number;
+  Sector?: string;
+  Exchange?: string;
+  "Dividend-Yield"?: number;
+  "Payout Ratio"?: number;
+  "Financial-Health-Score"?: number;
+  "Debt Levels"?: number;
+  Revenue?: number;
+  Earnings_per_share?: number;
+}
 
 export interface StockFilterCriteria {
   symbol?: string;
@@ -29,6 +48,28 @@ export interface StockFilterProps {
   onFilterApply: (filters: StockFilterCriteria) => void;
   filterableStocks?: StockFilterData[];
   isCalendarView?: boolean;
+}
+
+export function mapDatabaseToFilterData(data: any): StockFilterData {
+  return {
+    symbol: data.Symbol || data.symbol,
+    sector: data.Sector || data.sector,
+    exchange: data.Exchange || data.exchange,
+    revenue: data.Revenue || data.revenue,
+    earningsPerShare: data.Earnings_per_share || data.earnings_per_share,
+    dividendYield: data["Dividend-Yield"] || data.dividend_yield,
+    payoutRatio: data["Payout Ratio"] || data.payout_ratio,
+    financialHealthScore: data["Financial-Health-Score"] || data.financial_health_score,
+    debtLevels: data["Debt Levels"] || data.debt_levels,
+    Sector: data.Sector,
+    Exchange: data.Exchange,
+    Revenue: data.Revenue,
+    "Dividend-Yield": data["Dividend-Yield"],
+    "Payout Ratio": data["Payout Ratio"],
+    "Financial-Health-Score": data["Financial-Health-Score"],
+    "Debt Levels": data["Debt Levels"],
+    Earnings_per_share: data.Earnings_per_share
+  };
 }
 
 const StockFilter: React.FC<StockFilterProps> = ({ 
@@ -151,7 +192,6 @@ const StockFilter: React.FC<StockFilterProps> = ({
     const selectedStock = stockData.find(stock => stock.symbol === symbol);
     
     if (selectedStock) {
-      // Automatically set sector and exchange based on the selected stock
       setFilters(prev => ({ 
         ...prev, 
         symbol,
@@ -159,7 +199,6 @@ const StockFilter: React.FC<StockFilterProps> = ({
         exchange: selectedStock.Exchange
       }));
       
-      // Show success toast
       toast.success(`Selected ${symbol}. Sector and exchange filters updated automatically.`);
     } else {
       setFilters(prev => ({ ...prev, symbol }));

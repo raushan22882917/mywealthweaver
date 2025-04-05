@@ -45,6 +45,7 @@ const StockDetails = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [isFavorite, setIsFavorite] = useState(false);
+  const [stockDataForAI, setStockDataForAI] = useState<any>(null);
 
   useEffect(() => {
     const fetchStockDetails = async () => {
@@ -64,7 +65,7 @@ const StockDetails = () => {
         // Fetch logo
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
-          .select('logo_url, LogoURL')
+          .select('LogoURL')
           .eq('Symbol', symbol)
           .single();
 
@@ -115,7 +116,8 @@ const StockDetails = () => {
             return {
               ...stock,
               logo_url: logoInfo?.LogoURL || '/stock.avif',
-              title: stock.symbol
+              title: stock.symbol,
+              id: String(stock.id) // Convert id to string to match StockData type
             };
           }) || [];
           
@@ -125,13 +127,21 @@ const StockDetails = () => {
         // Check if stock is user's favorite
         checkFavoriteStatus(symbol);
 
+        // Prepare data for AI analysis
+        const combinedData = {
+          ...stockData,
+          ...profileData
+        };
+        setStockDataForAI(combinedData);
+
         setStock({
           ...stockData,
           title: stockData.symbol,
-          logo_url: logoData?.LogoURL || logoData?.logo_url,
-          ExDividendDate: stockData.exdividenddate
+          logo_url: logoData?.LogoURL,
+          ExDividendDate: stockData.exdividenddate,
+          id: String(stockData.id) // Convert id to string to match StockData type
         });
-        setLogoUrl(logoData?.LogoURL || logoData?.logo_url || '/stock.avif');
+        setLogoUrl(logoData?.LogoURL || '/stock.avif');
         setCompanyProfile(profileData);
         setPriceHistory(mockPriceHistory);
         setDividendHistory(dividendData || []);
@@ -280,7 +290,7 @@ const StockDetails = () => {
         
         {/* Stock Header */}
         <div className="bg-gray-900/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-purple-900/20 mb-8">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center gap-6 mb-6">
             {/* Logo and Symbol */}
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-lg bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700">
@@ -483,7 +493,7 @@ const StockDetails = () => {
                   Stock Analysis
                 </h2>
                 
-                <AIStockAnalysis symbol={symbol} companyData={stockData} />
+                <AIStockAnalysis symbol={symbol || ''} companyData={stockDataForAI} />
               </div>
             </div>
           </TabsContent>
