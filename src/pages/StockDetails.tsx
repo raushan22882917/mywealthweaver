@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -19,7 +18,7 @@ import {
   LineChart,
   Book
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,20 +31,6 @@ import Footer from '@/components/Footer';
 import AIStockAnalysis from '@/components/AIStockAnalysis';
 
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
-
-// List of popular stock tickers to display as options
-const popularStocks = [
-  { symbol: 'AAPL', name: 'Apple Inc.' },
-  { symbol: 'MSFT', name: 'Microsoft Corporation' },
-  { symbol: 'GOOGL', name: 'Alphabet Inc.' },
-  { symbol: 'AMZN', name: 'Amazon.com Inc.' },
-  { symbol: 'META', name: 'Meta Platforms Inc.' },
-  { symbol: 'TSLA', name: 'Tesla Inc.' },
-  { symbol: 'NVDA', name: 'NVIDIA Corporation' },
-  { symbol: 'JPM', name: 'JPMorgan Chase & Co.' },
-  { symbol: 'V', name: 'Visa Inc.' },
-  { symbol: 'JNJ', name: 'Johnson & Johnson' }
-];
 
 const StockDetails = () => {
   const { symbol } = useParams<{ symbol: string }>();
@@ -64,10 +49,7 @@ const StockDetails = () => {
 
   useEffect(() => {
     const fetchStockDetails = async () => {
-      if (!symbol) {
-        setLoading(false);
-        return;
-      }
+      if (!symbol) return;
       
       setLoading(true);
       try {
@@ -78,10 +60,7 @@ const StockDetails = () => {
           .eq('symbol', symbol)
           .single();
 
-        if (stockError && stockError.code !== 'PGRST116') throw stockError;
-        
-        // If no stock data found, try to generate mock data
-        const stockInfo = stockData || generateMockStockData(symbol);
+        if (stockError) throw stockError;
         
         // Fetch logo
         const { data: logoData, error: logoError } = await supabase
@@ -97,7 +76,7 @@ const StockDetails = () => {
           .eq('symbol', symbol)
           .single();
 
-        // Generate mock price history if real data is not available
+        // Fetch price history (mock data for now)
         const mockPriceHistory = Array.from({ length: 20 }, (_, i) => ({
           date: new Date(Date.now() - (19 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
           price: 100 + Math.random() * 50,
@@ -111,61 +90,61 @@ const StockDetails = () => {
           .order('date', { ascending: false })
           .limit(10);
           
-        // Generate mock dividend data if real data is not available
-        const mockDividendHistory = dividendData || Array.from({ length: 8 }, (_, i) => ({
-          date: new Date(Date.now() - i * 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          dividends: 0.5 + Math.random() * 0.5,
-          symbol: symbol,
-          id: i,
-          created_at: new Date().toISOString()
-        }));
-          
         // Fetch similar stocks
         const { data: similarData, error: similarError } = await supabase
           .from('similar_companies')
           .select('*')
           .eq('symbol', symbol);
         
-        // Generate mock similar stocks if real data is not available
-        const mockSimilarStocks = popularStocks
-          .filter(stock => stock.symbol !== symbol)
-          .slice(0, 4)
-          .map((stock, index) => ({
-            symbol: stock.symbol,
-            title: stock.symbol,
-            company_name: stock.name,
-            logo_url: `/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png`,
-            dividend_yield: (1 + Math.random() * 3).toFixed(2),
-            ExDividendDate: new Date(Date.now() + index * 15 * 24 * 60 * 60 * 1000).toISOString(),
-            id: `mock-${index}`
-          }));
-        
-        const processedSimilarStocks = similarData?.length ? 
-          await fetchSimilarStocksData(similarData.map(item => item.similar_symbol)) : 
-          mockSimilarStocks;
+        if (similarData) {
+          const symbols = similarData.map(item => item.similar_symbol);
+          const { data: similarStocksData } = await supabase
+            .from('dividend')
+            .select('*')
+            .in('symbol', symbols)
+            .limit(4);
             
+          // Fetch logos for similar stocks
+          const { data: similarLogos } = await supabase
+            .from('company_logos')
+            .select('*')
+            .in('Symbol', symbols);
+            
+          // Combine logo data with stock data
+          const combinedSimilarStocks = similarStocksData?.map(stock => {
+            const logoInfo = similarLogos?.find(logo => logo.Symbol === stock.symbol);
+            return {
+              ...stock,
+              logo_url: logoInfo?.LogoURL || '/stock.avif',
+              title: stock.symbol,
+              id: String(stock.id) // Convert id to string to match StockData type
+            };
+          }) || [];
+          
+          setSimilarStocks(combinedSimilarStocks);
+        }
+
         // Check if stock is user's favorite
         checkFavoriteStatus(symbol);
 
         // Prepare data for AI analysis
         const combinedData = {
-          ...stockInfo,
-          ...(profileData || {})
+          ...stockData,
+          ...profileData
         };
         setStockDataForAI(combinedData);
 
         setStock({
-          ...stockInfo,
-          title: stockInfo.symbol,
-          logo_url: logoData?.LogoURL || `/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png`,
-          ExDividendDate: stockInfo.exdividenddate,
-          id: String(stockInfo.id || 'mock-id') // Convert id to string to match StockData type
+          ...stockData,
+          title: stockData.symbol,
+          logo_url: logoData?.LogoURL,
+          ExDividendDate: stockData.exdividenddate,
+          id: String(stockData.id) // Convert id to string to match StockData type
         });
-        setLogoUrl(logoData?.LogoURL || `/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png`);
-        setCompanyProfile(profileData || generateMockCompanyProfile(symbol));
+        setLogoUrl(logoData?.LogoURL || '/stock.avif');
+        setCompanyProfile(profileData);
         setPriceHistory(mockPriceHistory);
-        setDividendHistory(mockDividendHistory || []);
-        setSimilarStocks(processedSimilarStocks);
+        setDividendHistory(dividendData || []);
         
       } catch (error) {
         console.error('Error fetching stock details:', error);
@@ -181,83 +160,6 @@ const StockDetails = () => {
 
     fetchStockDetails();
   }, [symbol, toast]);
-
-  const generateMockStockData = (symbol: string) => {
-    // Generate mock stock data for a given symbol
-    return {
-      symbol: symbol,
-      company_name: popularStocks.find(s => s.symbol === symbol)?.name || `${symbol} Corporation`,
-      currentprice: 100 + Math.random() * 200,
-      previousClose: 95 + Math.random() * 200,
-      dividend: 1 + Math.random() * 2,
-      dividendrate: 1 + Math.random() * 2,
-      dividendyield: 1 + Math.random() * 4,
-      payoutratio: 0.3 + Math.random() * 0.4,
-      exdividenddate: new Date().toISOString().split('T')[0],
-      earningsdate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      buy_date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      payoutdate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      shortname: symbol,
-      quotetype: 'EQUITY',
-      hist: '',
-      message: '',
-      insight: ''
-    };
-  };
-
-  const generateMockCompanyProfile = (symbol: string) => {
-    // Generate mock company profile for a given symbol
-    const companyName = popularStocks.find(s => s.symbol === symbol)?.name || `${symbol} Corporation`;
-    return {
-      symbol: symbol,
-      company_name: companyName,
-      sector: ['Technology', 'Healthcare', 'Finance', 'Consumer Goods', 'Energy'][Math.floor(Math.random() * 5)],
-      industry: ['Software', 'Pharmaceuticals', 'Banking', 'Retail', 'Oil & Gas'][Math.floor(Math.random() * 5)],
-      address: '123 Corporate Drive, Business City, CA 94000',
-      phone: '(555) 123-4567',
-      website: `https://www.${symbol.toLowerCase()}.com`,
-      fullTimeEmployees: Math.floor(1000 + Math.random() * 100000),
-      longBusinessSummary: `${companyName} is a leading company in the ${['technology', 'healthcare', 'financial', 'retail', 'energy'][Math.floor(Math.random() * 5)]} sector, focusing on innovative solutions for businesses and consumers. The company has operations in over 50 countries and continues to expand its global presence through strategic acquisitions and partnerships.`,
-      marketCap: (1 + Math.random() * 1000) * 1000000000,
-      beta: 0.7 + Math.random() * 1.5,
-      dividendRate: 1 + Math.random() * 3,
-      dividendYield: 0.01 + Math.random() * 0.05,
-      payoutRatio: 0.3 + Math.random() * 0.5,
-      exDividendDate: new Date().toISOString().split('T')[0],
-      previousClose: 100 + Math.random() * 200,
-      open: 100 + Math.random() * 200,
-      dayLow: 95 + Math.random() * 190,
-      dayHigh: 105 + Math.random() * 210,
-      exchange: 'NASDAQ',
-      trailingPE: 15 + Math.random() * 30,
-      forwardPE: 14 + Math.random() * 28,
-      fiveYearAvgDividendYield: 0.01 + Math.random() * 0.04,
-    };
-  };
-
-  const fetchSimilarStocksData = async (symbols: string[]) => {
-    if (!symbols || symbols.length === 0) return [];
-    
-    try {
-      const stockPromises = symbols.map(async (symbol) => {
-        // Mock data for similar stocks
-        return {
-          symbol: symbol,
-          title: symbol,
-          company_name: popularStocks.find(s => s.symbol === symbol)?.name || `${symbol} Inc.`,
-          logo_url: `/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png`,
-          dividend_yield: (1 + Math.random() * 3).toFixed(2),
-          ExDividendDate: new Date(Date.now() + Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000).toISOString(),
-          id: `similar-${symbol}`
-        };
-      });
-      
-      return await Promise.all(stockPromises);
-    } catch (error) {
-      console.error('Error fetching similar stocks data:', error);
-      return [];
-    }
-  };
 
   const checkFavoriteStatus = async (stockSymbol: string) => {
     try {
@@ -347,53 +249,10 @@ const StockDetails = () => {
     }
   };
 
-  const renderStockOptions = () => {
-    return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6">
-        <h2 className="text-xl font-medium mb-4">View Popular Stocks</h2>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-          {popularStocks.map((stock) => (
-            <Link 
-              key={stock.symbol} 
-              to={`/stock/${stock.symbol}`}
-              className={`px-4 py-2 rounded-md text-center transition-colors ${
-                symbol === stock.symbol 
-                  ? 'bg-purple-800 text-white' 
-                  : 'bg-gray-800 hover:bg-gray-700 text-gray-200'
-              }`}
-            >
-              {stock.symbol}
-            </Link>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
-      </div>
-    );
-  }
-
-  if (!symbol) {
-    return (
-      <div className="min-h-screen bg-gray-950 text-white">
-        <Navbar />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-3xl font-bold mb-6">Stock Details</h1>
-          
-          {renderStockOptions()}
-          
-          <div className="bg-gray-900/60 backdrop-blur-sm rounded-xl p-8 text-center">
-            <AlertCircle className="h-16 w-16 mx-auto mb-4 text-yellow-500" />
-            <h2 className="text-2xl font-bold mb-4">Please Select a Stock</h2>
-            <p className="text-gray-400 mb-6">Choose a stock from the options above to view its details</p>
-          </div>
-        </div>
-        <Footer />
       </div>
     );
   }
@@ -419,9 +278,6 @@ const StockDetails = () => {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Stock selection options */}
-        {renderStockOptions()}
-        
         {/* Back button */}
         <Button 
           variant="ghost" 
@@ -444,7 +300,7 @@ const StockDetails = () => {
                   className="w-full h-full object-contain"
                   onError={(e) => { 
                     const target = e.target as HTMLImageElement;
-                    target.src = '/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png'; 
+                    target.src = '/stock.avif'; 
                   }}
                 />
               </div>
@@ -485,7 +341,7 @@ const StockDetails = () => {
                 Current Price
               </p>
               <p className="text-2xl font-bold text-white">
-                ${companyProfile?.previousClose?.toFixed(2) || stock.currentprice?.toFixed(2) || '0.00'}
+                ${companyProfile?.previousClose?.toFixed(2) || '0.00'}
               </p>
             </div>
             
@@ -495,7 +351,7 @@ const StockDetails = () => {
                 Dividend Yield
               </p>
               <p className="text-2xl font-bold text-green-400">
-                {(stock.dividend_yield || stock.dividendyield || companyProfile?.dividendYield * 100 || 0).toFixed(2)}%
+                {(stock.dividend_yield || 0).toFixed(2)}%
               </p>
             </div>
             
@@ -540,7 +396,7 @@ const StockDetails = () => {
                   Company Profile
                 </h2>
                 <p className="text-gray-300 mb-6 leading-relaxed">
-                  {companyProfile?.long_business_summary || companyProfile?.longBusinessSummary || 
+                  {companyProfile?.long_business_summary || 
                     'No company description available for this stock.'}
                 </p>
                 
@@ -590,20 +446,20 @@ const StockDetails = () => {
                 <div className="space-y-4">
                   <div>
                     <p className="text-sm text-gray-400">Dividend Rate</p>
-                    <p className="text-xl font-bold">${companyProfile?.dividendRate?.toFixed(2) || stock.dividendrate?.toFixed(2) || '0.00'}</p>
+                    <p className="text-xl font-bold">${companyProfile?.dividendRate?.toFixed(2) || '0.00'}</p>
                   </div>
                   <Separator />
                   <div>
                     <p className="text-sm text-gray-400">Dividend Yield</p>
                     <p className="text-xl font-bold text-green-400">
-                      {(companyProfile?.dividendYield * 100)?.toFixed(2) || stock.dividendyield?.toFixed(2) || '0.00'}%
+                      {(companyProfile?.dividendYield * 100)?.toFixed(2) || '0.00'}%
                     </p>
                   </div>
                   <Separator />
                   <div>
                     <p className="text-sm text-gray-400">Payout Ratio</p>
                     <p className="text-xl font-bold">
-                      {(companyProfile?.payoutRatio * 100)?.toFixed(2) || stock.payoutratio?.toFixed(2) || '0.00'}%
+                      {(companyProfile?.payoutRatio * 100)?.toFixed(2) || '0.00'}%
                     </p>
                   </div>
                   <Separator />
@@ -778,13 +634,13 @@ const StockDetails = () => {
                 <div className="p-4 rounded-xl bg-gray-800/60">
                   <p className="text-sm text-gray-400 mb-1">Open</p>
                   <p className="text-xl font-bold text-white">
-                    ${companyProfile?.open?.toFixed(2) || stock.currentprice?.toFixed(2) || 'N/A'}
+                    ${companyProfile?.open?.toFixed(2) || 'N/A'}
                   </p>
                 </div>
                 <div className="p-4 rounded-xl bg-gray-800/60">
                   <p className="text-sm text-gray-400 mb-1">Previous Close</p>
                   <p className="text-xl font-bold text-white">
-                    ${companyProfile?.previousClose?.toFixed(2) || stock.previousclose?.toFixed(2) || 'N/A'}
+                    ${companyProfile?.previousClose?.toFixed(2) || 'N/A'}
                   </p>
                 </div>
                 <div className="p-4 rounded-xl bg-gray-800/60">
@@ -826,7 +682,7 @@ const StockDetails = () => {
                               className="w-full h-full object-contain"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = '/lovable-uploads/d08374ca-e2cf-4609-8c67-df6b7a08a417.png';
+                                target.src = '/stock.avif';
                               }}
                             />
                           </div>
@@ -844,7 +700,7 @@ const StockDetails = () => {
                           <div className="p-3 rounded-lg bg-gray-800/60">
                             <p className="text-xs font-medium text-gray-400 mb-1">Dividend Yield</p>
                             <p className="text-md font-bold text-green-400">
-                              {stock.dividend_yield?.toString() || '0.00'}%
+                              {stock.dividend_yield?.toFixed(2) || '0.00'}%
                             </p>
                           </div>
                           <div className="p-3 rounded-lg bg-gray-800/60">
