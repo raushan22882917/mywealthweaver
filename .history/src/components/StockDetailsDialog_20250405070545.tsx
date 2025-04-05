@@ -605,12 +605,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
           }));
 
-          setSimilarStocks(combinedData.map(item => ({
-            symbol: item.symbol,
-            company: item.company_name,
-            description: item.description || '',
-            logoUrl: item.logo || ''
-          })));
+          setSimilarStocks(combinedData);
         } catch (error) {
           console.error('Error fetching similar stocks:', error);
         }
@@ -1473,7 +1468,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   {/* Notification Box in Top Right Corner */}
   <div className="absolute top-2 right-2 flex flex-col items-start gap-2 p-4 rounded-md shadow-md w-[300px]">
       <div className="flex w-full items-center gap-3">
-        <Switch checked={isSubscribed} onCheckedChange={handleToggle} />
+        <Switch checked={isSubscribed} onCheckedChange={handleToggle}{handleToggle} />
         <span className="text-sm">{isSubscribed ? "Saved for updates" : "Subscribe for updates"}</span>
       </div>
 
@@ -1519,7 +1514,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               <DialogTitle className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                  style={{ backgroundImage: `url(${selectedStock?.LogoURL || "/default-logo.png"})` }}
+                  style={{ backgroundImage: `url(${selectedStock?.logo || "/default-logo.png"})` }}
                 />
                 <div>
                   <div className="text-lg font-bold">{selectedStock?.symbol}</div>
@@ -1545,8 +1540,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 };
 
 export default StockDetailsDialog;
-
-
 
 
 

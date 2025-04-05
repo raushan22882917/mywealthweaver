@@ -1519,7 +1519,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               <DialogTitle className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                  style={{ backgroundImage: `url(${selectedStock?.LogoURL || "/default-logo.png"})` }}
+                  style={{ backgroundImage: `url(${selectedStock?.logoUrl || "/default-logo.png"})` }}
                 />
                 <div>
                   <div className="text-lg font-bold">{selectedStock?.symbol}</div>
@@ -1545,7 +1545,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 };
 
 export default StockDetailsDialog;
-
 
 
 

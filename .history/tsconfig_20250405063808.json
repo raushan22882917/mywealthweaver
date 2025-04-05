@@ -18,6 +18,7 @@
     "strictNullChecks": false,
     "lib": ["dom", "dom.iterable", "esnext"],
     "strict": false,
+    "noEmit": true,
     "incremental": true,
     "module": "esnext",
     "esModuleInterop": true,

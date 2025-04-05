@@ -216,7 +216,7 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
           .single();
 
         if (error) throw error;
-
+        
         if (data) {
           setDates({
             buyDate: data.buy_date || null,
@@ -237,7 +237,7 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
 
     const calculateTimeLeft = () => {
       const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
-
+      
       let buyDifference = 0;
       let payoutDifference = 0;
 
@@ -372,13 +372,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     console.log('Subscription status saved:', status);
   };
   const [logoURL, setLogoURL] = useState<string>('');
-  const [annualDividend, setAnnualDividend] = useState<{ current: string; last: string }>({
-    current: '0',
-    last: '0'
+  const [annualDividend, setAnnualDividend] = useState<{ current: string; last: string }>({ 
+    current: '0', 
+    last: '0' 
   });
-  const [quarterlyDividend, setQuarterlyDividend] = useState<{ current: string; last: string }>({
-    current: '0',
-    last: '0'
+  const [quarterlyDividend, setQuarterlyDividend] = useState<{ current: string; last: string }>({ 
+    current: '0', 
+    last: '0' 
   });
   const [latestDividends, setLatestDividends] = useState<{
     annual: string | null;
@@ -412,7 +412,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchCompanyProfile = async () => {
       if (!stock?.Symbol) return;
-
+      
       try {
         const { data, error } = await supabase
           .from('company_profiles')
@@ -433,7 +433,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchDividendHistory = async () => {
       if (!stock?.Symbol) return;
-
+      
       try {
         const { data, error } = await supabase
           .from(activeDividendTab === 'annual' ? 'annual_dividends' : 'quarterly_dividends')
@@ -454,7 +454,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchRankingData = async () => {
       if (!stock?.Symbol) return;
-
+      
       try {
         const { data, error } = await supabase
           .from('top_stocks')
@@ -465,7 +465,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         if (error) throw error;
         setRankingCSVData({
           rank: data.Rank.toString(),
-          score: data.Score,
+          score: data.Score.toString(),
           sector: data.sector,
           industry: data.industry
         });
@@ -480,25 +480,25 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchSimilarCompanies = async () => {
       if (!stock?.Symbol) return;
-
+    
       try {
         // Fetch similar companies based on stock symbol
         const { data: similarData, error: similarError } = await supabase
           .from('similar_companies')
           .select('*')
           .eq('symbol', stock.Symbol);
-
+    
         if (similarError) throw similarError;
         if (!similarData.length) return; // Avoid unnecessary fetch if no data
-
+    
         // Fetch company logos for the similar companies
         const { data: logoData, error: logoError } = await supabase
           .from('company_logos')
           .select('*')
           .in('Symbol', similarData.map(company => company.similar_symbol));
-
+    
         if (logoError) throw logoError;
-
+    
         // Merge logo data with similar companies
         const combinedData: SimilarCompany[] = similarData.map(company => ({
           symbol: company.similar_symbol,
@@ -507,14 +507,14 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           revenue_2024: company.revenue_2024,
           logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL || null
         }));
-
+    
         setSimilarCompanies(combinedData);
       } catch (error) {
         console.error('Error fetching similar companies:', error);
         toast.error('Failed to load similar companies');
       }
     };
-
+    
 
     fetchSimilarCompanies();
   }, [stock?.Symbol]);
@@ -522,7 +522,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchPayoutHistory = async () => {
       if (!stock?.Symbol) return;
-
+      
       try {
         const { data, error } = await supabase
           .from('payout_history')
@@ -543,7 +543,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   useEffect(() => {
     const fetchDividendHistoryData = async () => {
       if (!stock?.Symbol) return;
-
+      
       try {
         const { data, error } = await supabase
           .from(activeDividendTab === 'annual' ? 'annual_dividend_history' : 'quarterly_dividend_history')
@@ -605,12 +605,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
           }));
 
-          setSimilarStocks(combinedData.map(item => ({
-            symbol: item.symbol,
-            company: item.company_name,
-            description: item.description || '',
-            logoUrl: item.logo || ''
-          })));
+          setSimilarStocks(combinedData);
         } catch (error) {
           console.error('Error fetching similar stocks:', error);
         }
@@ -626,7 +621,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       "5Y": 60,
       "10Y": 120
     };
-
+    
     const monthsToShow = periodMap[period];
     return yieldData.slice(0, Math.ceil(monthsToShow / 3)); // Since data is quarterly
   };
@@ -698,7 +693,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const filterDividendHistory = (data: DividendHistory[], range: string) => {
     const now = new Date();
     const yearsAgo = new Date();
-
+    
     switch (range) {
       case '1Y':
         yearsAgo.setFullYear(now.getFullYear() - 1);
@@ -731,7 +726,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const checkIfStockIsSaved = async (symbol: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
+      
       if (!user) return;
 
       const { data, error } = await supabase
@@ -757,7 +752,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
+      
       if (!user) {
         toast({
           title: "Authentication Error",
@@ -788,7 +783,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           user_id: user.id,
           symbol: stock.Symbol,
           company_name: stock.title,
-          LogoURL: stock.LogoURL || '',
+          LogoURL: stock.logo_url || '',
           price: parseFloat(stock.marketCap) || 0,
           dividend_yield: parseFloat(stock.dividendYield) || 0,
           next_dividend_date: stock['Ex-Dividend Date'],
@@ -829,18 +824,18 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold">{stock?.title}</h2>
-
+                
               </div>
 
               <div className="grid grid-cols-[250px,1fr] gap-8 transition-all duration-300" style={{ height: isHidden ? '0px' : 'auto', overflow: 'hidden' }}>
                 {/* Left Column - Company Overview */}
                 <div className="space-y-4">
-
+                  
                   <h3 className="text-lg font-semibold">{stock?.Symbol} Company Profile</h3>
-
+                  
                   <div className="space-y-2">
-
-
+                    
+                    
                     <div>
                       <div className="text-sm">Website</div>
                       <div className="text-sm text-blue-600 hover:underline">
@@ -853,7 +848,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                       <div className="text-sm">Address</div>
                       <div className="text-sm">{companyProfile?.address || '-'}</div>
                     </div>
-
+                    
                   </div>
                 </div>
 
@@ -862,8 +857,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   <div className="text-sm text-gray-600 leading-relaxed">
                     {companyProfile?.long_business_summary || 'No description available.'}
                   </div>
-
-
+                  
+                 
                 </div>
               </div>
 
@@ -1006,13 +1001,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const healthyPayoutRange = { min: 40, max: 60 };
         const isHealthyPayout = lastPayout >= healthyPayoutRange.min && lastPayout <= healthyPayoutRange.max;
         const isHighPayout = lastPayout > healthyPayoutRange.max;
-
+        
         return (
           <div >
             <div className="p-4">
               <h3 className="text-xl font-semibold mb-2 text-white">Payout Ratio Analysis</h3>
               <div className={`text-2xl font-bold mb-4 ${
-                isHealthyPayout ? 'text-yellow-500' :
+                isHealthyPayout ? 'text-yellow-500' : 
                 isHighPayout ? 'text-red-500' : 'text-green-500'
               }`}>
                 {lastPayout.toFixed(2)}%
@@ -1025,7 +1020,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                 <div className="h-1/3 bg-yellow-400 opacity-20" />
                 <div className="h-1/3 bg-green-500 opacity-20" />
               </div>
-
+              
               {/* Zone labels */}
               <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between pr-2 text-sm">
                 <span className="text-white mt-2">65%</span>
@@ -1033,8 +1028,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               </div>
 
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart
-                  data={payoutData}
+                <LineChart 
+                  data={payoutData} 
                   margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
                 >
                   <XAxis
@@ -1090,7 +1085,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           </div>
         );
 
-
+    
       case "Dividend History":
         return (
           <div className="space-y-4 mt-6">
@@ -1111,7 +1106,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   Quarterly
                 </Button>
               </div>
-
+              
               <div className="flex space-x-2">
                 {['1Y', '3Y', '5Y', 'MAX'].map((range) => (
                   <Button
@@ -1131,13 +1126,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-              <BarChart
+              <BarChart 
   data={filterDividendData(dividendHistoryData, timeRange)}
-  margin={{ top: 20, right: 30, left: 40, bottom: 30 }}
-  barCategoryGap={15}
+  margin={{ top: 20, right: 30, left: 40, bottom: 30 }} 
+  barCategoryGap={15} 
 >
   {/* X-Axis */}
-  <XAxis
+  <XAxis 
     dataKey="date"
     tick={{ fontSize: 12, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
     axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
@@ -1145,7 +1140,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   />
 
   {/* Y-Axis */}
-  <YAxis
+  <YAxis 
     tick={{ fontSize: 12, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
     tickFormatter={(value) => `$${value.toFixed(2)}`}
     axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
@@ -1153,7 +1148,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   />
 
   {/* Tooltip */}
-  <Tooltip
+  <Tooltip 
     cursor={false}
     formatter={(value: number) => [`$${value.toFixed(2)}`, 'Dividend']}
     labelFormatter={(label) => `Year: ${label}`}
@@ -1167,15 +1162,15 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   />
 
   {/* Bar Graph */}
-  <Bar
-    dataKey="dividends"
+  <Bar 
+    dataKey="dividends" 
     fill={theme === 'dark' ? '#6366f1' : '#4f46e5'}
     name="Dividend Amount"
     radius={[6, 6, 0, 0]}
   >
-    <LabelList
-      dataKey="dividends"
-      position="top"
+    <LabelList 
+      dataKey="dividends" 
+      position="top" 
       formatter={(value: number) => `$${value.toFixed(2)}`}
       style={{
         fontSize: '10px',
@@ -1185,31 +1180,31 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   </Bar>
 
   {/* Red Line Graph - Ensures It Touches Midpoints of Bars */}
-  <Line
-    type="monotone"
-    dataKey="dividends"
-    stroke="red"
-    strokeWidth={2}
-    dot={{
-      r: 4,
-      fill: 'red',
-      stroke: 'red',
-      strokeWidth: 2
-    }}
-    activeDot={{
-      r: 6,
-      fill: 'red'
-    }}
+  <Line 
+    type="monotone" 
+    dataKey="dividends" 
+    stroke="red" 
+    strokeWidth={2} 
+    dot={{ 
+      r: 4, 
+      fill: 'red', 
+      stroke: 'red', 
+      strokeWidth: 2 
+    }} 
+    activeDot={{ 
+      r: 6, 
+      fill: 'red' 
+    }} 
     connectNulls={true} // Ensures missing points are connected
   />
 
   {/* Dot Graph Above Each Bar */}
-  <Scatter
-    data={filterDividendData(dividendHistoryData, timeRange).map(d => ({
-      date: d.date,
+  <Scatter 
+    data={filterDividendData(dividendHistoryData, timeRange).map(d => ({ 
+      date: d.date, 
       dividends: d.dividends * 1.1 // Adjusted height (10% higher than bars)
-    }))}
-    fill="green"
+    }))} 
+    fill="green" 
     shape="circle"
   />
 
@@ -1299,7 +1294,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   </div>
 </div>
 
-
+        
       </div>
 
       {/* Ranking Section */}
@@ -1308,8 +1303,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           <div className="flex flex-col items-center">
             <span className="text-xs text-gray-500">Score</span>
             <span className={`text-lg font-bold ${
-              Number(rankingCSVData.score) >= 0.7 ? 'text-green-500' :
-              Number(rankingCSVData.score) >= 0.4 ? 'text-yellow-500' :
+              Number(rankingCSVData.score) >= 0.7 ? 'text-green-500' : 
+              Number(rankingCSVData.score) >= 0.4 ? 'text-yellow-500' : 
               'text-red-500'
             }`}>
               {(Number(rankingCSVData.score) * 100).toFixed(1)}%
@@ -1395,7 +1390,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           )}
           <div className="grid grid-cols-5 gap-4 mb-6">
             <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`} >
-
+              
               <div className="grid grid-cols-2 gap-4">
                 {/* Annual Dividend */}
                 <div className="border-r border-gray-700 pr-4">
@@ -1403,13 +1398,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   <div className="flex flex-col">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold text-green-500">
-                        {latestDividends.annual
-                          ? `$${Number(latestDividends.annual).toFixed(2)}`
+                        {latestDividends.annual 
+                          ? `$${Number(latestDividends.annual).toFixed(2)}` 
                           : 'N/A'}
                       </span>
-
+                      
                     </div>
-
+                    
                   </div>
                 </div>
 
@@ -1419,13 +1414,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   <div className="flex flex-col">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold text-blue-500">
-                        {latestDividends.quarterly
-                          ? `$${Number(latestDividends.quarterly).toFixed(2)}`
+                        {latestDividends.quarterly 
+                          ? `$${Number(latestDividends.quarterly).toFixed(2)}` 
                           : 'N/A'}
                       </span>
-
+                      
                     </div>
-
+                    
                   </div>
                 </div>
               </div>
@@ -1438,11 +1433,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     <div className="flex flex-col gap-1">
                       <div className="flex items-baseline gap-2">
                         <span className="text-lg text-blue-500">#{rankingCSVData.rank}</span>
-
+                        
                       </div>
-
+                      
                     </div>
-
+                    
                   </>
                 ) : (
                   <div className="text-gray-500 text-lg">
@@ -1467,7 +1462,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             </Card>
           </div>
 
-
+         
 
           <div className={`relative border rounded-lg p-4 ${theme === "dark" ? 'border-gray-700' : 'border-gray-200'}`}>
   {/* Notification Box in Top Right Corner */}
@@ -1485,12 +1480,12 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     </div>
 
 
-
+  
   {/* Tabs in a single row */}
   <div className="flex gap-4 mt-8 overflow-x-auto">
     {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings"].map((tab) => (
-      <div
-        key={tab}
+      <div 
+        key={tab} 
         className={`flex flex-col items-center cursor-pointer ${
           selectedTab === tab ? 'border-b-2 border-blue-500' : ''
         }`}
@@ -1507,9 +1502,9 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 </div>
 
 
+         
 
-
-
+          
         </div>
 
         {/* Stock Details Dialog */}
@@ -1517,9 +1512,9 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3">
-                <div
+                <div 
                   className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                  style={{ backgroundImage: `url(${selectedStock?.LogoURL || "/default-logo.png"})` }}
+                  style={{ backgroundImage: `url(${selectedStock?.logo || "/default-logo.png"})` }}
                 />
                 <div>
                   <div className="text-lg font-bold">{selectedStock?.symbol}</div>
@@ -1527,12 +1522,12 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                 </div>
               </DialogTitle>
             </DialogHeader>
-
+            
             <div className="p-4">
               <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg">
                 {selectedStock?.revenue_2024 || 'No description available'}
               </div>
-
+              
               <div className="mt-4 text-xs text-gray-500">
                 Estimated Revenue 2024: ${selectedStock?.revenue_2024}B
               </div>
@@ -1545,8 +1540,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 };
 
 export default StockDetailsDialog;
-
-
 
 
 
