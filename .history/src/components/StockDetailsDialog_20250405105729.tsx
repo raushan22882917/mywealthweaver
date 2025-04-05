@@ -195,35 +195,25 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
 
   const [exDividendDate, setExDividendDate] = useState<string | null>(null);
 
-  // Fetch buy_date from Supabase
   useEffect(() => {
     const fetchDates = async () => {
       try {
         const { data, error } = await supabase
-          .from("dividend")
-          .select("buy_date")
-          .eq("symbol", symbol)
-          .order('buy_date', { ascending: true })
-          .limit(1);  // Get the earliest buy_date
+          .from('dividend')
+          .select('buy_date')
+          .eq('symbol', symbol)
+          .single();
 
-        if (error) {
-          console.error("Database error:", error);
+        if (error) throw error;
+
+        if (data?.buy_date) {
+          setExDividendDate(data.buy_date);
+          console.log('Ex-Dividend Date for', symbol, data.buy_date);
+        } else {
           setExDividendDate(null);
-          return;
         }
-
-        if (!data || data.length === 0 || !data[0]?.buy_date || isNaN(Date.parse(data[0].buy_date))) {
-          console.log("No valid buy_date found for", symbol);
-          setExDividendDate(null);
-          return;
-        }
-
-        // Format the date to YYYY-MM-DD
-        const formattedDate = new Date(data[0].buy_date).toISOString().split('T')[0];
-        setExDividendDate(formattedDate);
-        console.log("Ex-Dividend Date set for", symbol, formattedDate);
       } catch (error) {
-        console.error("Error fetching ex-dividend date:", error);
+        console.error('Error fetching ex-dividend date:', error);
         setExDividendDate(null);
       }
     };
@@ -231,61 +221,38 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     fetchDates();
   }, [symbol]);
 
-  // Countdown Timer
   useEffect(() => {
     if (!exDividendDate) return;
 
     const calculateTimeLeft = () => {
-      // Get current date in YYYY-MM-DD format
-      const now = new Date();
+      const now = new Date(new Date().toLocaleString("en-US", { timeZone: "America/New_York" }));
       const exDate = new Date(exDividendDate);
-      
-      // Set both dates to start of day for accurate day calculation
-      const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const targetDate = new Date(exDate.getFullYear(), exDate.getMonth(), exDate.getDate());
-      
-      const timeDiff = targetDate.getTime() - currentDate.getTime();
-      const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-      
-      // Calculate remaining hours in the current day
-      const hoursDiff = 24 - now.getHours() - 1;
+      exDate.setHours(16, 0, 0, 0);
 
-      console.log('Ex-Dividend Date:', exDividendDate);
-      console.log('Current Date:', currentDate.toISOString().split('T')[0]);
-      console.log('Days Remaining:', daysDiff);
-      console.log('Hours Remaining:', hoursDiff);
+      const diff = exDate.getTime() - now.getTime();
 
-      return {
-        exDividendDays: Math.max(0, daysDiff),
-        exDividendHours: Math.max(0, hoursDiff),
-        isExDividendPassed: timeDiff < 0
-      };
+      setTimeLeft({
+        exDividendDays: Math.max(0, Math.floor(diff / (1000 * 60 * 60 * 24))),
+        exDividendHours: Math.max(0, Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))),
+        isExDividendPassed: diff < 0,
+      });
     };
 
-    const timeLeft = calculateTimeLeft();
-    setTimeLeft(timeLeft);
-
-    const timer = setInterval(() => {
-      const newTimeLeft = calculateTimeLeft();
-      setTimeLeft(newTimeLeft);
-    }, 1000 * 60); // Update every minute
+    const timer = setInterval(calculateTimeLeft, 1000 * 60); // every minute
+    calculateTimeLeft();
 
     return () => clearInterval(timer);
   }, [exDividendDate]);
 
-  // If no ex-dividend date found
   if (!exDividendDate) {
     return (
       <div className="grid grid-cols-1 gap-4 w-full">
         <Card className="w-full p-8 bg-gradient-to-br from-gray-900 to-blue-900 shadow-lg rounded-xl text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center" />
+          <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center"></div>
           <div className="relative z-10 text-center">
             <div className="text-2xl font-bold text-yellow-500 flex items-center justify-center gap-3">
               <AlertCircle className="w-8 h-8" />
-              No Ex-Dividend Date Available for {symbol}
-            </div>
-            <div className="mt-4 text-gray-300">
-              Please check back later for updated dividend information.
+              No Ex-Dividend Date Available
             </div>
           </div>
         </Card>
@@ -293,42 +260,25 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     );
   }
 
-  // Countdown UI
   return (
     <div className="grid grid-cols-1 gap-4 w-full">
       <Card className="w-full p-8 bg-gradient-to-br from-gray-900 to-blue-900 shadow-lg rounded-xl text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center" />
+        <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center"></div>
         <div className="relative z-10 text-center">
           {!timeLeft.isExDividendPassed ? (
             <>
               <div className="flex items-center justify-center gap-3 mb-8">
                 <Calendar className="w-8 h-8 text-blue-400" />
-                <h3 className="text-2xl font-bold text-white">
-                  Time until Ex-Dividend Date for {symbol}
-                </h3>
+                <h3 className="text-2xl font-bold text-white">Time until Ex-Dividend Date</h3>
               </div>
               <div className="flex justify-center items-center gap-12">
                 {[
-                  { label: "Days", value: String(timeLeft.exDividendDays) },
-                  {
-                    label: "Hours",
-                    value: String(timeLeft.exDividendHours),
-                    color:
-                      timeLeft.exDividendDays === 0
-                        ? "text-red-500"
-                        : "text-white",
-                  },
+                  { label: "Days", value: timeLeft.exDividendDays },
+                  { label: "Hours", value: timeLeft.exDividendHours, color: timeLeft.exDividendDays === 0 ? "text-red-500" : "text-white" }
                 ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center bg-black/20 px-8 py-6 rounded-xl"
-                  >
-                    <div
-                      className={`text-7xl font-bold ${
-                        item.color || "text-white"
-                      } mb-3 font-mono tracking-wider`}
-                    >
-                      {(item.value + '').padStart(2, "0")}
+                  <div key={index} className="flex flex-col items-center bg-black/20 px-8 py-6 rounded-xl">
+                    <div className={`text-7xl font-bold ${item.color || "text-white"} mb-3 font-mono tracking-wider`}>
+                      {String(item.value).padStart(2, '0')}
                     </div>
                     <div className="text-xl text-blue-200 font-medium uppercase tracking-wide">
                       {item.label}
@@ -340,7 +290,7 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
           ) : (
             <div className="text-3xl font-bold text-red-500 animate-pulse flex items-center justify-center gap-3">
               <AlertCircle className="w-8 h-8" />
-              Ex-Dividend Date Has Passed for {symbol}
+              Ex-Dividend Date Has Passed
             </div>
           )}
         </div>
@@ -348,7 +298,6 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
     </div>
   );
 };
-
 
 const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProps) => {
   const [selectedTab, setSelectedTab] = useState("Company");
@@ -429,37 +378,19 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
   // Function to fetch all dividend data for a specific stock symbol
   const fetchDividendData = async (symbol: string) => {
-    if (!symbol) {
-      console.error('No symbol provided for dividend data fetch');
-      return null;
-    }
-
     try {
       const { data, error } = await supabase
         .from('dividend')
         .select('*')
-        .eq('symbol', symbol.toUpperCase())
-        .order('buy_date', { ascending: true })
-        .limit(1);  // Get the most recent record
+        .eq('symbol', symbol)
+        .single();
 
       if (error) {
-        console.error('Database error:', error);
+        console.error('Error fetching dividend data:', error);
         return null;
       }
 
-      if (!data || data.length === 0) {
-        console.log('No dividend data found for', symbol);
-        return null;
-      }
-
-      // Validate required fields
-      const validatedData = {
-        ...data[0],
-        dividendrate: data[0].dividendrate || '0',
-        annualDate: data[0].buy_date || null
-      };
-
-      return validatedData;
+      return data;
     } catch (error) {
       console.error('Exception fetching dividend data:', error);
       return null;
@@ -484,7 +415,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               dividendrate: data.dividendrate?.toString() || '',
               annual: data.dividendrate?.toString() || '',
               quarterly: data.dividend?.toString() || '',
-              annualDate: data.buy_date || null,
+              annualDate: data.exdividenddate || '',
               quarterlyDate: data.payoutdate || ''
             });
 
@@ -493,13 +424,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               dividendrate: data.dividendrate,
               annual: data.dividendrate,
               quarterly: data.dividend,
-              annualDate: data.buy_date || null,
+              annualDate: data.exdividenddate,
               quarterlyDate: data.payoutdate
             });
 
             // Log the ex-dividend date for debugging
-            if (data.buy_date) {
-              console.log('Ex-Dividend Date:', new Date(data.buy_date).toLocaleDateString());
+            if (data.exdividenddate) {
+              console.log('Ex-Dividend Date:', new Date(data.exdividenddate).toLocaleDateString());
             }
           }
         });
@@ -516,11 +447,10 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .from('company_profiles')
           .select('*')
           .eq('symbol', stock.Symbol)
-          .order('created_at', { ascending: false })
-          .limit(1);
+          .single();
 
         if (error) throw error;
-        setCompanyProfile(data[0]);
+        setCompanyProfile(data);
       } catch (error) {
         console.error('Error fetching company profile:', error);
       }
@@ -538,31 +468,18 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         const { data, error } = await supabase
           .from('top_stocks')
           .select('*')
-          .eq('symbol', stock.Symbol.toUpperCase())  // Ensure uppercase symbol
-          .order('created_at', { ascending: false })
-          .limit(1);
+          .eq('symbol', stock.Symbol)
+          .single();
 
-        if (error) {
-          console.error('Database error:', error);
-          setRankingCSVData(null);
-          return;
-        }
-
-        if (!data || data.length === 0) {
-          console.log('No ranking data found for', stock.Symbol);
-          setRankingCSVData(null);
-          return;
-        }
-
+        if (error) throw error;
         setRankingCSVData({
-          rank: data[0].Rank?.toString() || 'N/A',
-          score: data[0].Score || 'N/A',
-          sector: data[0].sector || 'Unknown',
-          industry: data[0].industry || 'Unknown'
+          rank: data.Rank.toString(),
+          score: data.Score,
+          sector: data.sector,
+          industry: data.industry
         });
       } catch (error) {
         console.error('Error fetching ranking data:', error);
-        setRankingCSVData(null);
       }
     };
 
@@ -661,11 +578,10 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             .from('company_logos')
             .select('*')
             .eq('Symbol', stock.Symbol)
-            .order('created_at', { ascending: false })
-            .limit(1);
+            .single();
 
           if (error) throw error;
-          setLogoURL(data[0].LogoURL);
+          setLogoURL(data.LogoURL);
         } catch (error) {
           console.error('Error fetching logo:', error);
         }
@@ -832,14 +748,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         .select('*')
         .eq('user_id', user.id)
         .eq('symbol', symbol)
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .single();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 is the "not found" error
         throw error;
       }
 
-      setIsSaved(!!data && data.length > 0);
+      setIsSaved(!!data);
     } catch (error) {
       console.error('Error checking saved stock:', error);
     }
@@ -975,74 +890,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                 <h2 className="text-3xl font-bold">Yield</h2>
                 <div className="text-lg text-muted-foreground mt-2">
                   {stock.Symbol} Dividend Yield
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="flex space-x-1">
-                    {["1Y", "5Y", "10Y"].map((period) => (
-                      <Button
-                        key={period}
-                        onClick={() => setSelectedPeriod(period)}
-                        variant={period === selectedPeriod ? "default" : "outline"}
-                        size="sm"
-                      >
-                        {period}
-                      </Button>
-                    ))}
-                    <Button variant="outline" size="sm">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={selectedDataType === 'quarterly' ? "default" : "outline"}
-                      onClick={() => setSelectedDataType('quarterly')}
-                      size="sm"
-                    >
-                      Quat
-                    </Button>
-                    <Button
-                      variant={selectedDataType === 'annual' ? "default" : "outline"}
-                      onClick={() => setSelectedDataType('annual')}
-                      size="sm"
-                    >
-                      Annual
-                    </Button>
-                  </div>
-
-                  <div className="flex space-x-1">
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                      </svg>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </Button>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    + Add Comparison
-                  </Button>
                 </div>
               </div>
 
@@ -1565,14 +1412,14 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   <div className="flex flex-col">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold text-green-500">
-                        {latestDividends.dividendrate
-                          ? `$${Number(latestDividends.dividendrate).toFixed(2)}`
+                        {fetchDates.dividendrate
+                          ? `$${Number(fetchDates.dividendrate).toFixed(2)}`
                           : 'N/A'}
                       </span>
                     </div>
                     {latestDividends.annualDate && (
                       <div className="text-xs text-gray-500 mt-1">
-                        Ex-Date: {new Date(latestDividends.annualDate).toLocaleDateString()}
+                        Ex-Date: {new Date(fetchDates.annualDate).toLocaleDateString()}
                       </div>
                     )}
                   </div>
@@ -1580,16 +1427,16 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
                 {/* Quarterly Dividend */}
                 <div className="pl-4">
-                  <div className="text-xs text-gray-400 mb-1">Quarterlysdd</div>
+                  <div className="text-xs text-gray-400 mb-1">Quarterly</div>
                   <div className="flex flex-col">
                     <div className="flex items-baseline gap-2">
                       <span className="text-lg font-bold text-blue-500">
                         {latestDividends.dividend
-                          ? `$${Number(latestDividends.dividend).toFixed(2)}`
+                          ? `$${Number(fetchDates.dividend).toFixed(2)}`
                           : 'N/A'}
                       </span>
                     </div>
-                    {latestDividends.quarterlyDate && (
+                    {fetchDates.quarterlyDate && (
                       <div className="text-xs text-gray-500 mt-1">
                         Payout: {new Date(latestDividends.quarterlyDate).toLocaleDateString()}
                       </div>
@@ -1697,9 +1544,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               <DialogTitle className="flex items-center gap-3">
                 <div
                   className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
-                  style={{
-                    backgroundImage: `url(${selectedStock?.LogoURL || "/default-logo.png"})`
-                  }}
+                  style={{ backgroundImage: `url(${selectedStock?.LogoURL || "/default-logo.png"})` }}
                 />
                 <div>
                   <div className="text-lg font-bold">{selectedStock?.symbol}</div>
