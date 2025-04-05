@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -484,7 +483,7 @@ const StockDetails = () => {
                   Stock Analysis
                 </h2>
                 
-                <AIStockAnalysis symbol={symbol || ''} companyData={{...stock, ...companyProfile}} />
+                <AIStockAnalysis symbol={symbol} companyData={stockData} />
               </div>
             </div>
           </TabsContent>
