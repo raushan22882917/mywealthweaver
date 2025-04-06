@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import StockAnalysisDialog from "@/components/StockAnalysisDialog";
 import {
   XAxis,
   YAxis,
@@ -21,8 +23,6 @@ import {
 } from "recharts";
 import { fetchStockData, fetchChartData, fetchSimilarStocks } from "@/services/stockService";
 import type { StockData, ChartData, SimilarStock } from "@/services/stockService";
-import { AIAnalysisDialog } from "@/components/AIAnalysisDialog";
-import { BarChart } from "lucide-react";
 
 const StockDetails = () => {
   const { symbol } = useParams<{ symbol: string }>();
@@ -59,37 +59,37 @@ const StockDetails = () => {
     }
   });
 
+  const formatMarketCap = (value: number | undefined) => {
+    if (!value || value === 0) return 'N/A';
+    if (value >= 1e12) return `$${(value / 1e12).toFixed(2)}T`;
+    if (value >= 1e9) return `$${(value / 1e9).toFixed(2)}B`;
+    if (value >= 1e6) return `$${(value / 1e6).toFixed(2)}M`;
+    return `$${value.toFixed(2)}`;
+  };
+
   if (isStockLoading || isChartLoading || isSimilarStocksLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-gray-950">
-        <Loader className="h-12 w-12" />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <Loader message={`Loading data for ${symbol}...`} />
+        </main>
+        <Footer />
       </div>
     );
   }
 
   if (!stockData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background dark:bg-gray-950">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Stock Not Found</h2>
-          <p className="text-muted-foreground mb-6">We couldn't find information for symbol {symbol}</p>
-          <Button onClick={() => window.history.back()}>Go Back</Button>
-        </div>
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <main className="container mx-auto px-4 py-8">
+          <p>No data found for {symbol}</p>
+        </main>
+        <Footer />
       </div>
     );
   }
-
-  const formatMarketCap = (value: number): string => {
-    if (value >= 1000000000000) {
-      return `$${(value / 1000000000000).toFixed(2)}T`;
-    } else if (value >= 1000000000) {
-      return `$${(value / 1000000000).toFixed(2)}B`;
-    } else if (value >= 1000000) {
-      return `$${(value / 1000000).toFixed(2)}M`;
-    } else {
-      return `$${value.toLocaleString()}`;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-background dark:bg-gray-950">
@@ -100,13 +100,12 @@ const StockDetails = () => {
           <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
             <h1 className="text-2xl font-bold flex items-center gap-2">
               {stockData.symbol} - {stockData.longName}
-              <Button 
-                size="sm" 
-                variant="outline" 
-                className="ml-2 h-8 text-xs flex items-center gap-1"
+              <Button
+                size="sm"
+                variant="outline"
+                className="ml-2 h-8 text-xs"
                 onClick={() => setIsAnalysisOpen(true)}
               >
-                <BarChart className="h-3 w-3" />
                 Analyze With AI
               </Button>
             </h1>
@@ -126,7 +125,7 @@ const StockDetails = () => {
                 <span className="ml-2 text-xs text-muted-foreground">11:35 AM 04/04/25</span>
               </div>
               <div className="text-xs text-muted-foreground">
-                {stockData.exchange} | ${stockData.symbol} | Realtime
+                NASDAQ | ${stockData.symbol} | Realtime
               </div>
 
               {/* Tabs Navigation */}
@@ -161,7 +160,7 @@ const StockDetails = () => {
                 {/* Stock Price Chart */}
                 <div className="mb-6">
                   <h3 className="text-xl font-semibold mb-4">{stockData.symbol} Stock Price</h3>
-                  
+
                   {/* Chart Period Buttons */}
                   <div className="flex space-x-2 mb-4">
                     <Button variant="outline" size="sm">1D</Button>
@@ -176,10 +175,10 @@ const StockDetails = () => {
                     <Button variant="outline" size="sm">Basic</Button>
                     <Button variant="outline" size="sm">Advanced</Button>
                   </div>
-                  
+
                   {/* Price Change Badge */}
                   <Badge variant="destructive" className="mb-4">-28.85%</Badge>
-                  
+
                   {/* Chart */}
                   <div className="h-[300px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
@@ -194,12 +193,12 @@ const StockDetails = () => {
                         <YAxis domain={['auto', 'auto']} tick={{fontSize: 10}} />
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                         <ChartTooltip />
-                        <Area 
-                          type="monotone" 
-                          dataKey="price" 
-                          stroke="#ff6b00" 
-                          fillOpacity={1} 
-                          fill="url(#colorPrice)" 
+                        <Area
+                          type="monotone"
+                          dataKey="price"
+                          stroke="#ff6b00"
+                          fillOpacity={1}
+                          fill="url(#colorPrice)"
                           strokeWidth={2}
                         />
                       </AreaChart>
@@ -265,7 +264,7 @@ const StockDetails = () => {
                     </p>
                   </Card>
                 </TabsContent>
-                
+
                 <TabsContent value="financials">
                   <Card className="p-6 dark:bg-gray-900 border-gray-200 dark:border-gray-800">
                     <h3 className="text-xl font-semibold mb-4">Financial Information</h3>
@@ -281,7 +280,7 @@ const StockDetails = () => {
                     </div>
                   </Card>
                 </TabsContent>
-                
+
                 {/* Other tabs content would go here */}
               </Tabs>
             </div>
@@ -319,16 +318,15 @@ const StockDetails = () => {
         </div>
       </main>
       <Footer />
-      
-      {/* AI Analysis Dialog */}
-      <AIAnalysisDialog 
-        isOpen={isAnalysisOpen}
-        onClose={() => setIsAnalysisOpen(false)}
-        symbol={stockData.symbol}
-        companyName={stockData.longName}
-        sector={stockData.sector || 'N/A'}
-        currentPrice={stockData.regularMarketPrice}
-      />
+
+      {/* Stock Analysis Dialog */}
+      {stockData && (
+        <StockAnalysisDialog
+          stock={stockData}
+          isOpen={isAnalysisOpen}
+          setIsOpen={setIsAnalysisOpen}
+        />
+      )}
     </div>
   );
 };

@@ -4,14 +4,15 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Heart,
-  Trash2,
-  Calendar,
-  DollarSign,
-  TrendingUp,
-  Search,
-  Bell,
+import { 
+  Heart, 
+  Trash2, 
+  Calendar, 
+  DollarSign, 
+  TrendingUp, 
+  Search, 
+  Filter, 
+  Bell, 
   Settings,
   ExternalLink,
   Plus
@@ -37,7 +38,7 @@ interface SavedStock {
   user_id: string;
   symbol: string;
   company_name: string;
-  LogoURL: string;
+  logo_url: string;
   price: number;
   dividend_yield: number;
   next_dividend_date?: string;
@@ -62,51 +63,33 @@ export default function Dashboard({ session }: DashboardProps) {
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const { theme: _ } = useTheme(); // Unused but kept for future use
+  const { theme } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
 
   useEffect(() => {
-    if (session) {
-      // If session is passed from parent, use it directly
-      fetchUserStocks(session.user.id);
-      getProfile();
-    } else {
-      // Fallback to checking session manually
-      checkUser();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+    checkUser();
+  }, []);
 
   const checkUser = async () => {
     try {
-      setIsLoading(true);
       // Get current session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
-
+      
       if (sessionError) throw sessionError;
 
       if (!currentSession) {
-        // No session found, redirect to auth
         navigate('/auth');
         return;
       }
 
-      // If we have a session, fetch the stocks and profile
+      // If we have a session, fetch the stocks
       await fetchUserStocks(currentSession.user.id);
-      await getProfile();
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Session check error:', error);
-      toast({
-        title: "Authentication Error",
-        description: "Please log in to access your dashboard",
-        variant: "destructive",
-      });
       navigate('/auth');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -115,7 +98,7 @@ export default function Dashboard({ session }: DashboardProps) {
       try {
         const response = await fetch('/sp500_company_logos.csv');
         const csvText = await response.text();
-
+        
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
@@ -136,7 +119,7 @@ export default function Dashboard({ session }: DashboardProps) {
   const fetchUserStocks = async (userId: string) => {
     try {
       setIsLoading(true);
-
+      
       const { data, error } = await supabase
         .from('saved_stocks')
         .select('*')
@@ -150,7 +133,7 @@ export default function Dashboard({ session }: DashboardProps) {
       // Match logos with stocks and update the data
       const stocksWithLogos = data?.map(stock => ({
         ...stock,
-        LogoURL: companyLogos.find(logo => logo.Symbol === stock.symbol)?.LogoURL || '/stock.avif'
+        logo_url: companyLogos.find(logo => logo.Symbol === stock.symbol)?.LogoURL || '/stock.avif'
       }));
 
       setSavedStocks(stocksWithLogos || []);
@@ -170,7 +153,7 @@ export default function Dashboard({ session }: DashboardProps) {
   // Filter stocks based on search and favorites
   const filteredStocks = savedStocks
     .filter(stock => filterFavorites ? stock.is_favorite : true)
-    .filter(stock =>
+    .filter(stock => 
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stock.company_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -179,7 +162,7 @@ export default function Dashboard({ session }: DashboardProps) {
   const getProfile = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-
+      
       if (user) {
         const { data: profile, error: fetchError } = await supabase
           .from("profiles")
@@ -223,25 +206,31 @@ export default function Dashboard({ session }: DashboardProps) {
 
   useEffect(() => {
     getProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4" />
-          <p className="text-purple-300 font-medium">Loading your dashboard...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
       </div>
     );
   }
 
-  // This check is now handled by the ProtectedRoute component in App.tsx
-  // We keep a simplified version as a fallback
-  if (!session && !isLoading) {
-    navigate('/auth');
-    return null;
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="text-center text-white">
+          <h2 className="text-2xl font-bold mb-4">Please Log In</h2>
+          <p className="text-gray-400 mb-4">You need to be logged in to view your dashboard</p>
+          <Button
+            onClick={() => navigate('/auth')}
+            className="bg-purple-600 hover:bg-purple-700 text-white"
+          >
+            Go to Login
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -254,9 +243,9 @@ export default function Dashboard({ session }: DashboardProps) {
             <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 p-[2px]">
               <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
                 {userProfile?.avatar_url ? (
-                  <img
-                    src={userProfile.avatar_url}
-                    alt="Profile"
+                  <img 
+                    src={userProfile.avatar_url} 
+                    alt="Profile" 
                     className="w-full h-full object-cover"
                   />
                 ) : (
@@ -274,18 +263,18 @@ export default function Dashboard({ session }: DashboardProps) {
                 Manage your stock portfolio and track dividends. Stay updated with your investments and financial goals.
               </p>
               <div className="flex flex-wrap gap-3 mt-4 justify-center md:justify-start">
-                <Button
-                  variant="outline"
-                  size="sm"
+                <Button 
+                  variant="outline" 
+                  size="sm" 
                   className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
                   onClick={() => navigate('/settings')}
                 >
                   <Settings className="h-4 w-4 mr-2" />
                   Settings
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
+                <Button 
+                  variant="outline" 
+                  size="sm" 
                   className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
                   onClick={() => navigate('/notifications')}
                 >
@@ -333,7 +322,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <div>
                 <p className="text-sm font-medium text-gray-400">Avg Yield</p>
                 <p className="text-2xl font-bold text-white">
-                  {(savedStocks.reduce((acc, stock) => acc + (stock.dividend_yield || 0), 0) /
+                  {(savedStocks.reduce((acc, stock) => acc + (stock.dividend_yield || 0), 0) / 
                     (savedStocks.length || 1)).toFixed(2)}%
                 </p>
               </div>
@@ -356,8 +345,8 @@ export default function Dashboard({ session }: DashboardProps) {
           <Button
             onClick={() => setFilterFavorites(!filterFavorites)}
             className={`flex items-center gap-2 px-6 py-3 rounded-xl border transition-all duration-200 ${
-              filterFavorites
-                ? 'bg-pink-900/30 border-pink-700 text-pink-400 hover:bg-pink-900/40'
+              filterFavorites 
+                ? 'bg-pink-900/30 border-pink-700 text-pink-400 hover:bg-pink-900/40' 
                 : 'border-gray-700 hover:bg-gray-800 text-gray-300'
             }`}
           >
@@ -377,16 +366,16 @@ export default function Dashboard({ session }: DashboardProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStocks.length > 0 ? (
             filteredStocks.map((stock) => (
-              <Card
-                key={stock.id}
+              <Card 
+                key={stock.id} 
                 className="overflow-hidden hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-gray-900 to-gray-800 border border-purple-900/20"
               >
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-full bg-gray-800 p-2 shadow-lg border border-gray-700">
-                        <img
-                          src={stock.LogoURL}
+                        <img 
+                          src={stock.logo_url}
                           alt={stock.company_name}
                           className="w-full h-full object-contain"
                           onError={(e) => {
@@ -421,8 +410,8 @@ export default function Dashboard({ session }: DashboardProps) {
 
                             if (error) throw error;
 
-                            setSavedStocks(stocks =>
-                              stocks.map(s =>
+                            setSavedStocks(stocks => 
+                              stocks.map(s => 
                                 s.id === stock.id ? { ...s, is_favorite: !s.is_favorite } : s
                               )
                             );
@@ -436,7 +425,7 @@ export default function Dashboard({ session }: DashboardProps) {
                           }
                         }}
                       >
-                        <Heart
+                        <Heart 
                           className={`w-5 h-5 ${
                             stock.is_favorite ? 'fill-pink-500 stroke-pink-500' : 'stroke-gray-400 hover:stroke-pink-400'
                           }`}
@@ -455,7 +444,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
                             if (error) throw error;
 
-                            setSavedStocks(stocks =>
+                            setSavedStocks(stocks => 
                               stocks.filter(s => s.id !== stock.id)
                             );
                             toast({
@@ -504,7 +493,7 @@ export default function Dashboard({ session }: DashboardProps) {
                     </div>
                   )}
 
-                  <Button
+                  <Button 
                     className="w-full mt-4 bg-purple-700 hover:bg-purple-600 text-white"
                     onClick={() => navigate(`/stock/${stock.symbol}`)}
                   >
@@ -520,13 +509,13 @@ export default function Dashboard({ session }: DashboardProps) {
                 {filterFavorites ? <Heart className="w-full h-full" /> : <Search className="w-full h-full" />}
               </div>
               <p className="text-xl font-medium text-gray-400 text-center max-w-md mb-6">
-                {filterFavorites
+                {filterFavorites 
                   ? 'No favorite stocks yet. Start by marking some stocks as favorites!'
-                  : searchTerm
+                  : searchTerm 
                     ? 'No stocks found matching your search.'
                     : 'No saved stocks yet. Start by adding stocks to your watchlist!'}
               </p>
-              <Button
+              <Button 
                 className="bg-purple-700 hover:bg-purple-600 text-white"
                 onClick={() => navigate('/market-data')}
               >
