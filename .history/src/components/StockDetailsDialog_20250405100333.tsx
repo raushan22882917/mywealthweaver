@@ -208,7 +208,7 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
 
         if (data?.buy_date) {
           setExDividendDate(data.buy_date);
-          console.log('Ex-Dividend Date for', symbol, data.buy_date);
+          console.log('Ex-Dividend Date for', symbol, data.exdividenddate);
         } else {
           setExDividendDate(null);
         }

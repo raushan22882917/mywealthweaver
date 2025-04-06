@@ -200,15 +200,15 @@ const DividendCountdown: React.FC<{ symbol: string }> = ({ symbol }) => {
       try {
         const { data, error } = await supabase
           .from('dividend')
-          .select('buy_date')
+          .select('exdividenddate')
           .eq('symbol', symbol)
           .single();
 
         if (error) throw error;
 
-        if (data?.buy_date) {
-          setExDividendDate(data.buy_date);
-          console.log('Ex-Dividend Date for', symbol, data.buy_date);
+        if (data?.exdividenddate) {
+          setExDividendDate(data.exdividenddate);
+          console.log('Ex-Dividend Date for', symbol, data.exdividenddate);
         } else {
           setExDividendDate(null);
         }

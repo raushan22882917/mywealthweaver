@@ -11,6 +11,7 @@ import {
   DollarSign,
   TrendingUp,
   Search,
+  Filter,
   Bell,
   Settings,
   ExternalLink,
@@ -62,7 +63,7 @@ export default function Dashboard({ session }: DashboardProps) {
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const { theme: _ } = useTheme(); // Unused but kept for future use
+  const { theme } = useTheme();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
@@ -76,7 +77,6 @@ export default function Dashboard({ session }: DashboardProps) {
       // Fallback to checking session manually
       checkUser();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const checkUser = async () => {
@@ -97,7 +97,7 @@ export default function Dashboard({ session }: DashboardProps) {
       await fetchUserStocks(currentSession.user.id);
       await getProfile();
 
-    } catch (error: any) {
+    } catch (error) {
       console.error('Session check error:', error);
       toast({
         title: "Authentication Error",
@@ -223,7 +223,6 @@ export default function Dashboard({ session }: DashboardProps) {
 
   useEffect(() => {
     getProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) {
@@ -386,7 +385,7 @@ export default function Dashboard({ session }: DashboardProps) {
                     <div className="flex items-center gap-4">
                       <div className="w-14 h-14 rounded-full bg-gray-800 p-2 shadow-lg border border-gray-700">
                         <img
-                          src={stock.LogoURL}
+                          src={stock.logo_url}
                           alt={stock.company_name}
                           className="w-full h-full object-contain"
                           onError={(e) => {

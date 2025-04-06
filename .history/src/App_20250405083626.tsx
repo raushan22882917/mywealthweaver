@@ -102,41 +102,37 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/policy" element={<PrivacyPolicy />} />
-              <Route path="/updown" element={<UpDown />} />
-              <Route path="/education" element={<Education />} />
-              <Route path="/ticker/:symbol" element={<TickerDetail />} />
-              <Route path="/stock/:symbol" element={<StockDetails />} />
-              <Route path="/education/topic/:id" element={<Education />} />
-              <Route path="/reporting" element={<Reporting />} />
-              <Route path="/dividend" element={<Dividend />} />
-              <Route path="/dividend/:symbol?" element={<Dividend />} />
-              <Route path="/top-stocks" element={<TopStocks />}/>
-              <Route path="/market-data" element={<MarketData />} />
-              <Route path="/news" element={<News />} />
-              <Route path="/news/:id?" element={<News />} />
-              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
-              <Route path="/dashboard" element={<ProtectedRoute><Dashboard session={session} /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/announcements" element={<Announcements />} />
-              <Route path="/announcements/:id?" element={<Announcements />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
-      </ThemeProvider>
-    </BrowserRouter>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/policy" element={<PrivacyPolicy />} />
+          <Route path="/updown" element={<UpDown />} />
+          <Route path="/education" element={<Education />} />
+          <Route path="/ticker/:symbol" element={<TickerDetail />} />
+          <Route path="/stock/:symbol" element={<StockDetails />} />
+          <Route path="/education/topic/:id" element={<Education />} />
+          <Route path="/reporting" element={<Reporting />} />
+          <Route path="/dividend" element={<Dividend />} />
+          <Route path="/dividend/:symbol?" element={<Dividend />} />
+          <Route path="/top-stocks" element={<TopStocks />}/>
+          <Route path="/market-data" element={<MarketData />} />
+          <Route path="/news" element={<News />} />
+          <Route path="/news/:id?" element={<News />} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard session={session} /></ProtectedRoute>} />
+          <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+          <Route path="/announcements" element={<Announcements />} />
+          <Route path="/announcements/:id?" element={<Announcements />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+        <Toaster />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

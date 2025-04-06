@@ -87,18 +87,6 @@ const Auth = () => {
     }
   };
 
-  // Show loading state while checking session
-  if (checkingSession) {
-    return (
-      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-        <div className="flex flex-col items-center">
-          <Loader className="h-12 w-12 animate-spin text-purple-500 mb-4" />
-          <p className="text-purple-300 font-medium">Checking authentication status...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-[url('/market.webm')] bg-cover bg-center relative">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
