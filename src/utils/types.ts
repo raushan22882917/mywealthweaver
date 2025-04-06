@@ -1,4 +1,3 @@
-
 export interface SimilarCompany {
   symbol: string;
   similar_symbol: string;
@@ -113,4 +112,76 @@ export interface Stock {
   LogoURL?: string;
   marketCap?: number;
   dividendYield?: number;
+}
+
+export interface StockData {
+  symbol: string;
+  title: string;
+  company_name?: string;
+  logo_url?: string;
+  price?: number;
+  dividend_yield?: number;
+  marketCap?: string | number;
+  dividendYield?: string | number;
+  next_dividend_date?: string;
+  LogoURL?: string;
+  ExDividendDate?: string;
+}
+
+export interface Holiday {
+  name: string;
+  date: string;
+  type: string;
+}
+
+export interface StockFilterData {
+  symbol: string;
+  sector?: string;
+  exchange?: string;
+  revenue?: number;
+  earnings_per_share?: number;
+}
+
+export interface DividendHistoryData {
+  date: string;
+  dividends: number;
+  symbol: string;
+  id: number;
+  created_at: string;
+}
+
+export function mapDatabaseToFilterData(data: any): StockFilterData {
+  return {
+    symbol: data.Symbol || data.symbol,
+    sector: data.Sector || data.sector,
+    exchange: data.Exchange || data.exchange,
+    revenue: data.Revenue || data.revenue,
+    earnings_per_share: data.Earnings_per_share || data.earnings_per_share,
+  };
+}
+
+export function filterDividendData(data: DividendHistoryData[], timeRange: string): DividendHistoryData[] {
+  const now = new Date();
+  const yearsAgo = new Date();
+  
+  switch (timeRange) {
+    case '1Y':
+      yearsAgo.setFullYear(now.getFullYear() - 1);
+      break;
+    case '3Y':
+      yearsAgo.setFullYear(now.getFullYear() - 3);
+      break;
+    case '5Y':
+      yearsAgo.setFullYear(now.getFullYear() - 5);
+      break;
+    case '10Y':
+      yearsAgo.setFullYear(now.getFullYear() - 10);
+      break;
+    case 'MAX':
+      return data;
+    default:
+      yearsAgo.setFullYear(now.getFullYear() - 1);
+  }
+
+  return data.filter(item => new Date(item.date) >= yearsAgo);
 }
