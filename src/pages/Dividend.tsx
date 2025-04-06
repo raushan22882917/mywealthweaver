@@ -47,13 +47,13 @@ interface DividendData {
   weekRange: string;
   volume: string;
   yieldRange: string;
+  amount: string;
   status?: string;
   payout_ratio?: string;
   fcf_coverage?: string;
   debt_to_equity?: string;
   company_name?: string;
   domain?: string;
-  amount: string;
 }
 
 interface HoveredStockDetails {
@@ -153,10 +153,6 @@ const Dividend: React.FC = () => {
     if (autoCloseTimer) {
       clearTimeout(autoCloseTimer);
     }
-
-
-
-
   }, [autoCloseTimer]);
 
   useEffect(() => {
@@ -184,7 +180,7 @@ const Dividend: React.FC = () => {
 
         // Get total count of symbols in dividend table
         const { count, error: countError } = await supabase
-          .from('dividend')
+          .from('dividendsymbol')
           .select('symbol', { count: 'exact', head: true });
 
         if (countError) throw new Error(`Count error: ${countError.message}`);
@@ -198,7 +194,7 @@ const Dividend: React.FC = () => {
           { data: safetyData, error: safetyError },
           { data: logoData, error: logoError }
         ] = await Promise.all([
-          supabase.from('dividend').select('*'),
+          supabase.from('dividendsymbol').select('*'),
           supabase.from('dividend_safety').select('*'),
           supabase.from('company_logos').select('*')
         ]);
@@ -211,8 +207,9 @@ const Dividend: React.FC = () => {
         // Create a case-insensitive map for logos
         const logoMap = new Map();
         logoData?.forEach(item => {
-          if (item.Symbol) {
-            logoMap.set(item.Symbol, item);
+          if (item.Symbol && item.LogoURL) {
+            // Store symbols in uppercase for case-insensitive lookup
+            logoMap.set(item.Symbol.toUpperCase(), item.LogoURL);
           }
         });
 
@@ -242,9 +239,9 @@ const Dividend: React.FC = () => {
             payout_ratio: safetyInfo?.payout_ratio?.toString(),
             fcf_coverage: safetyInfo?.fcf_coverage?.toString(),
             debt_to_equity: safetyInfo?.debt_to_equity?.toString(),
-            LogoURL: logoInfo?.LogoURL || '',
-            company_name: logoInfo?.company_name || stock.shortname,
-            domain: logoInfo?.domain || '',
+            LogoURL: logoInfo || '',
+            company_name: logoInfo ? logoData.find(item => item.LogoURL === logoInfo)?.company_name || stock.shortname : stock.shortname,
+            domain: logoInfo ? logoData.find(item => item.LogoURL === logoInfo)?.domain || '' : '',
             industry: '',
             employees: '',
             founded: '',
@@ -257,7 +254,7 @@ const Dividend: React.FC = () => {
             weekRange: '',
             volume: '',
             yieldRange: '',
-            amount:''
+            amount: ''
           };
 
           return newData;
@@ -322,21 +319,12 @@ const Dividend: React.FC = () => {
         // Create a case-insensitive map for logos
         const logoMap = new Map();
         data.forEach(row => {
-          if (row.Symbol) {
-            logoMap.set(row.Symbol, row.LogoURL);
-            // Log a few entries to verify the column names
-            if (logoMap.size <= 5) {
-              console.log(`Logo entry ${logoMap.size}:`, row.Symbol, '→', row.LogoURL);
-            }
+          if (row.Symbol && row.LogoURL) {
+            // Store symbols in uppercase for case-insensitive lookup
+            logoMap.set(row.Symbol.toUpperCase(), row.LogoURL);
           }
         });
         setCompanyLogos(logoMap);
-
-        // Log some sample entries to verify
-        if (data.length > 0) {
-          console.log('Sample logo entry from data:', data[0]);
-          console.log('Available columns:', Object.keys(data[0]).join(', '));
-        }
         console.log('Loaded company logos from Supabase:', data.length);
       } catch (error) {
         console.error('Error loading company logos:', error);
@@ -612,7 +600,7 @@ const Dividend: React.FC = () => {
       >
         <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
           <img
-            src={companyLogos.get(stock.Symbol) || stock.LogoURL || 'stock.avif'}
+            src={companyLogos.get(stock.Symbol?.toUpperCase()) || stock.LogoURL || 'stock.avif'}
             alt={stock.Symbol}
             className="w-full h-full object-contain"
             loading="lazy"
@@ -1085,7 +1073,7 @@ const Dividend: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <div
                   className="w-8 h-8 bg-center bg-no-repeat bg-contain aspect-square border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'})` }}
+                  style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'})` }}
                   onClick={(e) => {
                     handleStockClick(hoveredStockDetails.stock, e);
                     setHoveredStockDetails(null);
@@ -1191,7 +1179,7 @@ const Dividend: React.FC = () => {
               <div className="flex items-center gap-3">
                 <div
                   className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(expandedStock.Symbol) || expandedStock.LogoURL || 'stock.avif'})` }}
+                  style={{ backgroundImage: `url(${companyLogos.get(expandedStock.Symbol?.toUpperCase()) || expandedStock.LogoURL || 'stock.avif'})` }}
                   onClick={(e) => {
                     handleStockClick(expandedStock, e);
                     handleCloseExpanded();
@@ -1380,5 +1368,4 @@ const Dividend: React.FC = () => {
     </div>
   );
 };
-
 export default Dividend;
