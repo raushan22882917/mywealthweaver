@@ -322,10 +322,13 @@ export type Database = {
         Row: {
           buy_date: string | null
           currentprice: number | null
+          date: string | null
           dividend: number | null
+          dividenddate: string | null
           dividendrate: number | null
           dividendyield: number | null
           earningsdate: string | null
+          "Ex-Dividend": string | null
           exdividenddate: string | null
           hist: string | null
           id: number
@@ -341,10 +344,13 @@ export type Database = {
         Insert: {
           buy_date?: string | null
           currentprice?: number | null
+          date?: string | null
           dividend?: number | null
+          dividenddate?: string | null
           dividendrate?: number | null
           dividendyield?: number | null
           earningsdate?: string | null
+          "Ex-Dividend"?: string | null
           exdividenddate?: string | null
           hist?: string | null
           id?: number
@@ -360,10 +366,13 @@ export type Database = {
         Update: {
           buy_date?: string | null
           currentprice?: number | null
+          date?: string | null
           dividend?: number | null
+          dividenddate?: string | null
           dividendrate?: number | null
           dividendyield?: number | null
           earningsdate?: string | null
+          "Ex-Dividend"?: string | null
           exdividenddate?: string | null
           hist?: string | null
           id?: number
@@ -615,42 +624,6 @@ export type Database = {
         }
         Relationships: []
       }
-      news: {
-        Row: {
-          date: string
-          id: number
-          news_title: string
-          original_link: string
-          sentiment: string
-          sentiment_score: string
-          source: string
-          symbol: string
-          weblink: string
-        }
-        Insert: {
-          date: string
-          id?: number
-          news_title: string
-          original_link: string
-          sentiment: string
-          sentiment_score: string
-          source: string
-          symbol: string
-          weblink: string
-        }
-        Update: {
-          date?: string
-          id?: number
-          news_title?: string
-          original_link?: string
-          sentiment?: string
-          sentiment_score?: string
-          source?: string
-          symbol?: string
-          weblink?: string
-        }
-        Relationships: []
-      }
       next_week_earnings: {
         Row: {
           created_at: string
@@ -814,7 +787,7 @@ export type Database = {
           dividend_yield: number | null
           id: string
           is_favorite: boolean | null
-          LogoURL: string | null
+          logo_url: string | null
           next_dividend_date: string | null
           price: number | null
           symbol: string
@@ -826,7 +799,7 @@ export type Database = {
           dividend_yield?: number | null
           id?: string
           is_favorite?: boolean | null
-          LogoURL?: string | null
+          logo_url?: string | null
           next_dividend_date?: string | null
           price?: number | null
           symbol: string
@@ -838,7 +811,7 @@ export type Database = {
           dividend_yield?: number | null
           id?: string
           is_favorite?: boolean | null
-          LogoURL?: string | null
+          logo_url?: string | null
           next_dividend_date?: string | null
           price?: number | null
           symbol?: string
