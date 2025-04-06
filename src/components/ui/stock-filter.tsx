@@ -10,27 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase";
+import { StockFilterData, mapDatabaseToFilterData } from "@/utils/dividend";
 import { toast } from "sonner";
-
-export interface StockFilterData {
-  symbol: string;
-  sector?: string;
-  exchange?: string;
-  dividendYield?: number;
-  payoutRatio?: number;
-  financialHealthScore?: number;
-  debtLevels?: number;
-  revenue?: number;
-  earningsPerShare?: number;
-  Sector?: string;
-  Exchange?: string;
-  "Dividend-Yield"?: number;
-  "Payout Ratio"?: number;
-  "Financial-Health-Score"?: number;
-  "Debt Levels"?: number;
-  Revenue?: number;
-  Earnings_per_share?: number;
-}
 
 export interface StockFilterCriteria {
   symbol?: string;
@@ -48,28 +29,6 @@ export interface StockFilterProps {
   onFilterApply: (filters: StockFilterCriteria) => void;
   filterableStocks?: StockFilterData[];
   isCalendarView?: boolean;
-}
-
-export function mapDatabaseToFilterData(data: any): StockFilterData {
-  return {
-    symbol: data.Symbol || data.symbol,
-    sector: data.Sector || data.sector,
-    exchange: data.Exchange || data.exchange,
-    revenue: data.Revenue || data.revenue,
-    earningsPerShare: data.Earnings_per_share || data.earnings_per_share,
-    dividendYield: data["Dividend-Yield"] || data.dividend_yield,
-    payoutRatio: data["Payout Ratio"] || data.payout_ratio,
-    financialHealthScore: data["Financial-Health-Score"] || data.financial_health_score,
-    debtLevels: data["Debt Levels"] || data.debt_levels,
-    Sector: data.Sector,
-    Exchange: data.Exchange,
-    Revenue: data.Revenue,
-    "Dividend-Yield": data["Dividend-Yield"],
-    "Payout Ratio": data["Payout Ratio"],
-    "Financial-Health-Score": data["Financial-Health-Score"],
-    "Debt Levels": data["Debt Levels"],
-    Earnings_per_share: data.Earnings_per_share
-  };
 }
 
 const StockFilter: React.FC<StockFilterProps> = ({ 
@@ -112,10 +71,10 @@ const StockFilter: React.FC<StockFilterProps> = ({
         const mappedData = data.map(item => mapDatabaseToFilterData(item));
         
         if (initialFilterableStocks && initialFilterableStocks.length > 0) {
-          const symbolMap = new Map(mappedData.map(item => [item.symbol, item]));
+          const symbolMap = new Map(mappedData.map(item => [item.Symbol, item]));
           
           for (const stock of initialFilterableStocks) {
-            if (!symbolMap.has(stock.symbol)) {
+            if (!symbolMap.has(stock.Symbol)) {
               mappedData.push(stock);
             }
           }
@@ -173,44 +132,38 @@ const StockFilter: React.FC<StockFilterProps> = ({
       return;
     }
     
-    const matchedStocks = stockData
+    const matches = stockData
       .filter(stock => {
-        const symbol = stock.symbol?.toLowerCase() || '';
+        const symbol = stock.Symbol?.toLowerCase() || '';
         const sector = stock.Sector?.toLowerCase() || '';
         const inputLower = input.toLowerCase();
         return symbol.includes(inputLower) || sector.includes(inputLower);
       })
+      .map(stock => stock.Symbol)
+      .filter(Boolean)
       .slice(0, 7);
-    
-    const matches = matchedStocks.map(stock => stock.symbol).filter(Boolean);
     
     setSymbolSuggestions(matches);
     setShowSymbolSuggestions(matches.length > 0);
   };
   
   const handleSymbolSelect = (symbol: string) => {
-    const selectedStock = stockData.find(stock => stock.symbol === symbol);
+    const selectedStock = stockData.find(stock => stock.Symbol === symbol);
     
-    if (selectedStock) {
-      setFilters(prev => ({ 
-        ...prev, 
-        symbol,
-        sector: selectedStock.Sector,
-        exchange: selectedStock.Exchange
-      }));
-      
-      toast.success(`Selected ${symbol}. Sector and exchange filters updated automatically.`);
-    } else {
-      setFilters(prev => ({ ...prev, symbol }));
-    }
+    setFilters(prev => ({ 
+      ...prev, 
+      symbol,
+      sector: selectedStock?.Sector || prev.sector,
+      exchange: selectedStock?.Exchange || prev.exchange
+    }));
     
     setShowSymbolSuggestions(false);
   };
 
   const applyFilters = () => {
     const newFilteredStocks = stockData.filter(stock => {
-      if (filters.symbol && stock.symbol && 
-          !stock.symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
+      if (filters.symbol && stock.Symbol && 
+          !stock.Symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
         return false;
       }
       
@@ -326,47 +279,24 @@ const StockFilter: React.FC<StockFilterProps> = ({
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
                     id="symbol"
-                    placeholder="Type to search symbol..."
+                    placeholder="Type to search..."
                     value={filters.symbol || ""}
                     onChange={(e) => handleFilterChange("symbol", e.target.value)}
-                    className="pl-10 dark:bg-[#151a27] dark:border-gray-700 dark:text-gray-200"
-                    autoComplete="off"
+                    className="pl-10"
                   />
                 </div>
                 
                 {showSymbolSuggestions && (
-                  <div className="absolute z-10 w-full bg-white dark:bg-[#1a1f2e] border border-gray-200 dark:border-gray-700 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                    {symbolSuggestions.map((symbol) => {
-                      const stockInfo = stockData.find(stock => stock.symbol === symbol);
-                      return (
-                        <div 
-                          key={symbol} 
-                          className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-800 last:border-0"
-                          onClick={() => handleSymbolSelect(symbol)}
-                        >
-                          <div className="flex justify-between items-center">
-                            <div className="font-medium text-gray-900 dark:text-gray-100">{symbol}</div>
-                            {stockInfo && stockInfo["Dividend-Yield"] !== undefined && (
-                              <div className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 px-2 py-0.5 rounded">
-                                {stockInfo["Dividend-Yield"].toFixed(2)}%
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            {stockInfo && stockInfo.Sector && (
-                              <span className="bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
-                                {stockInfo.Sector}
-                              </span>
-                            )}
-                            {stockInfo && stockInfo.Exchange && (
-                              <span className="bg-purple-50 dark:bg-purple-900/30 px-1.5 py-0.5 rounded">
-                                {stockInfo.Exchange}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="absolute z-10 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                    {symbolSuggestions.map((symbol) => (
+                      <div 
+                        key={symbol} 
+                        className="px-4 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        onClick={() => handleSymbolSelect(symbol)}
+                      >
+                        {symbol}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -377,7 +307,7 @@ const StockFilter: React.FC<StockFilterProps> = ({
                   value={filters.sector || ""}
                   onValueChange={(value) => handleFilterChange("sector", value || undefined)}
                 >
-                  <SelectTrigger id="sector" className="dark:bg-[#151a27] dark:border-gray-700 dark:text-gray-200">
+                  <SelectTrigger id="sector">
                     <SelectValue placeholder="Select sector" />
                   </SelectTrigger>
                   <SelectContent>
@@ -399,7 +329,7 @@ const StockFilter: React.FC<StockFilterProps> = ({
                   value={filters.exchange || ""}
                   onValueChange={(value) => handleFilterChange("exchange", value || undefined)}
                 >
-                  <SelectTrigger id="exchange" className="dark:bg-[#151a27] dark:border-gray-700 dark:text-gray-200">
+                  <SelectTrigger id="exchange">
                     <SelectValue placeholder="Select exchange" />
                   </SelectTrigger>
                   <SelectContent>
@@ -515,8 +445,8 @@ const StockFilter: React.FC<StockFilterProps> = ({
                   </TableHeader>
                   <TableBody>
                     {filteredStocks.map((stock) => (
-                      <TableRow key={stock.symbol}>
-                        <TableCell className="font-medium">{stock.symbol}</TableCell>
+                      <TableRow key={stock.Symbol}>
+                        <TableCell className="font-medium">{stock.Symbol}</TableCell>
                         <TableCell>{stock.Sector || "N/A"}</TableCell>
                         <TableCell>{stock.Exchange || "N/A"}</TableCell>
                         <TableCell>{stock["Dividend-Yield"] !== undefined ? `${stock["Dividend-Yield"].toFixed(2)}%` : "N/A"}</TableCell>

@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, X, Calendar, DollarSign, TrendingUp, Info, Star, AlertTriangle, Check, ExternalLink } from 'lucide-react';
+import { Bell, X, Calendar, DollarSign, TrendingUp, Info, Star, AlertTriangle, Check } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Notification, formatNotificationDate, fetchDividendAnnouncements, convertAnnouncementsToNotifications, fetchNewsItems, convertNewsToNotifications } from '@/utils/notifications';
+import { Notification, formatNotificationDate, fetchDividendAnnouncements, convertAnnouncementsToNotifications } from '@/utils/notifications';
 import { useToast } from '@/components/ui/use-toast';
 
 interface NotificationDropdownProps {
@@ -48,21 +48,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
   const loadNotifications = async () => {
     try {
       setLoading(true);
-
+      
       // Load dividend announcements
       const announcements = await fetchDividendAnnouncements();
-      const dividendNotifications = convertAnnouncementsToNotifications(announcements);
-
-      // Load news items
-      const newsItems = await fetchNewsItems();
-      const newsNotifications = convertNewsToNotifications(newsItems);
-
-      // Combine and sort notifications by date (newest first)
-      const allNotifications = [...dividendNotifications, ...newsNotifications].sort((a, b) => {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      });
-
-      setNotifications(allNotifications);
+      const notificationItems = convertAnnouncementsToNotifications(announcements);
+      
+      setNotifications(notificationItems);
     } catch (error) {
       console.error('Error loading notifications:', error);
       toast({
@@ -78,22 +69,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
   const handleNotificationClick = (notification: Notification) => {
     // Handle navigation based on notification type
     if (notification.type === 'dividend' && notification.related_symbol) {
-      navigate(`/stock/${notification.related_symbol}`);
+      navigate(`/dividend/${notification.related_symbol}`);
     } else if (notification.type === 'price' && notification.related_symbol) {
       navigate(`/stock/${notification.related_symbol}`);
     } else if (notification.type === 'earnings' && notification.related_symbol) {
       navigate(`/stock/${notification.related_symbol}`);
-    } else if (notification.type === 'news') {
-      if (notification.weblink) {
-        // Open external link in new tab
-        window.open(notification.weblink, '_blank');
-      } else if (notification.news_id) {
-        navigate(`/news?id=${notification.news_id}`);
-      }
+    } else if (notification.type === 'news' && notification.news_id) {
+      navigate(`/news?id=${notification.news_id}`);
     } else if (notification.type === 'announcement') {
       navigate('/announcements');
     }
-
+    
     // Close the dropdown after clicking
     onClose();
   };
@@ -120,22 +106,22 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
   if (!open) return null;
 
   return (
-    <div
+    <div 
       ref={dropdownRef}
       className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-gray-900 rounded-lg shadow-lg z-50 border border-gray-700"
     >
       <div className="p-3 border-b border-gray-700 flex justify-between items-center sticky top-0 bg-gray-800 z-10">
         <h3 className="font-medium text-white">Notifications</h3>
-        <Button
-          variant="ghost"
-          size="icon"
+        <Button 
+          variant="ghost" 
+          size="icon" 
           onClick={onClose}
           className="h-8 w-8 rounded-full hover:bg-gray-700"
         >
           <X className="h-4 w-4 text-gray-400" />
         </Button>
       </div>
-
+      
       {loading ? (
         <div className="flex justify-center items-center p-6">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -155,19 +141,14 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
                 <div>
                   <p className="font-medium text-white">{notification.title}</p>
                   <p className="text-sm text-gray-400 line-clamp-2 mb-1">{notification.message}</p>
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs text-gray-500">{formatNotificationDate(notification.created_at)}</p>
-                    {notification.weblink && (
-                      <ExternalLink className="h-3 w-3 text-blue-400 ml-2" />
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-500">{formatNotificationDate(notification.created_at)}</p>
                 </div>
               </div>
             </Card>
           ))}
-
+          
           <div className="p-3 border-t border-gray-700 text-center">
-            <Button
+            <Button 
               variant="ghost"
               className="text-blue-400 hover:text-blue-300 text-sm"
               onClick={() => {
