@@ -1,822 +1,612 @@
+import React, { useState } from 'react';
+import { DateRange as ReactDayPickerDateRange } from 'react-day-picker';
+import { DateRange } from '@/utils/types';
+import { useNavigate } from 'react-router-dom';
+import { Calendar, CalendarIcon, ChevronLeft, ChevronRight, Download, FileText, Filter, LineChart, PieChart, Share2, Sliders } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell, LineChart as ReLineChart, Line } from 'recharts';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import DateRangePicker from '@/components/DateRangePicker';
 
-import React, { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { 
-  Search, 
-  BarChart3, 
-  DollarSign, 
-  Calendar, 
-  ArrowUpDown, 
-  Filter, 
-  ChevronDown, 
-  AlertTriangle,
-  ChevronUp, 
-  LineChart as LineChartIcon
-} from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer, 
-  LineChart, 
-  Line,
-  CartesianGrid,
-  ReferenceLine
-} from "recharts";
-import { format } from "date-fns";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import DividendCalendar from "@/components/DividendCalendar";
-import { DateRangePicker } from "@/components/DateRangePicker";
-import { addDays, subDays } from "date-fns";
-
-interface DividendReport {
-  id: string;
-  symbol: string;
-  dividend_date: string;
-  ex_dividend_date: string;
-  earnings_date: string;
-  earnings_high: number;
-  earnings_low: number;
-  earnings_average: number;
-  revenue_high: number;
-  revenue_low: number;
-  revenue_average: number;
-  price_history?: {
-    date: string;
-    price: number;
-  }[];
-  current_price?: number;
-  price_status?: 'high' | 'low' | 'medium';
-}
-
-interface DateRange {
-  from: Date;
-  to: Date;
-}
-
-const Reporting: React.FC = () => {
-  const [reports, setReports] = useState<DividendReport[]>([]);
-  const [filteredReports, setFilteredReports] = useState<DividendReport[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sortField, setSortField] = useState<keyof DividendReport>("symbol");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-  const [activeTab, setActiveTab] = useState("overview");
-  const [trackPrices, setTrackPrices] = useState(true);
+const Reporting = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
   const [dateRange, setDateRange] = useState<DateRange>({
-    from: subDays(new Date(), 30),
-    to: new Date(),
+    from: new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+    to: new Date()
   });
-  const [viewMode, setViewMode] = useState<"grid" | "graph">("grid");
-  const [showPriceHistory, setShowPriceHistory] = useState(false);
-  const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null);
-  const [priceHistoryData, setPriceHistoryData] = useState<{date: string, price: number}[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 10;
+  const [chartType, setChartType] = useState('bar');
+  const [reportType, setReportType] = useState('dividend-income');
 
-  // Add pagination logic here
-  const paginatedReports = filteredReports.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-  const totalPages = Math.ceil(filteredReports.length / pageSize);
-
-  // Reset page when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, sortField, sortDirection]);
-
-  useEffect(() => {
-    fetchDividendReports();
-  }, []);
-
-  useEffect(() => {
-    // Filter and sort reports whenever dependencies change
-    const filtered = reports.filter(report =>
-      report.symbol.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
-    const sorted = [...filtered].sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc' 
-          ? aValue.localeCompare(bValue) 
-          : bValue.localeCompare(aValue);
-      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-      } else {
-        // Handle dates as strings (convert to Date objects for comparison)
-        const aDate = aValue ? new Date(aValue as string).getTime() : 0;
-        const bDate = bValue ? new Date(bValue as string).getTime() : 0;
-        return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
-      }
-    });
-
-    setFilteredReports(sorted);
-  }, [reports, searchTerm, sortField, sortDirection]);
-
-  const fetchDividendReports = async () => {
-    try {
-      setLoading(true);
-      
-      const { data, error } = await supabase
-        .from("dividend_reports")
-        .select("*");
-
-      if (error) {
-        throw error;
-      }
-
-      // Add mock price history data for demonstration
-      const reportsWithPriceData = data.map(report => ({
-        ...report,
-        current_price: Math.random() * 200 + 50, // Random price between 50 and 250
-        price_status: Math.random() > 0.7 ? 'high' : Math.random() > 0.4 ? 'medium' : 'low',
-        price_history: Array.from({ length: 30 }, (_, i) => ({
-          date: format(new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-          price: Math.random() * 50 + 100 + (i * 0.5) + (Math.random() * 10 - 5)
-        }))
-      }));
-
-      setReports(reportsWithPriceData);
-      setFilteredReports(reportsWithPriceData);
-    } catch (err: any) {
-      console.error("Error fetching dividend reports:", err);
-      setError(err.message || "Failed to load dividend reports");
-    } finally {
-      setLoading(false);
+  const handleDateRangeChange = (range: ReactDayPickerDateRange | undefined) => {
+    if (range?.from) {
+      // Convert from react-day-picker DateRange to our DateRange
+      const newRange: DateRange = {
+        from: range.from,
+        to: range.to || range.from
+      };
+      setDateRange(newRange);
     }
   };
 
-  const handleSort = (field: keyof DividendReport) => {
-    setSortDirection(current => 
-      sortField === field && current === 'asc' ? 'desc' : 'asc'
-    );
-    setSortField(field);
-  };
+  // Sample data for charts
+  const dividendData = [
+    { month: 'Jan', amount: 120.45 },
+    { month: 'Feb', amount: 135.22 },
+    { month: 'Mar', amount: 142.87 },
+    { month: 'Apr', amount: 150.32 },
+    { month: 'May', amount: 165.78 },
+    { month: 'Jun', amount: 170.45 },
+    { month: 'Jul', amount: 180.23 },
+    { month: 'Aug', amount: 190.56 },
+    { month: 'Sep', amount: 195.67 },
+    { month: 'Oct', amount: 210.34 },
+    { month: 'Nov', amount: 220.45 },
+    { month: 'Dec', amount: 235.78 },
+  ];
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A";
-    try {
-      return format(new Date(dateString), "MMM d, yyyy");
-    } catch (err) {
-      return "Invalid date";
+  const sectorData = [
+    { name: 'Technology', value: 35 },
+    { name: 'Healthcare', value: 20 },
+    { name: 'Financials', value: 15 },
+    { name: 'Consumer Staples', value: 10 },
+    { name: 'Energy', value: 10 },
+    { name: 'Others', value: 10 },
+  ];
+
+  const growthData = [
+    { year: '2018', growth: 5.2 },
+    { year: '2019', growth: 6.8 },
+    { year: '2020', growth: 3.5 },
+    { year: '2021', growth: 8.2 },
+    { year: '2022', growth: 7.5 },
+    { year: '2023', growth: 9.3 },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+
+  const renderChart = () => {
+    switch (chartType) {
+      case 'bar':
+        return (
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={dividendData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="month" tick={{ fill: '#9CA3AF' }} />
+              <YAxis tick={{ fill: '#9CA3AF' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
+                labelStyle={{ color: '#F9FAFB' }}
+                itemStyle={{ color: '#F9FAFB' }}
+              />
+              <Legend wrapperStyle={{ color: '#9CA3AF' }} />
+              <Bar dataKey="amount" name="Dividend Amount ($)" fill="#3B82F6" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case 'pie':
+        return (
+          <ResponsiveContainer width="100%" height={400}>
+            <RePieChart>
+              <Pie
+                data={sectorData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={150}
+                fill="#8884d8"
+                dataKey="value"
+                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+              >
+                {sectorData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
+                itemStyle={{ color: '#F9FAFB' }}
+              />
+              <Legend wrapperStyle={{ color: '#9CA3AF' }} />
+            </RePieChart>
+          </ResponsiveContainer>
+        );
+      case 'line':
+        return (
+          <ResponsiveContainer width="100%" height={400}>
+            <ReLineChart data={growthData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey="year" tick={{ fill: '#9CA3AF' }} />
+              <YAxis tick={{ fill: '#9CA3AF' }} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px' }}
+                labelStyle={{ color: '#F9FAFB' }}
+                itemStyle={{ color: '#F9FAFB' }}
+              />
+              <Legend wrapperStyle={{ color: '#9CA3AF' }} />
+              <Line type="monotone" dataKey="growth" name="Growth Rate (%)" stroke="#10B981" strokeWidth={2} dot={{ r: 5 }} />
+            </ReLineChart>
+          </ResponsiveContainer>
+        );
+      default:
+        return null;
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    if (!amount) return "N/A";
-    return new Intl.NumberFormat('en-US', { 
-      style: 'currency', 
-      currency: 'USD',
-      notation: 'compact',
-      maximumFractionDigits: 1
-    }).format(amount);
-  };
-
-  const formatNumber = (num: number) => {
-    if (!num) return "N/A";
-    return num.toFixed(2);
-  };
-
-  const handleViewPriceHistory = (symbol: string) => {
-    const report = reports.find(r => r.symbol === symbol);
-    if (report && report.price_history) {
-      setPriceHistoryData(report.price_history);
-      setSelectedSymbol(symbol);
-      setShowPriceHistory(true);
+  const renderReportTitle = () => {
+    switch (reportType) {
+      case 'dividend-income':
+        return 'Dividend Income Report';
+      case 'portfolio-allocation':
+        return 'Portfolio Allocation Report';
+      case 'growth-analysis':
+        return 'Dividend Growth Analysis';
+      default:
+        return 'Dividend Report';
     }
   };
 
-  // Prepare data for charts
-  const earningsChartData = reports.slice(0, 10).map(report => ({
-    symbol: report.symbol,
-    "Highest Estimate": report.earnings_high,
-    "Average": report.earnings_average,
-    "Lowest Estimate": report.earnings_low,
-  }));
-
-  const revenueChartData = reports.slice(0, 10).map(report => ({
-    symbol: report.symbol,
-    "Highest Estimate": report.revenue_high / 1000000000,
-    "Average": report.revenue_average / 1000000000,
-    "Lowest Estimate": report.revenue_low / 1000000000,
-  }));
-
-  const getPriceStatusColor = (status?: 'high' | 'low' | 'medium') => {
-    switch (status) {
-      case 'high': return 'text-amber-500';
-      case 'low': return 'text-green-500';
-      case 'medium': return 'text-blue-500';
-      default: return 'text-gray-500';
+  const renderReportDescription = () => {
+    switch (reportType) {
+      case 'dividend-income':
+        return 'Monthly dividend income breakdown showing payment trends over time.';
+      case 'portfolio-allocation':
+        return 'Sector-based allocation of your dividend portfolio.';
+      case 'growth-analysis':
+        return 'Year-over-year dividend growth rate analysis.';
+      default:
+        return 'Comprehensive dividend analysis and reporting.';
     }
   };
 
-  const getPriceStatusIndicator = (status?: 'high' | 'low' | 'medium') => {
-    return (
-      <div className="inline-flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${
-          status === 'high' ? 'bg-amber-500' : 
-          status === 'low' ? 'bg-green-500' : 
-          'bg-blue-500'
-        }`}></div>
-        <span className={getPriceStatusColor(status)}>
-          {status === 'high' ? 'high' : 
-           status === 'low' ? 'low' : 
-           'average'}
-        </span>
-      </div>
-    );
+  const renderReportData = () => {
+    switch (reportType) {
+      case 'dividend-income':
+        return dividendData;
+      case 'portfolio-allocation':
+        return sectorData;
+      case 'growth-analysis':
+        return growthData;
+      default:
+        return dividendData;
+    }
   };
 
-  const getFilteredPriceData = (data: any[]) => {
-    return data.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= dateRange.from && itemDate <= dateRange.to;
-    });
+  const getAppropriateChartType = () => {
+    switch (reportType) {
+      case 'dividend-income':
+        return 'bar';
+      case 'portfolio-allocation':
+        return 'pie';
+      case 'growth-analysis':
+        return 'line';
+      default:
+        return 'bar';
+    }
   };
+
+  // Update chart type when report type changes
+  React.useEffect(() => {
+    setChartType(getAppropriateChartType());
+  }, [reportType]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900 text-gray-200">
+    <div className="min-h-screen bg-gray-950 text-white">
       <Navbar />
-      <main className="container mx-auto px-4 py-8">
-        
-
-        {/* Price Status Alert with improved design */}
-        <Card className="mb-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg hover:shadow-xl transition-all">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-5 bg-green-500 rounded-sm"></div>
-                  <div className="w-2 h-5 bg-yellow-500 rounded-sm"></div>
-                  <div className="w-2 h-5 bg-red-500 rounded-sm"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-300">Prices are currently</span>
-                  <span className="text-amber-500 font-medium">high</span>
-                </div>
-              </div>
-              <Popover open={showPriceHistory} onOpenChange={setShowPriceHistory}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    className="text-blue-400 hover:text-blue-300 flex items-center"
-                  >
-                    View price history
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-96 p-0 bg-gray-900 border-gray-800">
-                  <div className="p-4">
-                    <h3 className="font-medium text-white mb-2 flex items-center justify-between">
-                      Price History {selectedSymbol && `for ${selectedSymbol}`}
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-400 hover:text-gray-300"
-                        onClick={() => setShowPriceHistory(false)}
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                      </Button>
-                    </h3>
-                    <div className="h-52">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={priceHistoryData}>
-                          <XAxis 
-                            dataKey="date" 
-                            tick={{fill: '#9ca3af'}}
-                            tickFormatter={(date) => format(new Date(date), 'MMM d')}
-                          />
-                          <YAxis tick={{fill: '#9ca3af'}} />
-                          <Tooltip 
-                            formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Price']}
-                            contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#e5e7eb' }}
-                            labelStyle={{ color: '#e5e7eb' }}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="price" 
-                            stroke="#3b82f6" 
-                            dot={false}
-                            strokeWidth={2}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Price Tracking Controls with improved UI */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 bg-gray-900/80 backdrop-blur-sm p-5 rounded-lg border border-gray-800 shadow-md">
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-3 bg-gray-800/70 p-2 rounded-lg border border-gray-700">
-              <LineChartIcon className="h-5 w-5 text-blue-500" />
-              <span className="text-white font-medium">Track prices</span>
-              <Switch 
-                checked={trackPrices} 
-                onCheckedChange={setTrackPrices} 
-                className="data-[state=checked]:bg-blue-600"
-              />
-            </div>
-            
-            <DateRangePicker
-              date={dateRange}
-              onDateChange={setDateRange}
-              className="bg-gray-800/70 rounded-lg border border-gray-700"
-            />
+      
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              Dividend Reporting
+            </h1>
+            <p className="text-gray-400 mt-2">
+              Generate comprehensive reports and visualizations for your dividend portfolio
+            </p>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Button 
-              variant={viewMode === "grid" ? "default" : "outline"}
-              className={viewMode === "grid" ? "bg-blue-600 hover:bg-blue-700" : "text-gray-300 border-gray-700"}
-              onClick={() => setViewMode("grid")}
-              size="sm"
-            >
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Date grid
-              </div>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" onClick={() => navigate(-1)} className="border-gray-700 text-gray-300 hover:text-white">
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              Back
             </Button>
             
-            <Button 
-              variant={viewMode === "graph" ? "default" : "outline"}
-              className={viewMode === "graph" ? "bg-blue-600 hover:bg-blue-700" : "text-gray-300 border-gray-700"}
-              onClick={() => setViewMode("graph")}
-              size="sm"
-            >
-              <div className="flex items-center gap-2">
-                <LineChartIcon className="h-4 w-4" />
-                Price graph
-              </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="border-gray-700 text-gray-300 hover:text-white">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-gray-800 border-gray-700">
+                <DropdownMenuItem className="text-gray-200 hover:bg-gray-700 cursor-pointer">
+                  Export as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-gray-200 hover:bg-gray-700 cursor-pointer">
+                  Export as CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-gray-200 hover:bg-gray-700 cursor-pointer">
+                  Export as Image
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button variant="outline" className="border-gray-700 text-gray-300 hover:text-white">
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
             </Button>
           </div>
         </div>
-
-        {/* Add the price graph view with improved UI */}
-        {viewMode === "graph" && (
-          <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-800 mb-6 shadow-lg">
-            <CardHeader className="border-b border-gray-800">
-              <CardTitle className="text-white">Price History</CardTitle>
-              <CardDescription className="text-gray-400">
-                {format(dateRange.from, "MMM d, yyyy")} - {format(dateRange.to, "MMM d, yyyy")}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="h-[400px] p-5">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={getFilteredPriceData(priceHistoryData)}>
-                  <XAxis 
-                    dataKey="date" 
-                    tick={{fill: '#9ca3af'}}
-                    tickFormatter={(date) => format(new Date(date), 'MMM d')}
+        
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-blue-400" />
+                  Report Type
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select value={reportType} onValueChange={setReportType}>
+                  <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-200">
+                    <SelectValue placeholder="Select report type" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="dividend-income" className="text-gray-200 hover:bg-gray-700">
+                      Dividend Income
+                    </SelectItem>
+                    <SelectItem value="portfolio-allocation" className="text-gray-200 hover:bg-gray-700">
+                      Portfolio Allocation
+                    </SelectItem>
+                    <SelectItem value="growth-analysis" className="text-gray-200 hover:bg-gray-700">
+                      Growth Analysis
+                    </SelectItem>
+                    <SelectItem value="tax-report" className="text-gray-200 hover:bg-gray-700">
+                      Tax Report
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <div className="mt-4">
+                  <p className="text-sm text-gray-400 mb-2">Date Range</p>
+                  <DateRangePicker
+                    date={dateRange}
+                    onDateChange={handleDateRangeChange}
                   />
-                  <YAxis 
-                    tick={{fill: '#9ca3af'}}
-                    domain={['auto', 'auto']}
-                    tickFormatter={(value) => `$${value}`}
-                  />
-                  <Tooltip
-                    contentStyle={{ 
-                      backgroundColor: '#1f2937', 
-                      borderColor: '#374151', 
-                      color: '#e5e7eb' 
-                    }}
-                    formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Price']}
-                    labelFormatter={(label) => format(new Date(label), 'MMM d, yyyy')}
-                  />
-                  <CartesianGrid stroke="#374151" strokeDasharray="3 3" />
-                  <Line 
-                    type="monotone" 
-                    dataKey="price" 
-                    stroke="#3b82f6" 
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left side - Calendar (75%) with improved styling */}
-          <div className="lg:w-3/4">
-            <Card className="h-full bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg">
-              
-              <CardContent className="p-0">
-                <DividendCalendar />
+                </div>
+                
+                <Separator className="my-4 bg-gray-800" />
+                
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-400 mb-2">Chart Type</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        variant={chartType === 'bar' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setChartType('bar')}
+                        className={chartType !== 'bar' ? 'border-gray-700 text-gray-300' : ''}
+                      >
+                        <BarChart className="h-4 w-4 mr-1" />
+                        Bar
+                      </Button>
+                      <Button 
+                        variant={chartType === 'line' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setChartType('line')}
+                        className={chartType !== 'line' ? 'border-gray-700 text-gray-300' : ''}
+                      >
+                        <LineChart className="h-4 w-4 mr-1" />
+                        Line
+                      </Button>
+                      <Button 
+                        variant={chartType === 'pie' ? 'default' : 'outline'} 
+                        size="sm"
+                        onClick={() => setChartType('pie')}
+                        className={chartType !== 'pie' ? 'border-gray-700 text-gray-300' : ''}
+                      >
+                        <PieChart className="h-4 w-4 mr-1" />
+                        Pie
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-gray-400 mb-2">Additional Options</p>
+                    <Button variant="outline" size="sm" className="w-full justify-start border-gray-700 text-gray-300">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filter Data
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sliders className="h-5 w-5 text-purple-400" />
+                  Report Settings
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">Currency</p>
+                  <Select defaultValue="usd">
+                    <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-200">
+                      <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="usd" className="text-gray-200 hover:bg-gray-700">USD ($)</SelectItem>
+                      <SelectItem value="eur" className="text-gray-200 hover:bg-gray-700">EUR (€)</SelectItem>
+                      <SelectItem value="gbp" className="text-gray-200 hover:bg-gray-700">GBP (£)</SelectItem>
+                      <SelectItem value="cad" className="text-gray-200 hover:bg-gray-700">CAD ($)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">Data Grouping</p>
+                  <Select defaultValue="monthly">
+                    <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-200">
+                      <SelectValue placeholder="Select grouping" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="daily" className="text-gray-200 hover:bg-gray-700">Daily</SelectItem>
+                      <SelectItem value="weekly" className="text-gray-200 hover:bg-gray-700">Weekly</SelectItem>
+                      <SelectItem value="monthly" className="text-gray-200 hover:bg-gray-700">Monthly</SelectItem>
+                      <SelectItem value="quarterly" className="text-gray-200 hover:bg-gray-700">Quarterly</SelectItem>
+                      <SelectItem value="yearly" className="text-gray-200 hover:bg-gray-700">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">Include Taxes</p>
+                  <Select defaultValue="after-tax">
+                    <SelectTrigger className="bg-gray-800 border-gray-700 text-gray-200">
+                      <SelectValue placeholder="Tax settings" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectItem value="pre-tax" className="text-gray-200 hover:bg-gray-700">Pre-tax</SelectItem>
+                      <SelectItem value="after-tax" className="text-gray-200 hover:bg-gray-700">After-tax</SelectItem>
+                      <SelectItem value="both" className="text-gray-200 hover:bg-gray-700">Show both</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardContent>
             </Card>
           </div>
-
-          {/* Right side - Analysis (25%) with improved UI */}
-          <div className="lg:w-1/4">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-              <TabsList className="grid grid-cols-3 mb-4 bg-gray-800 border border-gray-700 rounded-lg overflow-hidden">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-gray-700">Overview</TabsTrigger>
-                <TabsTrigger value="stats" className="data-[state=active]:bg-gray-700">Stats</TabsTrigger>
-                <TabsTrigger value="search" className="data-[state=active]:bg-gray-700">Search</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="overview" className="space-y-4">
-                {/* Dashboard Metrics with improved styling */}
-                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 hover:border-gray-600 transition-all shadow-md hover:shadow-lg">
-                  <CardHeader className="pb-2 border-b border-gray-800">
-                    <CardTitle className="text-lg font-medium text-white">Upcoming Dividends</CardTitle>
-                    <CardDescription className="text-gray-400">Next 30 days</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-blue-500" />
-                        <span className="text-2xl font-bold text-white">
-                          {reports.filter(r => {
-                            const divDate = r.dividend_date ? new Date(r.dividend_date) : null;
-                            const today = new Date();
-                            const thirtyDaysLater = new Date();
-                            thirtyDaysLater.setDate(today.getDate() + 30);
-                            return divDate && divDate > today && divDate < thirtyDaysLater;
-                          }).length}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-400">Companies</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 hover:border-gray-600 transition-all shadow-md hover:shadow-lg">
-                  <CardHeader className="pb-2 border-b border-gray-800">
-                    <CardTitle className="text-lg font-medium text-white">Average EPS</CardTitle>
-                    <CardDescription className="text-gray-400">Across portfolio</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <DollarSign className="h-5 w-5 text-green-500" />
-                        <span className="text-2xl font-bold text-white">
-                          {reports.length > 0 
-                            ? formatNumber(reports.reduce((sum, r) => sum + r.earnings_average, 0) / reports.length)
-                            : "N/A"}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-400">Per share</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 hover:border-gray-600 transition-all shadow-md hover:shadow-lg">
-                  <CardHeader className="pb-2 border-b border-gray-800">
-                    <CardTitle className="text-lg font-medium text-white">Total Revenue</CardTitle>
-                    <CardDescription className="text-gray-400">All companies</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5 text-purple-500" />
-                        <span className="text-xl font-bold text-white">
-                          {reports.length > 0 
-                            ? formatCurrency(reports.reduce((sum, r) => sum + r.revenue_average, 0))
-                            : "N/A"}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-400">Combined</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="stats" className="space-y-4">
-                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 shadow-md">
-                  <CardHeader className="border-b border-gray-800">
-                    <CardTitle className="text-white">Earnings Distribution</CardTitle>
-                    <CardDescription className="text-gray-400">Top 5 companies by EPS</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-[300px] pt-4">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={earningsChartData.slice(0, 5)}>
-                        <XAxis dataKey="symbol" tick={{fill: '#9ca3af'}} />
-                        <YAxis tick={{fill: '#9ca3af'}} />
-                        <Tooltip 
-                          formatter={(value) => [`$${value}`, 'EPS']}
-                          labelFormatter={(label) => `Symbol: ${label}`}
-                          contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#e5e7eb' }}
-                        />
-                        <Bar dataKey="Average" fill="#0ea5e9" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 shadow-md">
-                  <CardHeader className="border-b border-gray-800">
-                    <CardTitle className="text-white">Revenue Summary</CardTitle>
-                    <CardDescription className="text-gray-400">Billion USD</CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-[300px] pt-4">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={revenueChartData.slice(0, 5)}>
-                        <XAxis dataKey="symbol" tick={{fill: '#9ca3af'}} />
-                        <YAxis tick={{fill: '#9ca3af'}} />
-                        <Tooltip 
-                          formatter={(value) => [`$${value}B`, 'Revenue']}
-                          labelFormatter={(label) => `Symbol: ${label}`}
-                          contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#e5e7eb' }}
-                        />
-                        <Bar dataKey="Average" fill="#14b8a6" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="search" className="space-y-4">
-                <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700 shadow-md">
-                  <CardHeader className="border-b border-gray-800">
-                    <CardTitle className="text-white">Find Report</CardTitle>
-                    <CardDescription className="text-gray-400">Search for a specific company</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pt-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                      <Input
-                        placeholder="Search by symbol..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 bg-gray-800 border-gray-700 text-white"
-                      />
-                    </div>
-                    
-                    <div className="mt-4 max-h-[400px] overflow-y-auto">
-                      {filteredReports.length === 0 ? (
-                        <p className="text-center py-4 text-gray-400">No matching companies found</p>
-                      ) : (
-                        filteredReports.slice(0, 10).map(report => (
-                          <div key={report.id} className="flex items-center py-2 border-b border-gray-800 hover:bg-gray-800/30 px-2 rounded-md cursor-pointer">
-                            <div className="font-medium text-white">{report.symbol}</div>
-                            <div className="ml-auto text-sm text-gray-400">
-                              {formatDate(report.dividend_date)}
-                            </div>
-                          </div>
-                        ))
+          
+          <div className="lg:col-span-3 space-y-6">
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-xl">{renderReportTitle()}</CardTitle>
+                    <CardDescription className="text-gray-400 mt-1">
+                      {renderReportDescription()}
+                    </CardDescription>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="bg-blue-900/20 text-blue-400 border-blue-500/30">
+                      <Calendar className="mr-1 h-3 w-3" />
+                      {dateRange.from.toLocaleDateString()} - {dateRange.to.toLocaleDateString()}
+                    </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {renderChart()}
+              </CardContent>
+              <CardFooter className="border-t border-gray-800 pt-4 flex justify-between items-center">
+                <p className="text-sm text-gray-400">
+                  Data updated as of {new Date().toLocaleDateString()}
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="border-gray-700 text-gray-300">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="sm" className="border-gray-700 text-gray-300">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-lg">Report Data</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-gray-800">
+                        {reportType === 'dividend-income' && (
+                          <>
+                            <th className="text-left py-3 px-4 text-gray-400 font-medium">Month</th>
+                            <th className="text-right py-3 px-4 text-gray-400 font-medium">Amount ($)</th>
+                          </>
+                        )}
+                        {reportType === 'portfolio-allocation' && (
+                          <>
+                            <th className="text-left py-3 px-4 text-gray-400 font-medium">Sector</th>
+                            <th className="text-right py-3 px-4 text-gray-400 font-medium">Allocation (%)</th>
+                          </>
+                        )}
+                        {reportType === 'growth-analysis' && (
+                          <>
+                            <th className="text-left py-3 px-4 text-gray-400 font-medium">Year</th>
+                            <th className="text-right py-3 px-4 text-gray-400 font-medium">Growth Rate (%)</th>
+                          </>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {reportType === 'dividend-income' && dividendData.map((item, index) => (
+                        <tr key={index} className="border-b border-gray-800">
+                          <td className="py-3 px-4">{item.month}</td>
+                          <td className="py-3 px-4 text-right font-medium text-green-400">${item.amount.toFixed(2)}</td>
+                        </tr>
+                      ))}
+                      {reportType === 'portfolio-allocation' && sectorData.map((item, index) => (
+                        <tr key={index} className="border-b border-gray-800">
+                          <td className="py-3 px-4">{item.name}</td>
+                          <td className="py-3 px-4 text-right font-medium text-blue-400">{item.value}%</td>
+                        </tr>
+                      ))}
+                      {reportType === 'growth-analysis' && growthData.map((item, index) => (
+                        <tr key={index} className="border-b border-gray-800">
+                          <td className="py-3 px-4">{item.year}</td>
+                          <td className="py-3 px-4 text-right font-medium text-purple-400">{item.growth}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                    <tfoot>
+                      {reportType === 'dividend-income' && (
+                        <tr>
+                          <td className="py-3 px-4 font-bold">Total</td>
+                          <td className="py-3 px-4 text-right font-bold text-green-400">
+                            ${dividendData.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}
+                          </td>
+                        </tr>
                       )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                      {reportType === 'portfolio-allocation' && (
+                        <tr>
+                          <td className="py-3 px-4 font-bold">Total</td>
+                          <td className="py-3 px-4 text-right font-bold text-blue-400">100%</td>
+                        </tr>
+                      )}
+                      {reportType === 'growth-analysis' && (
+                        <tr>
+                          <td className="py-3 px-4 font-bold">Average</td>
+                          <td className="py-3 px-4 text-right font-bold text-purple-400">
+                            {(growthData.reduce((sum, item) => sum + item.growth, 0) / growthData.length).toFixed(2)}%
+                          </td>
+                        </tr>
+                      )}
+                    </tfoot>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gray-900 border-gray-800">
+              <CardHeader>
+                <CardTitle className="text-lg">Report Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {reportType === 'dividend-income' && (
+                    <>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Total Income</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          ${dividendData.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Monthly Average</p>
+                        <p className="text-2xl font-bold text-blue-400">
+                          ${(dividendData.reduce((sum, item) => sum + item.amount, 0) / dividendData.length).toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Highest Month</p>
+                        <p className="text-2xl font-bold text-purple-400">
+                          ${Math.max(...dividendData.map(item => item.amount)).toFixed(2)}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  
+                  {reportType === 'portfolio-allocation' && (
+                    <>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Top Sector</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {sectorData.sort((a, b) => b.value - a.value)[0].name}
+                        </p>
+                      </div>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Sectors Count</p>
+                        <p className="text-2xl font-bold text-blue-400">
+                          {sectorData.length}
+                        </p>
+                      </div>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Diversification Score</p>
+                        <p className="text-2xl font-bold text-purple-400">
+                          7.5/10
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  
+                  {reportType === 'growth-analysis' && (
+                    <>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Average Growth</p>
+                        <p className="text-2xl font-bold text-green-400">
+                          {(growthData.reduce((sum, item) => sum + item.growth, 0) / growthData.length).toFixed(2)}%
+                        </p>
+                      </div>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">Highest Growth</p>
+                        <p className="text-2xl font-bold text-blue-400">
+                          {Math.max(...growthData.map(item => item.growth)).toFixed(2)}%
+                        </p>
+                      </div>
+                      <div className="bg-gray-800 p-4 rounded-lg">
+                        <p className="text-sm text-gray-400 mb-1">CAGR</p>
+                        <p className="text-2xl font-bold text-purple-400">
+                          6.8%
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                <div className="mt-6 p-4 bg-blue-900/20 border border-blue-800/30 rounded-lg">
+                  <h3 className="text-lg font-medium text-blue-300 mb-2">Analysis Insights</h3>
+                  {reportType === 'dividend-income' && (
+                    <p className="text-gray-300">
+                      Your dividend income shows a consistent upward trend throughout the year, with the highest payments received in December. 
+                      The fourth quarter (Oct-Dec) accounts for 32% of your annual dividend income, suggesting a concentration of dividend payers 
+                      that distribute in this period.
+                    </p>
+                  )}
+                  {reportType === 'portfolio-allocation' && (
+                    <p className="text-gray-300">
+                      Your portfolio has a significant allocation to Technology (35%), which may provide growth but could increase volatility. 
+                      Consider increasing exposure to defensive sectors like Consumer Staples for better balance. Your current diversification 
+                      score of 7.5/10 indicates a reasonably diversified portfolio.
+                    </p>
+                  )}
+                  {reportType === 'growth-analysis' && (
+                    <p className="text-gray-300">
+                      Your dividend growth has been strong with a 6.8% CAGR over the past 5 years, outpacing inflation. 
+                      The growth rate accelerated in 2021-2023, indicating recovery and expansion after the pandemic-related 
+                      dividend cuts in 2020. This trend suggests companies in your portfolio have healthy financials.
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
-
-        {/* Report Table with improved UI */}
-        <Card className="mt-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-gradient bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Dividend & Earnings Reports
-            </CardTitle>
-            <CardDescription className="text-gray-400">
-              {filteredReports.length} report{filteredReports.length !== 1 ? 's' : ''} found
-            </CardDescription>
-            <div className="flex flex-col md:flex-row gap-4 mt-4">
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search by symbol..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-gray-800 border-gray-700 text-white"
-                />
-              </div>
-              
-              <Select
-                value={sortField as string}
-                onValueChange={(value) => setSortField(value as keyof DividendReport)}
-              >
-                <SelectTrigger className="w-[180px] bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700 text-white">
-                  <SelectItem value="symbol">Symbol</SelectItem>
-                  <SelectItem value="dividend_date">Dividend Date</SelectItem>
-                  <SelectItem value="ex_dividend_date">Ex-Dividend Date</SelectItem>
-                  <SelectItem value="earnings_date">Earnings Date</SelectItem>
-                  <SelectItem value="earnings_average">Earnings Average</SelectItem>
-                  <SelectItem value="revenue_average">Revenue Average</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              <Button 
-                variant="outline" 
-                onClick={() => setSortDirection(current => current === 'asc' ? 'desc' : 'asc')}
-                className="flex items-center gap-2 bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
-              >
-                <ArrowUpDown className="h-4 w-4" />
-                {sortDirection === 'asc' ? 'Ascending' : 'Descending'}
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin h-8 w-8 border-4 border-blue-500 rounded-full border-t-transparent"></div>
-              </div>
-            ) : error ? (
-              <div className="text-center py-8 text-red-500 flex items-center justify-center gap-2">
-                <AlertTriangle className="h-5 w-5" />
-                {error}
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader className="bg-gray-800/70 backdrop-blur-sm sticky top-0 z-10">
-                    <TableRow>
-                      <TableHead 
-                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
-                        onClick={() => handleSort('symbol')}
-                      >
-                        <div className="flex items-center gap-1">
-                          Symbol
-                          {sortField === 'symbol' && (
-                            <ArrowUpDown size={16} className="text-blue-400" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
-                        onClick={() => handleSort('ex_dividend_date')}
-                      >
-                        <div className="flex items-center gap-1">
-                          Ex-Dividend Date
-                          {sortField === 'ex_dividend_date' && (
-                            <ArrowUpDown size={16} className="text-blue-400" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
-                        onClick={() => handleSort('dividend_date')}
-                      >
-                        <div className="flex items-center gap-1">
-                          Dividend Date
-                          {sortField === 'dividend_date' && (
-                            <ArrowUpDown size={16} className="text-blue-400" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="cursor-pointer text-gray-300 hover:text-white transition-colors"
-                        onClick={() => handleSort('earnings_date')}
-                      >
-                        <div className="flex items-center gap-1">
-                          Earnings Date
-                          {sortField === 'earnings_date' && (
-                            <ArrowUpDown size={16} className="text-blue-400" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="cursor-pointer text-right text-gray-300 hover:text-white transition-colors"
-                        onClick={() => handleSort('earnings_average')}
-                      >
-                        <div className="flex items-center gap-1 justify-end">
-                          Earnings (EPS)
-                          {sortField === 'earnings_average' && (
-                            <ArrowUpDown size={16} className="text-blue-400" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead 
-                        className="cursor-pointer text-right text-gray-300 hover:text-white transition-colors"
-                        onClick={() => handleSort('revenue_average')}
-                      >
-                        <div className="flex items-center gap-1 justify-end">
-                          Revenue
-                          {sortField === 'revenue_average' && (
-                            <ArrowUpDown size={16} className="text-blue-400" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-right text-gray-300">
-                        <div className="flex items-center gap-1 justify-end">
-                          Price Status
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-right text-gray-300">
-                        <div className="flex items-center gap-1 justify-end">
-                          Actions
-                        </div>
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedReports.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={8} className="text-center py-8 text-gray-400">
-                          No reports found matching your search.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      paginatedReports.map((report) => (
-                        <TableRow key={report.id} className="hover:bg-gray-800/40 border-b border-gray-800">
-                          <TableCell className="font-medium text-white">{report.symbol}</TableCell>
-                          <TableCell className="text-gray-300">{formatDate(report.ex_dividend_date)}</TableCell>
-                          <TableCell className="text-gray-300">{formatDate(report.dividend_date)}</TableCell>
-                          <TableCell className="text-gray-300">{formatDate(report.earnings_date)}</TableCell>
-                          <TableCell className="text-right">
-                            <span className="text-green-400 font-medium">${formatNumber(report.earnings_average)}</span>
-                            <div className="text-xs text-gray-400">
-                              Range: ${formatNumber(report.earnings_low)} - ${formatNumber(report.earnings_high)}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className="text-blue-400 font-medium">{formatCurrency(report.revenue_average)}</span>
-                            <div className="text-xs text-gray-400">
-                              Range: {formatCurrency(report.revenue_low)} - {formatCurrency(report.revenue_high)}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {getPriceStatusIndicator(report.price_status)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              className="text-blue-400 hover:text-blue-300 hover:bg-gray-800"
-                              onClick={() => handleViewPriceHistory(report.symbol)}
-                            >
-                              View History
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-                {/* Add pagination controls with improved UI */}
-                {!loading && !error && filteredReports.length > 0 && (
-                  <div className="flex items-center justify-between mt-6 bg-gray-800/70 backdrop-blur-sm p-4 rounded-lg border border-gray-700 shadow-md">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                      className="text-gray-300 border-gray-700 hover:bg-gray-700 disabled:opacity-50"
-                    >
-                      Previous
-                    </Button>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">
-                        Page {currentPage} of {totalPages}
-                      </span>
-                      <span className="text-gray-600">•</span>
-                      <span className="text-sm text-gray-400">
-                        {((currentPage - 1) * pageSize) + 1}-{Math.min(currentPage * pageSize, filteredReports.length)} of {filteredReports.length}
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
-                      className="text-gray-300 border-gray-700 hover:bg-gray-700 disabled:opacity-50"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+      </div>
+      
       <Footer />
     </div>
   );
