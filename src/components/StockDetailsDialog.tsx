@@ -1568,94 +1568,94 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           {stock && (
             <DividendCountdown symbol={stock.Symbol} />
           )}
-          <div className="grid grid-cols-5 gap-4 mb-6">
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`} >
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Annual Dividend */}
-                <div className="border-r border-gray-700 pr-4">
-                  <div className="text-xs text-gray-400 mb-1">Annual</div>
-                  <div className="flex flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-bold text-green-500">
-                        {latestDividends.dividendrate
-                          ? `$${Number(latestDividends.dividendrate).toFixed(2)}`
-                          : 'N/A'}
-                      </span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            {/* Dividend Information Card */}
+            <Card className={`col-span-1 sm:col-span-2 lg:col-span-2 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
+              <div className="flex flex-col space-y-4">
+                <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                  <h3 className="text-sm font-semibold text-gray-400">Dividend Information</h3>
+                  {latestDividends.exDividendDate && (
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <Calendar className="w-3 h-3" />
+                      <span>Ex-Date: {latestDividends.exDividendDate.slice(0, 10)}</span>
                     </div>
-                    {latestDividends.exDividendDate && (
-  <div className="text-xs text-gray-500 mt-1">
-    Ex-Date: {latestDividends.exDividendDate.slice(0, 10)}
-  </div>
-)}
-
-                  </div>
+                  )}
                 </div>
-
-                {/* Quarterly Dividend */}
-                <div className="pl-4">
-                  <div className="text-xs text-gray-400 mb-1">Quarterly</div>
-                  <div className="flex flex-col">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-bold text-blue-500">
-                        {latestDividends.dividend
-                          ? `$${Number(latestDividends.dividend).toFixed(2)}`
-                          : 'N/A'}
-                      </span>
-                    </div>
-                    {latestDividends.exDividendDate && (
-  <div className="text-xs text-gray-500 mt-1">
-    Ex-Date: {latestDividends.exDividendDate.slice(0, 10)}
-  </div>
-)}
-
-                  </div>
-                </div>
-              </div>
-            </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-xs text-gray-600 mb-2">Rank in Cohert</div>
-              <div className="font-bold space-y-2">
-                {rankingCSVData ? (
-                  <>
-                    <div className="flex flex-col gap-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Annual Dividend */}
+                  <div className="border-b sm:border-b-0 sm:border-r border-gray-700 pb-4 sm:pb-0 sm:pr-4">
+                    <div className="text-xs text-gray-400 mb-2">Annual Rate</div>
+                    <div className="flex flex-col">
                       <div className="flex items-baseline gap-2">
-                        <span className="text-lg text-blue-500">#{rankingCSVData.rank}</span>
-
+                        <span className="text-lg font-bold text-green-500">
+                          {latestDividends.dividendrate
+                            ? `$${Number(latestDividends.dividendrate).toFixed(2)}`
+                            : 'N/A'}
+                        </span>
+                        <span className="text-sm text-gray-400">|</span>
+                        <span className="text-sm font-semibold text-green-400">
+                          {latestDividends.dividendrate
+                            ? `${(Number(latestDividends.dividendrate)).toFixed(2)}%`
+                            : 'N/A'}
+                        </span>
                       </div>
-
                     </div>
-
-                  </>
-                ) : (
-                  <div className="text-gray-500 text-lg">
-                    0
                   </div>
-                )}
+
+                  {/* Quarterly Dividend */}
+                  <div className="pt-4 sm:pt-0 sm:pl-4">
+                    <div className="text-xs text-gray-400 mb-2">Quarterly Rate</div>
+                    <div className="flex flex-col">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-lg font-bold text-blue-500">
+                          {latestDividends.dividend
+                            ? `$${Number(latestDividends.dividend).toFixed(2)}`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                
               </div>
             </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-600">Next Ex-Dividend Date</div>
-              <div className="text-lg font-bold">
-                {latestDividends.annualDate ?
-                  new Date(latestDividends.annualDate).toLocaleDateString() :
-                  'N/A'}
+
+            {/* Dividend Status Card */}
+            <Card className={`col-span-1 sm:col-span-2 lg:col-span-1 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
+              <div className="text-sm text-gray-400 mb-2">Dividend Status</div>
+              <div className={`text-lg font-bold ${
+                latestDividends.status === 'This stock has a safe dividend.' 
+                  ? 'text-green-500' 
+                  : latestDividends.status === 'This stock may have a risky dividend.' 
+                    ? 'text-yellow-500' 
+                    : 'text-red-500'
+              }`}>
+                {latestDividends.status === 'This stock has a safe dividend.'
+                  ? 'Safe'
+                  : latestDividends.status === 'This stock may have a risky dividend.'
+                    ? 'Risky'
+                    : 'No Dividend'}
               </div>
             </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-600">Dividend Status</div>
+
+            {/* Growth Rate Card */}
+            <Card className={`col-span-1 sm:col-span-2 lg:col-span-1 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
+              <div className="text-sm text-gray-400 mb-2">Growth Rate</div>
               <div className="text-lg font-bold">
-                {latestDividends.dividendrate ?
-                  Number(latestDividends.dividendrate) > 0 ? 'Dividend Paying' : 'Non-Dividend' :
-                  'Unknown'}
+                {latestDividends.growthRate
+                  ? `${Number(latestDividends.growthRate).toFixed(2)}%`
+                  : 'N/A'}
               </div>
             </Card>
-            <Card className={`mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-600">Dividend Yield</div>
+
+            {/* Payout Ratio Card */}
+            <Card className={`col-span-1 sm:col-span-2 lg:col-span-1 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
+              <div className="text-sm text-gray-400 mb-2">Payout Ratio</div>
               <div className="text-lg font-bold">
-                {latestDividends.dividendrate && Number(latestDividends.dividendrate) > 0 ?
-                  `${Number(latestDividends.dividendrate).toFixed(2)}%` :
-                  'N/A'}
+                {latestDividends.payoutRatio
+                  ? `${Number(latestDividends.payoutRatio).toFixed(2)}%`
+                  : 'N/A'}
               </div>
             </Card>
           </div>

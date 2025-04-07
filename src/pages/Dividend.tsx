@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase/client";
 import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import Papa from 'papaparse';
 
 interface Stock {
   cik_str: string;
@@ -148,6 +149,25 @@ const Dividend: React.FC = () => {
 
   const [clickCount, setClickCount] = useState<{[key: string]: {count: number, timestamp: number}}>({});
   const [isHoveringSymbol, setIsHoveringSymbol] = useState(false);
+
+  const [csvLogoUrls, setCsvLogoUrls] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    // Load logo URLs from CSV file
+    fetch('/2. logos.csv')
+      .then(response => response.text())
+      .then(csvData => {
+        const result = Papa.parse(csvData, { header: true });
+        const logoMap = new Map();
+        result.data.forEach((row: any) => {
+          if (row.Symbol && row.LogoURL) {
+            logoMap.set(row.Symbol.toUpperCase(), row.LogoURL);
+          }
+        });
+        setCsvLogoUrls(logoMap);
+      })
+      .catch(error => console.error('Error loading CSV logos:', error));
+  }, []);
 
   const handleCardTouch = useCallback(() => {
     if (autoCloseTimer) {
@@ -600,7 +620,7 @@ const Dividend: React.FC = () => {
       >
         <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
           <img
-            src={companyLogos.get(stock.Symbol?.toUpperCase()) || stock.LogoURL || 'stock.avif'}
+            src={companyLogos.get(stock.Symbol?.toUpperCase()) || stock.LogoURL || csvLogoUrls.get(stock.Symbol?.toUpperCase()) || 'stock.avif'}
             alt={stock.Symbol}
             className="w-full h-full object-contain"
             loading="lazy"
@@ -1067,7 +1087,7 @@ const Dividend: React.FC = () => {
               <div className="flex items-center space-x-2">
                 <div
                   className="w-8 h-8 bg-center bg-no-repeat bg-contain aspect-square border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || 'stock.avif'})` }}
+                  style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || csvLogoUrls.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || 'stock.avif'})` }}
                   onClick={(e) => {
                     handleStockClick(hoveredStockDetails.stock, e);
                     setHoveredStockDetails(null);
@@ -1172,12 +1192,8 @@ const Dividend: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(expandedStock.Symbol?.toUpperCase()) || expandedStock.LogoURL || 'stock.avif'})` }}
-                  onClick={(e) => {
-                    handleStockClick(expandedStock, e);
-                    handleCloseExpanded();
-                  }}
+                  className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                  style={{ backgroundImage: `url(${companyLogos.get(expandedStock.Symbol?.toUpperCase()) || expandedStock.LogoURL || csvLogoUrls.get(expandedStock.Symbol?.toUpperCase()) || 'stock.avif'})` }}
                 />
                 <h3 className="text-lg font-bold">
                   <span
