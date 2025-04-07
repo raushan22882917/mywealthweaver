@@ -1604,11 +1604,10 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                       </span>
                     </div>
                     {latestDividends.exDividendDate && (
-  <div className="text-xs text-gray-500 mt-1">
-    Ex-Date: {latestDividends.exDividendDate.slice(0, 10)}
-  </div>
-)}
-
+                      <div className="text-xs text-gray-500 mt-1">
+                        Ex-Date: {new Date(latestDividends.exDividendDate).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

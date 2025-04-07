@@ -706,11 +706,7 @@ const Dividend: React.FC = () => {
                 }`}>
                   {date.getDate()}
                 </span>
-                {stocksForDate.length > 0 && (
-                  <div className="flex items-center justify-center bg-blue-500 dark:bg-blue-600 text-white rounded-full w-6 h-6 text-xs font-bold">
-                    {stocksForDate.length}
-                  </div>
-                )}
+               
               </div>
               {holiday && (
                 <div className="w-[200px] h-[150px] ml-2 mt-2 p-3 rounded-lg bg-red-100/90 dark:bg-red-900/50 border border-red-300 dark:border-red-700 shadow-sm">
@@ -942,9 +938,7 @@ const Dividend: React.FC = () => {
                   <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
                     {formatMonth(currentMonth)}
                   </h1>
-                  <div className="flex items-center bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-full text-sm font-medium">
-                    Total Stocks: {totalSymbolCount}
-                  </div>
+                 
                 </div>
 
                 <div className="flex flex-col md:flex-row gap-4 items-start md:items-center w-full md:w-auto">
