@@ -36,9 +36,6 @@ interface Stock {
   cik_str: string;
   Symbol: string;
   title: string;
-  LogoURL?: string;
-  marketCap?: number;
-  dividendYield?: number;
 }
 
 interface StockDetailsDialogProps {
@@ -160,7 +157,7 @@ interface SimilarCompany {
   similar_symbol: string;
   similar_company: string;
   revenue_2024: string;
-  logoUrl: string;
+  LogoURL?: string | null;
 }
 
 interface LogoData {
@@ -178,7 +175,7 @@ interface SavedStock {
   user_id: string;
   symbol: string;
   company_name: string;
-  logoUrl: string;
+  LogoURL: string;
   price: number;
   dividend_yield: number;
   next_dividend_date?: string;
@@ -190,8 +187,6 @@ interface DividendSymbol {
   symbol: string;
   dividend: string;
   dividendrate: string;
-  payoutdate?: string;
-  exdividenddate?: string;
 }
 
 interface DividendCountdownProps {
@@ -331,8 +326,14 @@ const DividendCountdown: React.FC<DividendCountdownProps> = ({ symbol }) => {
                 <AlertCircle className="w-8 h-8" />
                 Ex-Dividend Date Has Passed
               </div>
-              
-              
+              <div className="text-lg text-blue-300">
+                {symbol}
+              </div>
+              {exDividendDate && (
+                <div className="mt-4 text-gray-300">
+                  Last Ex-Dividend Date: {new Date(exDividendDate).toLocaleDateString()}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -417,7 +418,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     description: string;
     logoUrl: string;
   }>>([]);
-  const [selectedStock, setSelectedStock] = useState<SimilarCompany | null>(null);
+  const [selectedStock, setSelectedStock] = useState<typeof similarStocks[0] | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -449,11 +450,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       return {
         dividend: data[0].dividend?.toString() || '',
         dividendrate: data[0].dividendrate?.toString() || '',
+        annual: data[0].dividendrate?.toString() || '',
         quarterly: data[0].dividend?.toString() || '',
         annualDate: data[0].buy_date || null,
-        quarterlyDate: data[0].payoutdate || '',
-        annual: data[0].dividendrate?.toString() || '',
-        exDividendDate: data[0].exdividenddate || ''
+        quarterlyDate: data[0].payoutdate || ''
+        
         
       };
     } catch (error) {
@@ -481,18 +482,17 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               quarterly: data.dividend,
               annualDate: data.annualDate,
               quarterlyDate: data.quarterlyDate,
-              annual: data.annual,
-              exDividendDate: data.exDividendDate
+              exDividendDate: data.exdividenddate
             });
 
             console.log('Dividend data mapped:', {
               dividend: data.dividend,
               dividendrate: data.dividendrate,
+              annual: data.dividendrate,
               quarterly: data.dividend,
               annualDate: data.annualDate,
               quarterlyDate: data.quarterlyDate,
-              annual: data.annual,
-              exDividendDate: data.exDividendDate
+              exDividendDate: data.exdividenddate
             });
 
             // Log the ex-dividend date for debugging
@@ -510,32 +510,15 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       if (!stock?.Symbol) return;
 
       try {
-        const { data: companyData, error } = await supabase
+        const { data, error } = await supabase
           .from('company_profiles')
           .select('*')
           .eq('symbol', stock.Symbol)
-          .single();
+          .order('created_at', { ascending: false })
+          .limit(1);
 
-        if (error) {
-          toast({
-            title: "Error fetching company profile",
-            description: error.message,
-            variant: "destructive",
-          });
-          return;
-        }
-
-        if (companyData) {
-          const profileData: CompanyProfile = {
-            ...companyData,
-            fullTimeEmployees: companyData.full_time_employees?.toString() || 'N/A',
-            auditRisk: companyData.audit_risk || 0,
-            boardRisk: companyData.board_risk || 0,
-            compensationRisk: companyData.compensation_risk || 0,
-            // Map other fields as needed
-          };
-          setCompanyProfile(profileData);
-        }
+        if (error) throw error;
+        setCompanyProfile(data[0]);
       } catch (error) {
         console.error('Error fetching company profile:', error);
       }
@@ -550,11 +533,12 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       if (!stock?.Symbol) return;
 
       try {
-        const { data: rankingData, error } = await supabase
+        const { data, error } = await supabase
           .from('top_stocks')
           .select('*')
           .eq('symbol', stock.Symbol.toUpperCase())  // Ensure uppercase symbol
-          .single();
+          .order('created_at', { ascending: false })
+          .limit(1);
 
         if (error) {
           console.error('Database error:', error);
@@ -562,15 +546,18 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           return;
         }
 
-        if (rankingData) {
-          const formattedData: string = rankingData.Score?.toString() || 'N/A';
-          setRankingCSVData({
-            rank: rankingData.Rank?.toString() || 'N/A',
-            score: formattedData,
-            sector: rankingData.sector || 'Unknown',
-            industry: rankingData.industry || 'Unknown'
-          });
+        if (!data || data.length === 0) {
+          console.log('No ranking data found for', stock.Symbol);
+          setRankingCSVData(null);
+          return;
         }
+
+        setRankingCSVData({
+          rank: data[0].Rank?.toString() || 'N/A',
+          score: data[0].Score || 'N/A',
+          sector: data[0].sector || 'Unknown',
+          industry: data[0].industry || 'Unknown'
+        });
       } catch (error) {
         console.error('Error fetching ranking data:', error);
         setRankingCSVData(null);
@@ -591,32 +578,28 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           .select('*')
           .eq('symbol', stock.Symbol);
 
-        if (similarError) {
-          toast({
-            title: "Error fetching similar companies",
-            description: similarError.message,
-            variant: "destructive",
-          });
-          return;
-        }
+        if (similarError) throw similarError;
 
-        if (similarData) {
-          const formattedData: SimilarCompany[] = similarData.map(company => ({
-            symbol: company.symbol,
-            similar_symbol: company.similar_symbol,
-            similar_company: company.similar_company,
-            revenue_2024: company.revenue_2024,
-            logoUrl: company.logo_url || ''
-          }));
-          setSimilarCompanies(formattedData);
-        }
+        const { data: logoData, error: logoError } = await supabase
+          .from('company_logos')
+          .select('*')
+          .in('Symbol', similarData.map(company => company.similar_symbol));
+
+        if (logoError) throw logoError;
+
+        // Merge logo data with similar companies
+        const combinedData: SimilarCompany[] = similarData.map(company => ({
+          symbol: company.similar_symbol,
+          similar_symbol: company.similar_symbol,
+          similar_company: company.company_name,
+          revenue_2024: company.revenue_2024,
+          logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL || null
+        }));
+
+        setSimilarCompanies(combinedData);
       } catch (error) {
-        console.error('Error in fetchSimilarCompanies:', error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch similar companies",
-          variant: "destructive",
-        });
+        console.error('Error fetching similar companies:', error);
+        toast.error('Failed to load similar companies');
       }
     };
 
@@ -895,7 +878,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           user_id: user.id,
           symbol: stock.Symbol,
           company_name: stock.title,
-          logoUrl: stock.LogoURL || '',
+          LogoURL: stock.LogoURL || '',
           price: parseFloat(stock.marketCap) || 0,
           dividend_yield: parseFloat(stock.dividendYield) || 0,
           next_dividend_date: stock['Ex-Dividend Date'],
@@ -1548,7 +1531,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           <div
             className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
             style={{
-              backgroundImage: `url(${similarStock.logoUrl || "/default-logo.png"})`
+              backgroundImage: `url(${similarStock.LogoURL || "/default-logo.png"})`
             }}
           />
           <div className="text-sm font-semibold text-center">{similarStock.symbol}</div>
@@ -1604,7 +1587,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     </div>
                     {latestDividends.exDividendDate && (
                       <div className="text-xs text-gray-500 mt-1">
-                        Ex-Date: {new Date(latestDividends.exDividendDate).toLocaleDateString()}
+                        Payout: {new Date(latestDividends.exDividendDate).toLocaleDateString()}
                       </div>
                     )}
                   </div>
@@ -1711,7 +1694,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                 <div
                   className="w-10 h-10 bg-center bg-no-repeat bg-contain rounded-lg"
                   style={{
-                    backgroundImage: `url(${selectedStock?.logoUrl || "/default-logo.png"})`
+                    backgroundImage: `url(${selectedStock?.LogoURL || "/default-logo.png"})`
                   }}
                 />
                 <div>
