@@ -993,12 +993,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         return (
           <div className="p-4">
             <div className="space-y-4">
-              <div>
-                <h2 className="text-3xl font-bold">Yield</h2>
-                <div className="text-lg text-muted-foreground mt-2">
-                  {stock.Symbol} Dividend Yield
-                </div>
-              </div>
+              
               <div>
                 <DividendYield symbol={stock.Symbol} />
               </div>

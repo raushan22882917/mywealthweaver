@@ -1,17 +1,21 @@
-
 import React from "react";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer 
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
 } from "recharts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 
@@ -44,15 +48,14 @@ const DividendYieldChart: React.FC<DividendYieldChartProps> = ({
   error,
   timeRange,
   timeRangeOptions,
-  onTimeRangeChange,
+  onTimeRangeChange
 }) => {
   const getYAxisDomain = () => {
     if (chartData.length === 0) return [0, 1];
-    
+
     const minYield = Math.min(...chartData.map(item => item.yield));
     const maxYield = Math.max(...chartData.map(item => item.yield));
-    
-    // Add some padding
+
     const padding = (maxYield - minYield) * 0.1;
     return [Math.max(0, minYield - padding), maxYield + padding];
   };
@@ -63,7 +66,7 @@ const DividendYieldChart: React.FC<DividendYieldChartProps> = ({
         <div className="flex justify-between items-center">
           <CardTitle>Dividend Yield History for {symbol}</CardTitle>
           <div className="flex space-x-2">
-            {timeRangeOptions.map((option) => (
+            {timeRangeOptions.map(option => (
               <Button
                 key={option.value}
                 variant={timeRange === option.value ? "default" : "outline"}
@@ -94,7 +97,7 @@ const DividendYieldChart: React.FC<DividendYieldChartProps> = ({
               <TabsTrigger value="yield">Yield %</TabsTrigger>
               <TabsTrigger value="dividends">Dividends $</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="yield">
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -102,20 +105,20 @@ const DividendYieldChart: React.FC<DividendYieldChartProps> = ({
                     data={chartData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis 
-                      dataKey="date" 
+                    {/* Removed CartesianGrid */}
+                    <XAxis
+                      dataKey="date"
                       tick={{ fontSize: 12 }}
                       tickMargin={10}
                     />
-                    <YAxis 
+                    <YAxis
                       domain={getYAxisDomain()}
-                      tickFormatter={(value) => `${value}%`}
+                      tickFormatter={value => `${value}%`}
                       width={60}
                     />
-                    <Tooltip 
-                      formatter={(value: number) => [`${value}%`, 'Yield']}
-                      labelFormatter={(label) => `Date: ${label}`}
+                    <Tooltip
+                      formatter={(value: number) => [`${value}%`, "Yield"]}
+                      labelFormatter={label => `Date: ${label}`}
                     />
                     <Legend />
                     <Line
@@ -123,15 +126,15 @@ const DividendYieldChart: React.FC<DividendYieldChartProps> = ({
                       dataKey="yield"
                       stroke="#4CAF50"
                       strokeWidth={2}
-                      dot={{ r: 3 }}
-                      activeDot={{ r: 6 }}
+                      dot={false}
+                      activeDot={false}
                       name="Yield (%)"
                     />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
-            
+
             <TabsContent value="dividends">
               <div className="h-[400px]">
                 <ResponsiveContainer width="100%" height="100%">
@@ -139,31 +142,31 @@ const DividendYieldChart: React.FC<DividendYieldChartProps> = ({
                     data={chartData}
                     margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                    <XAxis 
-                      dataKey="date" 
+                    {/* Removed CartesianGrid */}
+                    <XAxis
+                      dataKey="date"
                       tick={{ fontSize: 12 }}
                       tickMargin={10}
                     />
-                    <YAxis 
-                      tickFormatter={(value) => `$${value}`}
+                    <YAxis
+                      tickFormatter={value => `$${value}`}
                       width={60}
                     />
-                    <Tooltip 
-                      formatter={(value: number) => [`$${value}`, 'Dividend']}
-                      labelFormatter={(label) => `Date: ${label}`}
-                    />
-                    <Legend />
-                    <Line
+                    {/* <Tooltip
+                      formatter={(value: number) => [`$${value}`, "Dividend"]}
+                      labelFormatter={label => `Date: ${label}`}
+                    /> */}
+                    {/* <Legend /> */}
+                    {/* <Line
                       type="monotone"
                       dataKey="dividends"
                       stroke="#2196F3"
                       strokeWidth={2}
-                      dot={{ r: 3 }}
-                      activeDot={{ r: 6 }}
+                      dot={false}
+                      activeDot={false}
                       name="Dividend Amount ($)"
                     />
-                  </LineChart>
+                  </LineChart> */}
                 </ResponsiveContainer>
               </div>
             </TabsContent>

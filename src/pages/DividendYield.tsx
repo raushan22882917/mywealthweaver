@@ -110,7 +110,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
         // Format data for the chart
         const formattedData = data.map((item) => ({
           date: new Date(item.date).toLocaleDateString("en-US", {
-            month: "short",
+            month: timeRange === "1Y" ? "short" : undefined,
             year: "numeric",
           }),
           yield: parseFloat((item.yield || 0).toFixed(2)),
@@ -153,12 +153,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Dividend Yield History for {stockSymbol}</h1>
-          <p className="text-muted-foreground">
-            Track dividend yield changes over time for better investment decisions
-          </p>
-        </div>
+       
 
         <div className="mb-6">
           <Card>
@@ -195,7 +190,6 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                 <Tabs defaultValue="yield">
                   <TabsList className="mb-4">
                     <TabsTrigger value="yield">Yield %</TabsTrigger>
-                    <TabsTrigger value="dividends">Dividends $</TabsTrigger>
                   </TabsList>
                   
                   <TabsContent value="yield">
@@ -205,7 +199,6 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                           data={chartData}
                           margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
                         >
-                          <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
                           <XAxis 
                             dataKey="date" 
                             tick={{ fontSize: 12 }}
@@ -227,50 +220,16 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                             dataKey="yield"
                             stroke="#4CAF50"
                             strokeWidth={2}
-                            dot={{ r: 3 }}
-                            activeDot={{ r: 6 }}
                             name="Yield (%)"
+                            dot={false}
+                            activeDot={false}
                           />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="dividends">
-                    <div className="h-[400px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart
-                          data={chartData}
-                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                        >
-                          <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
-                          <XAxis 
-                            dataKey="date" 
-                            tick={{ fontSize: 12 }}
-                            tickMargin={10}
-                          />
-                          <YAxis 
-                            tickFormatter={(value) => `$${value}`}
-                            width={60}
-                          />
-                          <Tooltip 
-                            formatter={(value: number) => [`$${value}`, 'Dividend']}
-                            labelFormatter={(label) => `Date: ${label}`}
-                          />
-                          <Legend />
-                          <Line
-                            type="monotone"
-                            dataKey="dividends"
-                            stroke="#2196F3"
-                            strokeWidth={2}
-                            dot={{ r: 3 }}
-                            activeDot={{ r: 6 }}
-                            name="Dividend Amount ($)"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </TabsContent>
+                 
                 </Tabs>
               ) : (
                 <div className="text-center my-12 text-muted-foreground">
@@ -281,42 +240,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
           </Card>
         </div>
 
-        {yieldData.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Dividend Yield Data Table</CardTitle>
-              <CardDescription>
-                Historical dividend yield data for {stockSymbol}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse table-auto">
-                  <thead>
-                    <tr className="border-b bg-muted/50">
-                      <th className="px-4 py-2 text-left font-medium">Date</th>
-                      <th className="px-4 py-2 text-left font-medium">Stock Price</th>
-                      <th className="px-4 py-2 text-left font-medium">Dividend Amount</th>
-                      <th className="px-4 py-2 text-left font-medium">Yield (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {yieldData.map((item) => (
-                      <tr key={item.id} className="border-b hover:bg-muted/30">
-                        <td className="px-4 py-2">
-                          {new Date(item.date).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-2">${item.close.toFixed(2)}</td>
-                        <td className="px-4 py-2">${item.dividends.toFixed(2)}</td>
-                        <td className="px-4 py-2">{item.yield.toFixed(2)}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+       
       </main>
     </div>
   );
