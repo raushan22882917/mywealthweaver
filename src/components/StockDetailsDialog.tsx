@@ -31,6 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import Papa, { ParseResult } from 'papaparse';
 import { filterDividendData, type DividendHistoryData } from '@/utils/dividend';
 import UpDown from "@/pages/UpDown";
+import DividendYield from "@/pages/DividendYield";
 
 interface Stock {
   cik_str: string;
@@ -998,122 +999,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                   {stock.Symbol} Dividend Yield
                 </div>
               </div>
-
-              
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <div className="flex space-x-1">
-                    {["1Y", "5Y", "10Y"].map((period) => (
-                      <Button
-                        key={period}
-                        onClick={() => setSelectedPeriod(period)}
-                        variant={period === selectedPeriod ? "default" : "outline"}
-                        size="sm"
-                      >
-                        {period}
-                      </Button>
-                    ))}
-                    <Button variant="outline" size="sm">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                      </svg>
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={selectedDataType === 'quarterly' ? "default" : "outline"}
-                      onClick={() => setSelectedDataType('quarterly')}
-                      size="sm"
-                    >
-                      Quat
-                    </Button>
-                    <Button
-                      variant={selectedDataType === 'annual' ? "default" : "outline"}
-                      onClick={() => setSelectedDataType('annual')}
-                      size="sm"
-                    >
-                      Annual
-                    </Button>
-                  </div>
-
-                  <div className="flex space-x-1">
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                      </svg>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                      </svg>
-                    </Button>
-                    <Button variant="outline" size="icon">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </Button>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    + Add Comparison
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-4 bg-muted/50 p-4 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-                  <span className="font-medium">{stock.Symbol}</span>
-                </div>
-                <div>
-                  <span className="font-medium">{currentYield.toFixed(2)}%</span>
-                  <span className={`ml-2 ${yieldChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {yieldChange >= 0 ? '+' : ''}{yieldChange.toFixed(2)}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="rounded-lg h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={filterDataByPeriod(selectedPeriod)}
-                    margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
-                    <XAxis
-                      dataKey="date"
-                      axisLine={false}
-                      tickLine={false}
-                      stroke="#666"
-                      fontSize={12}
-                    />
-                    <YAxis
-                      domain={['auto', 'auto']}
-                      tickFormatter={(value) => `${value.toFixed(2)}%`}
-                      axisLine={false}
-                      tickLine={false}
-                      stroke="#666"
-                      fontSize={12}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#f97316"
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 4, fill: "#f97316" }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+              <div>
+                <DividendYield symbol={stock.Symbol} />
               </div>
             </div>
           </div>

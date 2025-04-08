@@ -29,6 +29,7 @@ import { Session } from '@supabase/supabase-js';
 import TopStocks from "./components/TopStocks";
 import Announcements from "./pages/Announcements";
 import DividendDetail from "./pages/dividenddetail";
+import DividendYield from "./pages/DividendYield";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -133,6 +134,8 @@ function App() {
               <Route path="/announcements/:id?" element={<Announcements />} />
               <Route path="*" element={<NotFound />} />
               <Route path="/dividenddetail" element={<DividendDetail />} />
+              <Route path="/dividendyield" element={<DividendYield />} />
+              <Route path="/dividendyield/:symbol?" element={<DividendYield />} />
             </Routes>
             <Toaster />
           </TooltipProvider>
