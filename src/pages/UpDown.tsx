@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowUpIcon, ArrowDownIcon, SearchIcon, BarChartIcon, FilterIcon, RefreshCwIcon,  BuildingIcon, BanIcon, Calendar } from "lucide-react";
@@ -43,7 +42,11 @@ interface StockUpgrade {
   created_at: string;
 }
 
-const UpDown: React.FC = () => {
+interface Props {
+  symbol?: string;
+}
+
+const UpDown: React.FC<Props> = ({ symbol }) => {
   const [upgrades, setUpgrades] = useState<StockUpgrade[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,16 +58,23 @@ const UpDown: React.FC = () => {
 
   useEffect(() => {
     fetchUpgrades();
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, symbol]);
 
   const fetchUpgrades = async () => {
     try {
       setIsLoading(true);
       
       // Get total count for pagination
-      const { count, error: countError } = await supabase
+      const countQuery = supabase
         .from("stock_upgrades")
-        .select("*", { count: "exact", head: true });
+        .select('*', { count: 'exact', head: true });
+      
+      // Add symbol filter if provided
+      if (symbol) {
+        countQuery.eq('symbol', symbol);
+      }
+
+      const { count, error: countError } = await countQuery;
       
       if (countError) {
         throw countError;
@@ -74,9 +84,16 @@ const UpDown: React.FC = () => {
       setTotalPages(Math.ceil((count || 0) / pageSize));
       
       // Fetch the data with pagination
-      const { data, error } = await supabase
+      const dataQuery = supabase
         .from("stock_upgrades")
-        .select("*")
+        .select('*');
+
+      // Add symbol filter if provided
+      if (symbol) {
+        dataQuery.eq('symbol', symbol);
+      }
+
+      const { data, error } = await dataQuery
         .order("created_at", { ascending: false })
         .range((currentPage - 1) * pageSize, currentPage * pageSize - 1);
 

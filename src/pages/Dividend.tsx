@@ -24,6 +24,8 @@ interface DividendData {
   dividendRate: string;
   previousClose: string;
   currentPrice: string;
+  dividend: string;
+
   dividendYield: string;
   payoutRatio: string;
   AnnualRate: string;
@@ -253,6 +255,8 @@ const Dividend: React.FC = () => {
             earningsdate: stock.earningsdate || '',
             payoutdate: stock.payoutdate || '',
             buy_date: stock.buy_date || '',
+            dividend: stock.dividend || '',
+
             hist: stock.hist || '',
             insight: stock.insight || '',
             status: safetyInfo?.status || 'Status not available',
@@ -1063,7 +1067,7 @@ const Dividend: React.FC = () => {
                   Dividend Announcement
                 </span>
               </div>
-              <p className="text-sm text-blue-800 dark:text-green-200">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
                 {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}
               </p>
             </div>
@@ -1149,7 +1153,7 @@ const Dividend: React.FC = () => {
               <span className="font-medium">
                 {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
                   ? 'N/A'
-                  : (Number(hoveredStockDetails.stock?.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2)
+                  : (Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)
                 }
               </span>
             </div>
@@ -1192,8 +1196,12 @@ const Dividend: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                  className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
                   style={{ backgroundImage: `url(${companyLogos.get(expandedStock.Symbol?.toUpperCase()) || expandedStock.LogoURL || csvLogoUrls.get(expandedStock.Symbol?.toUpperCase()) || 'stock.avif'})` }}
+                  onClick={(e) => {
+                    handleStockClick(expandedStock, e);
+                    handleCloseExpanded();
+                  }}
                 />
                 <h3 className="text-lg font-bold">
                   <span
@@ -1269,13 +1277,14 @@ const Dividend: React.FC = () => {
                   <FaDollarSign /> Dividend Details
                 </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><span className="font-medium">Dividend Rate:</span> {expandedStock.dividendRate}</div>
+                  <div><span className="font-medium">Quater Dividend:</span> {expandedStock.dividend}</div>
+                  <div><span className="font-medium">Annual Dividend:</span> {expandedStock.dividendRate}</div>
+
                   <div><span className="font-medium">Dividend Yield:</span> {
                     Number.isNaN(Number(expandedStock.dividendYield))
                       ? 'N/A'
-                      : (Number(expandedStock.dividendYield) * (0.98 + Math.random() * 0.04)).toFixed(2)
+                      : (Number(expandedStock.dividendYield)).toFixed(2)
                   }</div>
-                  <div><span className="font-medium">Annual Rate:</span> {expandedStock.AnnualRate}</div>
                 </div>
               </div>
 

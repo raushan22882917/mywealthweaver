@@ -38,7 +38,7 @@ interface Stock {
   title: string;
   LogoURL?: string;
   marketCap?: number;
-  dividendyield?: number;
+  dividendYield?: number;
 }
 
 interface StockDetailsDialogProps {
@@ -433,7 +433,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
     try {
       const { data, error } = await supabase
-        .from('dividendsymbol')
+        .from('dividend')
         .select('*')
         .eq('symbol', symbol.toUpperCase())
         .order('buy_date', { ascending: true });
