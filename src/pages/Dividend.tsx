@@ -156,7 +156,7 @@ const Dividend: React.FC = () => {
 
   useEffect(() => {
     // Load logo URLs from CSV file
-    fetch('/2. logos.csv')
+    fetch('/logos.csv')
       .then(response => response.text())
       .then(csvData => {
         const result = Papa.parse(csvData, { header: true });
