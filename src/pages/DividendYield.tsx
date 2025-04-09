@@ -159,13 +159,20 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
           <Card>
             <CardHeader className="pb-3">
               <div className="flex justify-between items-center">
-                <CardTitle>Dividend Yield Over Time</CardTitle>
-                <div className="flex space-x-2">
+                <div className="text-base font-semibold text-gray-700 dark:text-gray-200">
+                  Yield %
+                </div>
+                <div className="flex gap-0.5">
                   {timeRangeOptions.map((option) => (
                     <Button
                       key={option.value}
                       variant={timeRange === option.value ? "default" : "outline"}
                       size="sm"
+                      className={`min-w-[40px] h-7 px-2 text-xs font-medium ${
+                        timeRange === option.value 
+                          ? 'bg-gray-800 text-white hover:bg-gray-700'
+                          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                      }`}
                       onClick={() => handleTimeRangeChange(option.value)}
                     >
                       {option.label}
@@ -173,9 +180,6 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                   ))}
                 </div>
               </div>
-              <CardDescription>
-                The relationship between stock price, dividends, and yield over time
-              </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -197,7 +201,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart
                           data={chartData}
-                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                          margin={{ top: 10, right: 50, left: 10, bottom: 0 }}
                         >
                           <XAxis 
                             dataKey="date" 
@@ -205,22 +209,48 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                             tickMargin={10}
                             tickFormatter={(value) => value}
                           />
+                          {/* Left Y-axis for dividend values */}
                           <YAxis 
+                            yAxisId="left"
+                            orientation="left"
+                            tickFormatter={(value) => `$${value.toFixed(2)}`}
+                            width={60}
+                            domain={['auto', 'auto']}
+                          />
+                          {/* Right Y-axis for yield percentage */}
+                          <YAxis 
+                            yAxisId="right"
+                            orientation="right"
                             domain={getYAxisDomain()}
-                            tickFormatter={(value) => `${value}%`}
+                            tickFormatter={(value) => `${value.toFixed(1)}%`}
                             width={60}
                           />
-                          <Tooltip 
-                            formatter={(value: number) => [`${value}%`, 'Yield']}
+
+                          <Tooltip
+                            formatter={(value: number, name: string) => {
+                              if (name === "Dividend") return [`$${value.toFixed(2)}`, name];
+                              return [`${value.toFixed(1)}%`, name];
+                            }}
                             labelFormatter={(label) => `Date: ${label}`}
                           />
-                          <Legend />
                           <Line
+                            yAxisId="right"
                             type="monotone"
                             dataKey="yield"
                             stroke="#4CAF50"
                             strokeWidth={2}
                             name="Yield (%)"
+                            dot={false}
+                            activeDot={false}
+                          />
+
+                          <Line
+                            yAxisId="left"
+                            type="monotone"
+                            dataKey="dividends"
+                            strokeWidth={2}
+                            stroke="#2196F"
+                            name="Dividend"
                             dot={false}
                             activeDot={false}
                           />

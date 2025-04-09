@@ -1133,7 +1133,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               <BarChart
   data={filterDividendData(dividendHistoryData, timeRange)}
   margin={{ top: 20, right: 30, left: 40, bottom: 30 }}
-  barCategoryGap={15}
 >
   {/* X-Axis */}
   <XAxis
@@ -1304,6 +1303,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       {rankingCSVData && (
         <div className="flex gap-6 p-3 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-sm">
           <div className="flex flex-col items-center">
+            <span className="text-xs text-gray-500">Rank</span>
+            <span className="text-lg font-bold">
+              #{rankingCSVData.rank}
+            </span>
+          </div>
+          
+          <div className="flex flex-col items-center">
             <span className="text-xs text-gray-500">Score</span>
             <span className={`text-lg font-bold ${
               Number(rankingCSVData.score) >= 0.7 ? 'text-green-500' :
@@ -1325,18 +1331,58 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               {rankingCSVData.industry || 'N/A'}
             </span>
           </div>
+          
         </div>
       )}
 
       {/* Mini Chart */}
-      <div className="h-14 w-28">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={miniChartData}>
-            <Line type="monotone" dataKey="value" stroke="#2563eb" dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-        <div className="text-xs text-gray-500 text-center">Last quarter data</div>
+
+      <div className="mt-4">
+      <Card className={`col-span-1 sm:col-span-2 lg:col-span-2 h-auto py-2 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
+  <div className="flex items-center justify-between h-full px-4">
+    <div className="flex gap-6">
+      
+      {/* Annual | Yield */}
+      <div className="flex flex-col items-start">
+        <span className="text-xs text-gray-400">Annual | Yield</span>
+        <div className="flex gap-2">
+          <span className="text-sm font-bold text-green-500">
+            {latestDividends.dividendrate
+              ? `$${Number(latestDividends.dividendrate).toFixed(2)}`
+              : 'N/A'}
+          </span>
+          <span className="text-sm text-gray-400">|</span>
+          <span className="text-sm font-semibold text-green-400">
+            ({latestDividends.dividendyield
+              ? `${Number(latestDividends.dividendyield).toFixed(2)}%`
+              : 'N/A'})
+          </span>
+        </div>
       </div>
+
+      {/* Divider */}
+{/* Thin vertical line as a divider */}
+<div className="w-px h-6 bg-gray-600 self-center mx-1" />
+
+
+      {/* Quarterly */}
+      <div className="flex flex-col items-start pl-2">
+        <span className="text-xs text-gray-400">Quarterly</span>
+        <span className="text-sm font-bold text-blue-500">
+          {latestDividends.dividend
+            ? `$${Number(latestDividends.dividend).toFixed(2)}`
+            : 'N/A'}
+        </span>
+      </div>
+
+    </div>
+  </div>
+</Card>
+
+      </div>
+
+      
+      
     </div>
 
     {/* Right Section */}
@@ -1393,83 +1439,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
             {/* Dividend Information Card */}
-            <Card className={`col-span-1 sm:col-span-2 lg:col-span-2 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="flex flex-col space-y-4">
-                <div className="flex justify-between items-center border-b border-gray-700 pb-2">
-                  <h3 className="text-sm font-semibold text-gray-400">Dividend Information</h3>
-                  
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Annual Dividend */}
-                  <div className="border-b sm:border-b-0 sm:border-r border-gray-700 pb-4 sm:pb-0 sm:pr-4">
-                    <div className="text-xs text-gray-400 mb-2">Annual Rate | Yield</div>
-                    <div className="flex flex-col">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-green-500">
-                          {latestDividends.dividendrate
-                            ? `$${Number(latestDividends.dividendrate).toFixed(2)}`
-                            : 'N/A'}
-                        </span>
-                        <span className="text-sm text-gray-400">|</span>
-                        <span className="text-sm font-semibold text-green-400">
-                          {latestDividends.dividendyield
-                            ? `${Number(latestDividends.dividendyield).toFixed(2)}%`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  
-
-                  {/* Quarterly Dividend */}
-                  <div className="pt-4 sm:pt-0 sm:pl-4">
-                    <div className="text-xs text-gray-400 mb-2">Quarterly Rate</div>
-                    <div className="flex flex-col">
-                      <div className="flex items-baseline gap-2">
-                        <span className="text-lg font-bold text-blue-500">
-                          {latestDividends.dividend
-                            ? `$${Number(latestDividends.dividend).toFixed(2)}`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                
-              </div>
-            </Card>
-
-            {/* Ranking Card */}
-            {rankingCSVData && (
-              <Card className={`col-span-1 sm:col-span-2 lg:col-span-1 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-                <div className="text-sm text-gray-400 mb-2">Ranking</div>
-                <div className="text-lg font-bold">
-                  #{rankingCSVData.rank}
-                </div>
-              </Card>
-            )}
-           
-
-            {/* Growth Rate Card */}
-            <Card className={`col-span-1 sm:col-span-2 lg:col-span-1 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-400 mb-2">Growth Rate</div>
-              <div className="text-lg font-bold">
-                {/* {latestDividends.growthRate
-                  ? `${Number(latestDividends.growthRate).toFixed(2)}%`
-                  : 'N/A'} */}
-              </div>
-            </Card>
-
-            {/* Payout Ratio Card */}
-            <Card className={`col-span-1 sm:col-span-2 lg:col-span-1 mt-4 p-4 ${theme === "dark" ? 'bg-gray-800' : 'bg-black'}`}>
-              <div className="text-sm text-gray-400 mb-2">Payout Ratio</div>
-              <div className="text-lg font-bold">
-                {/* {latestDividends.payoutRatio
-                  ? `${Number(latestDividends.payoutRatio).toFixed(2)}%`
-                  : 'N/A'} */}
-              </div>
-            </Card>
+            
           </div>
 
 
