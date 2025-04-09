@@ -11,16 +11,11 @@ import {
   Legend, 
   ResponsiveContainer 
 } from "recharts";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader } from "@/components/ui/loader";
+import { InsightCard } from "@/pages/insight";
 
 interface YieldData {
   id: string;
@@ -33,6 +28,7 @@ interface YieldData {
 
 interface ChartData {
   date: string;
+  displayDate: string;
   yield: number;
   dividends: number;
 }
@@ -42,12 +38,107 @@ interface DividendYieldProps {
 }
 
 const timeRangeOptions = [
-  { label: "1Y", value: "1Y", months: 12 },
-  { label: "3Y", value: "3Y", months: 36 },
-  { label: "5Y", value: "5Y", months: 60 },
-  { label: "10Y", value: "10Y", months: 120 },
-  { label: "MAX", value: "MAX", months: null },
+  { value: '3M', label: '3M', months: 3 },
+  { value: '1Y', label: '1Y', months: 12 },
+  { value: '3Y', label: '3Y', months: 36 },
+  { value: '5Y', label: '5Y', months: 60 },
 ];
+
+const CURRENT_DATE = new Date('2025-04-09');
+
+const filterChartData = (data: YieldData[], range: string): YieldData[] => {
+  const endDate = new Date();
+  let startDate = new Date();
+
+  switch (range) {
+    case '3M':
+      startDate.setMonth(endDate.getMonth() - 3);
+      break;
+    case '1Y':
+      startDate.setFullYear(endDate.getFullYear() - 1);
+      break;
+    case '3Y':
+      startDate.setFullYear(endDate.getFullYear() - 3);
+      break;
+    case '5Y':
+      startDate.setFullYear(endDate.getFullYear() - 5);
+      break;
+    default:
+      return data;
+  }
+
+  const filteredData = data.filter(item => {
+    const date = new Date(item.date);
+    return date >= startDate && date <= endDate;
+  });
+
+  // Format display dates based on range
+  return filteredData.map(item => {
+    const date = new Date(item.date);
+    let displayDate = '';
+
+    switch (range) {
+      case '3M':
+        // For 3M, show month-year only on first day of month
+        if (date.getDate() === 1 || 
+            date.getTime() === Math.min(...filteredData.map(d => new Date(d.date).getTime()))) {
+          displayDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+        break;
+      case '1Y':
+        // For 1Y, show month-year only on first day of month
+        if (date.getDate() === 1 || 
+            date.getTime() === Math.min(...filteredData.map(d => new Date(d.date).getTime()))) {
+          displayDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        }
+        break;
+      case '3Y':
+      case '5Y':
+        const currentYear = date.getFullYear();
+        const startYear = range === '3Y' ? 2022 : 2020;
+        const endYear = 2025;
+        
+        // Create array of years we want to show
+        const yearsToShow = Array.from(
+          { length: endYear - startYear + 1 }, 
+          (_, i) => startYear + i
+        );
+        
+        // Show year if it's the first data point of that year
+        const isFirstDataPointOfYear = (year: number) => {
+          const yearData = filteredData.filter(d => 
+            new Date(d.date).getFullYear() === year
+          );
+          if (yearData.length === 0) return false;
+          
+          const firstDateOfYear = Math.min(...yearData.map(d => new Date(d.date).getTime()));
+          return date.getTime() === firstDateOfYear;
+        };
+
+        // Show year labels on first data point of each year
+        if (yearsToShow.includes(currentYear) && isFirstDataPointOfYear(currentYear)) {
+          displayDate = currentYear.toString();
+        }
+        break;
+    }
+
+    return {
+      ...item,
+      displayDate
+    };
+  });
+};
+
+const formatChartData = (data: YieldData[]): ChartData[] => {
+  return data.map(item => {
+    return {
+      date: item.date,
+      displayDate: item.displayDate,
+      yield: parseFloat((item.yield || 0).toFixed(2)),
+      dividends: parseFloat((item.dividends || 0).toFixed(2))
+    };
+  });
+};
 
 const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => {
   const { symbol: urlSymbol } = useParams<{ symbol: string }>();
@@ -70,28 +161,21 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
     setError(null);
 
     try {
-      // Calculate date range based on selected time range
-      const endDate = new Date();
-      let startDate: Date | null = new Date();
+      let startDate: Date | null = new Date(CURRENT_DATE);
       
       const selectedRange = timeRangeOptions.find(option => option.value === timeRange);
       if (selectedRange && selectedRange.months) {
-        startDate.setMonth(endDate.getMonth() - selectedRange.months);
+        startDate.setMonth(CURRENT_DATE.getMonth() - selectedRange.months);
       } else {
-        // For MAX range, set to null and we'll get all data
         startDate = null;
       }
 
-      console.log("Fetching data for symbol:", stockSymbol); // Debug log
-
-      // Build query
       let query = supabase
         .from("yield_data")
         .select("*")
-        .eq('symbol', stockSymbol.toUpperCase()) // Ensure symbol is uppercase
+        .eq('symbol', stockSymbol.toUpperCase())
         .order("date", { ascending: true });
 
-      // Add date filter if not MAX
       if (startDate) {
         query = query.gte("date", startDate.toISOString().split("T")[0]);
       }
@@ -102,22 +186,10 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
         throw error;
       }
 
-      console.log("Received data:", data); // Debug log
-
       if (data && data.length > 0) {
-        setYieldData(data);
-        
-        // Format data for the chart
-        const formattedData = data.map((item) => ({
-          date: new Date(item.date).toLocaleDateString("en-US", {
-            month: timeRange === "1Y" ? "short" : undefined,
-            year: "numeric",
-          }),
-          yield: parseFloat((item.yield || 0).toFixed(2)),
-          dividends: parseFloat((item.dividends || 0).toFixed(2)),
-        }));
-        
-        setChartData(formattedData);
+        const filteredData = filterChartData(data, timeRange);
+        setYieldData(filteredData);
+        setChartData(formatChartData(filteredData));
       } else {
         setYieldData([]);
         setChartData([]);
@@ -151,81 +223,97 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container mx-auto px-4 py-8">
-       
-
-        <div className="mb-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <div className="flex justify-between items-center">
-                <div className="text-base font-semibold text-gray-700 dark:text-gray-200">
-                  Yield %
-                </div>
+    <div className=" flex flex-col bg-background">
+        <div className="mb-4">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-center mb-2">
                 <div className="flex gap-0.5">
                   {timeRangeOptions.map((option) => (
                     <Button
                       key={option.value}
                       variant={timeRange === option.value ? "default" : "outline"}
                       size="sm"
-                      className={`min-w-[40px] h-7 px-2 text-xs font-medium ${
-                        timeRange === option.value 
-                          ? 'bg-gray-800 text-white hover:bg-gray-700'
-                          : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-                      }`}
+                      className={`min-w-[40px] h-7 px-2 text-xs font-medium`}
                       onClick={() => handleTimeRangeChange(option.value)}
                     >
                       {option.label}
                     </Button>
                   ))}
                 </div>
+                <div className="w-[300px]">
+                  <InsightCard 
+                    symbol={stockSymbol} 
+                    className="h-[80px] !p-0 !shadow-none !bg-transparent"
+                  />
+                </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2">
               {isLoading ? (
-                <div className="flex justify-center my-12">
-                  <Loader message="Loading dividend yield data..." />
+                <div className="flex justify-center items-center h-[180px]">
+                  <Loader message="Loading yield data..." />
                 </div>
               ) : error ? (
-                <div className="text-center my-12 text-red-500">
-                  <p>{error}</p>
+                <div className="flex justify-center items-center h-[180px]">
+                  <div className="text-red-500">{error}</div>
                 </div>
               ) : chartData.length > 0 ? (
-                <Tabs defaultValue="yield">
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="yield">Yield %</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="yield">
-                    <div className="h-[400px]">
+                <div className="relative">
+                  <div style={{ height: '180px' }}>
+                    <div className="absolute inset-0">
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart
                           data={chartData}
-                          margin={{ top: 10, right: 50, left: 10, bottom: 0 }}
+                          margin={{ top: 10, right: 65, left: 65, bottom: 5 }}
                         >
+                          <defs>
+                            <filter id="card-shadow" height="200%">
+                              <feDropShadow dx="0" dy="4" stdDeviation="8" floodOpacity="0.15"/>
+                            </filter>
+                          </defs>
                           <XAxis 
-                            dataKey="date" 
+                            dataKey="displayDate" 
                             tick={{ fontSize: 12 }}
                             tickMargin={10}
-                            tickFormatter={(value) => value}
+                            interval={0}
+                            minTickGap={60}
+                            height={30}
+                            axisLine={{ stroke: '#666' }}
+                            tickLine={{ stroke: '#666' }}
                           />
-                          {/* Left Y-axis for dividend values */}
                           <YAxis 
                             yAxisId="left"
                             orientation="left"
                             tickFormatter={(value) => `$${value.toFixed(2)}`}
                             width={60}
                             domain={['auto', 'auto']}
+                            axisLine={{ stroke: '#666' }}
+                            tickLine={{ stroke: '#666' }}
+                            label={{ 
+                              value: 'Dividend ($)', 
+                              angle: -90, 
+                              position: 'insideLeft',
+                              offset: -45,
+                              style: { fill: '#666', fontSize: 12 }
+                            }}
                           />
-                          {/* Right Y-axis for yield percentage */}
                           <YAxis 
                             yAxisId="right"
                             orientation="right"
                             domain={getYAxisDomain()}
                             tickFormatter={(value) => `${value.toFixed(1)}%`}
                             width={60}
+                            axisLine={{ stroke: '#666' }}
+                            tickLine={{ stroke: '#666' }}
+                            label={{ 
+                              value: 'Yield (%)', 
+                              angle: 90, 
+                              position: 'insideRight',
+                              offset: -45,
+                              style: { fill: '#666', fontSize: 12 }
+                            }}
                           />
-
                           <Tooltip
                             formatter={(value: number, name: string) => {
                               if (name === "Dividend") return [`$${value.toFixed(2)}`, name];
@@ -233,6 +321,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                             }}
                             labelFormatter={(label) => `Date: ${label}`}
                           />
+                          <Legend verticalAlign="top" height={30} />
                           <Line
                             yAxisId="right"
                             type="monotone"
@@ -240,8 +329,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                             stroke="#4CAF50"
                             strokeWidth={2}
                             name="Yield (%)"
-                            dot={false}
-                            activeDot={false}
+                            dot={timeRange === '3M'}
                           />
 
                           <Line
@@ -251,18 +339,15 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                             strokeWidth={2}
                             stroke="#2196F"
                             name="Dividend"
-                            dot={false}
-                            activeDot={false}
+                            dot={timeRange === '3M'}
                           />
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
-                  </TabsContent>
-                  
-                 
-                </Tabs>
+                  </div>
+                </div>
               ) : (
-                <div className="text-center my-12 text-muted-foreground">
+                <div className="text-center my-4 text-muted-foreground">
                   <p>No data available for the selected time range.</p>
                 </div>
               )}
@@ -271,7 +356,6 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
         </div>
 
        
-      </main>
     </div>
   );
 };

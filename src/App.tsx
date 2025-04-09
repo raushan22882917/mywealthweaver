@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +29,7 @@ import TopStocks from "./components/TopStocks";
 import Announcements from "./pages/Announcements";
 import DividendDetail from "./pages/dividenddetail";
 import DividendYield from "./pages/DividendYield";
+import InsightPage from "./pages/insight";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -127,6 +127,8 @@ function App() {
               <Route path="/market-data" element={<MarketData />} />
               <Route path="/news" element={<News />} />
               <Route path="/news/:id?" element={<News />} />
+              <Route path="/insight" element={<InsightPage />} />
+              <Route path="/insight/:symbol?" element={<InsightPage />} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard session={session} /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
