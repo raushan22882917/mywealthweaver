@@ -762,13 +762,17 @@ const Dividend: React.FC = () => {
             ))}
             {hasMoreStocks && !isExpanded && (
               <div
-                className="w-full h-[50px] flex items-center justify-center rounded-lg cursor-pointer transition-colors col-span-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 px-2"
+                className=" w-[300px]  rounded-lg cursor-pointer transition-colors mt-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 px-2"
                 onClick={(e) => handleMoreClick(stocksForDate, e)}
               >
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  <Plus className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <span className="underline">{stocksForDate.length - 6} more</span>
-                </div>
+                <button
+                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-500 hover:text-blue-400 
+                           transition-colors rounded-lg border border-blue-500/30 hover:border-blue-400 
+                           bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-500/5 dark:hover:bg-blue-500/10"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Show {stocksForDate.length - 6} more stocks</span>
+                </button>
               </div>
             )}
           </div>
