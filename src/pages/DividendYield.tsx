@@ -224,8 +224,8 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
 
   return (
     <div className=" flex flex-col bg-background">
-        <div className="mb-4">
-          <Card className="overflow-hidden">
+        <div className="w-full max-w-[1200px] mx-auto">
+          <Card className="w-full">
             <CardHeader className="pb-2">
               <div className="flex justify-between items-center mb-2">
                 <div className="flex gap-0.5">
@@ -241,7 +241,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                     </Button>
                   ))}
                 </div>
-                <div className="w-[300px]">
+                <div className="w-[500px]">
                   <InsightCard 
                     symbol={stockSymbol} 
                     className="h-[80px] !p-0 !shadow-none !bg-transparent"
@@ -294,7 +294,8 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                               value: 'Dividend ($)', 
                               angle: -90, 
                               position: 'insideLeft',
-                              offset: -45,
+                              offset: 5,
+                              top: 20,
                               style: { fill: '#666', fontSize: 12 }
                             }}
                           />
@@ -310,15 +311,12 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                               value: 'Yield (%)', 
                               angle: 90, 
                               position: 'insideRight',
-                              offset: -45,
+                              offset: 5,
                               style: { fill: '#666', fontSize: 12 }
                             }}
                           />
                           <Tooltip
-                            formatter={(value: number, name: string) => {
-                              if (name === "Dividend") return [`$${value.toFixed(2)}`, name];
-                              return [`${value.toFixed(1)}%`, name];
-                            }}
+                           
                             labelFormatter={(label) => `Date: ${label}`}
                           />
                           <Legend verticalAlign="top" height={30} />
@@ -338,8 +336,9 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                             dataKey="dividends"
                             strokeWidth={2}
                             stroke="#2196F"
-                            name="Dividend"
                             dot={timeRange === '3M'}
+                            legendType="none" 
+                            
                           />
                         </LineChart>
                       </ResponsiveContainer>
