@@ -1333,6 +1333,23 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             </div>
           </div>
 
+
+          {/* Notification Box in Top Right Corner */}
+          <div className="flex items-center px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-blue-500 font-medium">Track Price</span>
+                <Switch checked={isSubscribed} onCheckedChange={handleToggle} className="data-[state=checked]:bg-blue-500" />
+                {showMessage && (
+                  <span className="text-sm text-blue-500 transition-opacity duration-500">
+                    {isSubscribed ? "Saved for updates" : "Subscribe for updates"}
+                  </span>
+                )}
+              </div>
+            </div>
+
+
+
+
           {/* Right Section */}
           <div className="flex items-center gap-4">
             <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
@@ -1383,18 +1400,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             {/* Dividend Information Card */}
           </div>
           <div >
-            {/* Notification Box in Top Right Corner */}
-            <div className="absolute top-1 right-1 flex items-center gap-1 p-1 rounded-md shadow-sm">
-              <div className="flex items-center gap-2">
-                <Switch checked={isSubscribed} onCheckedChange={handleToggle} />
-                <span className="text-sm">{isSubscribed ? "Saved for updates" : "Subscribe for updates"}</span>
-              </div>
-              {showMessage && (
-                <span className="text-green-500 text-sm font-medium transition-opacity duration-500">
-                  Thank you for subscribing!
-                </span>
-              )}
-            </div>
+            
             {/* Tabs in a single row */}
             <div className="flex gap-1 mt-1 overflow-x-auto pb-1">
               {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings"].map((tab) => (
