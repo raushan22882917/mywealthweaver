@@ -541,30 +541,45 @@ const DividendCalendar = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* Earnings (EPS) Row */}
-                    <TableRow className="hover:bg-gray-800/60 transition">
-                      <TableCell className="p-3 flex items-center gap-2 text-gray-300">
-                        <DollarSign className="w-4 h-4 text-yellow-400" />
-                        Earnings (EPS)
-                      </TableCell>
-                      <TableCell className="p-3 text-center font-medium text-green-400">
-            <div className="flex items-center justify-center gap-1">
-              <DollarSign className="w-4 h-4 text-yellow-400" />
-              <span>{selectedEvent.earnings_average?.toFixed(2) || "N/A"}</span>
-            </div>
-          </TableCell>
+                   {/* Earnings (EPS) Row */}
+<TableRow className="hover:bg-gray-800/60 transition">
+  <TableCell className="p-3 flex items-center gap-2 text-gray-300">
+    <DollarSign className="w-4 h-4 text-yellow-400" />
+    Earnings (EPS)
+  </TableCell>
+  <TableCell className="p-3 text-center font-medium text-green-400">
+    {selectedEvent.earnings_average
+      ? new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          maximumFractionDigits: 2,
+        }).format(selectedEvent.earnings_average)
+      : "N/A"}
+  </TableCell>
+  <TableCell className="p-3 text-center font-medium text-red-400">
+    <span className="inline-flex items-center">
+      {selectedEvent.earnings_low
+        ? new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 2,
+          }).format(selectedEvent.earnings_low)
+        : "N/A"}
+    </span>
+  </TableCell>
+  <TableCell className="p-3 text-center font-medium text-blue-400">
+    <span className="inline-flex items-center">
+      {selectedEvent.earnings_high
+        ? new Intl.NumberFormat("en-US", {
+            style: "currency",
+            currency: "USD",
+            maximumFractionDigits: 2,
+          }).format(selectedEvent.earnings_high)
+        : "N/A"}
+    </span>
+  </TableCell>
+</TableRow>
 
-                      <TableCell className="p-3 text-center font-medium text-red-400">
-                        <span className="inline-flex items-center">
-                          {selectedEvent.earnings_low?.toFixed(2) || "N/A"}
-                        </span>
-                      </TableCell>
-                      <TableCell className="p-3 text-center font-medium text-blue-400">
-                        <span className="inline-flex items-center">
-                          {selectedEvent.earnings_high?.toFixed(2) || "N/A"}
-                        </span>
-                      </TableCell>
-                    </TableRow>
 
                     {/* Revenue Row */}
                     <TableRow className="hover:bg-gray-800/60 transition">
