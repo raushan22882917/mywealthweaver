@@ -252,120 +252,105 @@ const DividendCalendar = () => {
     return format(date, 'MMMM yyyy');
   };
 
-  const getEventsForDate = (day: number): DividendEvent[] => {
-    const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
-    const formattedDate = format(currentDate, 'yyyy-MM-dd');
-    
+  const getEventsForDate = (dateString: string): DividendEvent[] => {
     return filteredEvents.filter(event => {
-      if (!event.dividend_date) return false;
-      return event.dividend_date === formattedDate;
+      if (!event.ex_dividend_date) return false;
+      return event.ex_dividend_date === dateString;
     });
+  };
+
+  const renderCalendarCell = (day: number) => {
+    const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
+    const dateKey = format(currentDate, 'yyyy-MM-dd');
+    const events = getEventsForDate(dateKey).sort((a, b) => 
+      a.symbol.localeCompare(b.symbol)
+    );
+    const isToday = isSameDay(currentDate, new Date());
+    const hasEvents = events.length > 0;
+    const showMore = events.length > 6;
+    const displayEvents = showMore ? events.slice(0, 6) : events;
+
+    return (
+      <div 
+        key={dateKey}
+        className={`
+          relative p-3 min-h-[180px] rounded-xl transition-all 
+          ${isToday ? 'bg-purple-900/20 border-purple-500/70' : 'bg-gray-900/80'}
+          ${hasEvents ? 'border-2 border-blue-500/50 hover:border-blue-400' : 'border border-gray-700 hover:border-gray-600'}
+          backdrop-blur-sm shadow-lg hover:shadow-xl
+        `}
+      >
+        <div className={`
+          absolute top-2 right-2 flex items-center justify-center
+          ${isToday ? 'text-purple-400' : 'text-gray-400'}
+          text-sm font-medium
+        `}>
+          {format(currentDate, 'EEE')}
+        </div>
+        
+        <div className={`
+          h-8 w-8 flex items-center justify-center rounded-full
+          ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
+          ${hasEvents ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-gray-900' : ''}
+          shadow-md
+        `}>
+          {day}
+        </div>
+
+        {hasEvents && (
+          <div className="mt-4">
+            <div className="grid grid-cols-3 gap-2">
+              {displayEvents.map((event, index) => (
+                <div
+                  key={`${event.id}-${index}`}
+                  onClick={() => handleEventClick(event)}
+                  className="flex flex-col items-center p-2 rounded-xl bg-gray-800/80 
+                           hover:bg-blue-500/20 cursor-pointer transition-all border border-gray-700 hover:border-blue-400"
+                >
+                  <div className="w-9 h-9 bg-white rounded-lg flex-shrink-0 overflow-hidden mb-1.5 shadow-sm">
+                    <img
+                      src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
+                      alt={event.symbol}
+                      className="w-full h-full object-contain p-1"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/stock.avif';
+                      }}
+                    />
+                  </div>
+                  <p className="text-xs font-semibold text-gray-100 text-center">
+                    {event.symbol}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {showMore && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  showDateEvents(currentDate, events);
+                }}
+                className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 
+                         transition-colors py-1.5 rounded-lg border border-gray-700 hover:border-blue-500 
+                         bg-gray-800/70 hover:bg-gray-800/90"
+              >
+                <Plus className="w-3 h-3" />
+                Show {events.length - 6} more stocks
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const handleFilterApply = (filters: StockFilterCriteria) => {
+    setFilterCriteria(filters);
   };
 
   const renderCalendarGrid = () => {
     const daysInMonth = getDaysInMonth(month);
     const calendarDays = [];
-
-    const eventsByDate = dividendEvents.reduce((acc, event) => {
-      if (!event.dividend_date) return acc;
-      
-      const eventDate = new Date(event.dividend_date);
-      if (eventDate.getMonth() === month.getMonth() && 
-          eventDate.getFullYear() === month.getFullYear()) {
-        const dateKey = format(eventDate, 'yyyy-MM-dd');
-        if (!acc[dateKey]) {
-          acc[dateKey] = [];
-        }
-        acc[dateKey].push(event);
-      }
-      return acc;
-    }, {} as Record<string, DividendEvent[]>);
-
-    const getEventsForDate = (date: string) => {
-      return eventsByDate[date] || [];
-    };
-
-    const renderCalendarCell = (day: number) => {
-      const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
-      const dateKey = format(currentDate, 'yyyy-MM-dd');
-      const events = getEventsForDate(dateKey).sort((a, b) => 
-        a.symbol.localeCompare(b.symbol)
-      );
-      const isToday = isSameDay(currentDate, new Date());
-      const hasEvents = events.length > 0;
-
-      return (
-        <div 
-          key={dateKey}
-          className={`
-            relative p-3 min-h-[180px] rounded-xl transition-all 
-            ${isToday ? 'bg-purple-900/20 border-purple-500/70' : 'bg-gray-900/80'}
-            ${hasEvents ? 'border-2 border-blue-500/50 hover:border-blue-400' : 'border border-gray-700 hover:border-gray-600'}
-            backdrop-blur-sm shadow-lg hover:shadow-xl
-          `}
-        >
-          <div className={`
-            absolute top-2 right-2 flex items-center justify-center
-            ${isToday ? 'text-purple-400' : 'text-gray-400'}
-            text-sm font-medium
-          `}>
-            {format(currentDate, 'EEE')}
-          </div>
-          
-          <div className={`
-            h-8 w-8 flex items-center justify-center rounded-full
-            ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
-            ${hasEvents ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-gray-900' : ''}
-            shadow-md
-          `}>
-            {day}
-          </div>
-
-          {hasEvents && (
-            <div className="mt-4">
-              <div className="grid grid-cols-3 gap-2">
-                {events.slice(0, 6).map((event, index) => (
-                  <div
-                    key={`${event.id}-${index}`}
-                    onClick={() => handleEventClick(event)}
-                    className="flex flex-col items-center p-2 rounded-xl bg-gray-800/80 
-                             hover:bg-blue-500/20 cursor-pointer transition-all border border-gray-700 hover:border-blue-400"
-                  >
-                    <div className="w-9 h-9 bg-white rounded-lg flex-shrink-0 overflow-hidden mb-1.5 shadow-sm">
-                      <img
-                        src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
-                        alt={event.symbol}
-                        className="w-full h-full object-contain p-1"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/stock.avif';
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs font-semibold text-gray-100 text-center">
-                      {event.symbol}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {events.length > 6 && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    showDateEvents(currentDate, events);
-                  }}
-                  className="mt-3 text-xs text-blue-400 hover:text-blue-300 transition-colors w-full text-center flex items-center justify-center gap-1.5
-                            py-1.5 rounded-lg border border-gray-700 hover:border-blue-500 bg-gray-800/70 hover:bg-gray-800/90"
-                >
-                  <Plus className="w-3 h-3" />
-                  Show {events.length - 6} more stocks
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      );
-    };
 
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
@@ -388,10 +373,6 @@ const DividendCalendar = () => {
         {calendarDays.map(day => renderCalendarCell(day))}
       </div>
     );
-  };
-
-  const handleFilterApply = (filters: StockFilterCriteria) => {
-    setFilterCriteria(filters);
   };
 
   return (
@@ -472,13 +453,15 @@ const DividendCalendar = () => {
           onClick={closeDateEvents}
         >
           <div 
-            className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 border border-blue-700/30 shadow-2xl animate-fade-in"
+            className="bg-gradient-to-br from-gray-900 to-gray-950 rounded-2xl p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto m-4 border border-blue-700/30 shadow-2xl animate-fade-in"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
-              <h3 className="text-xl font-semibold text-white flex items-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                <CalendarIcon className="mr-2 h-5 w-5 text-blue-400" />
-                Dividend Stocks for {format(selectedDateEvents.date, 'MMMM d, yyyy')}
+              <h3 className="text-xl font-semibold text-white flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5 text-blue-400" />
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Stocks for {format(selectedDateEvents.date, 'MMMM d, yyyy')}
+                </span>
               </h3>
               <button
                 onClick={closeDateEvents}
@@ -488,24 +471,20 @@ const DividendCalendar = () => {
               </button>
             </div>
 
-            <div className="mb-4 p-3 bg-blue-900/20 border border-blue-600/20 rounded-lg text-blue-200 text-sm flex items-center">
-              <Info className="w-4 h-4 mr-2" />
-              <span>Showing {selectedDateEvents.events.length} stocks with dividend payments on this date.</span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {selectedDateEvents.events.map((stock, index) => (
                 <div 
                   key={index}
                   className="flex flex-col items-center p-4 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 transition-colors
-                            border border-gray-700 hover:border-blue-400 cursor-pointer"
+                            border border-gray-700 hover:border-blue-400 cursor-pointer group"
                   onClick={() => handleEventClick(stock)}
                 >
-                  <div className="w-14 h-14 bg-white rounded-lg overflow-hidden mb-3 shadow-md flex items-center justify-center">
+                  <div className="w-16 h-16 bg-white rounded-lg overflow-hidden mb-3 shadow-md flex items-center justify-center
+                                group-hover:scale-105 transition-transform duration-200">
                     <img
                       src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
                       alt={stock.symbol}
-                      className="w-full h-full object-contain p-1.5"
+                      className="w-full h-full object-contain p-2"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/stock.avif';
                       }}
@@ -514,13 +493,7 @@ const DividendCalendar = () => {
                   <p className="text-sm font-bold text-white text-center bg-gradient-to-r from-blue-200 to-blue-100 bg-clip-text text-transparent">
                     {stock.symbol}
                   </p>
-                  <p className="text-xs text-gray-400 text-center truncate w-full mt-1">
-                    {stock.company_name || 'Unknown Company'}
-                  </p>
-                  <div className="mt-2 flex items-center text-xs text-blue-300">
-                    <CalendarIcon className="w-3 h-3 mr-1" />
-                    <span>Ex-div: {stock.ex_dividend_date ? format(new Date(stock.ex_dividend_date), 'MMM d') : 'N/A'}</span>
-                  </div>
+                  
                 </div>
               ))}
             </div>
@@ -551,22 +524,7 @@ const DividendCalendar = () => {
                 </div>
               </DialogHeader>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2 mb-4">
-                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
-                  <h4 className="text-sm font-medium text-gray-400 mb-1">Dividend Date</h4>
-                  <p className="text-blue-300 flex items-center">
-                    <CalendarIcon className="w-4 h-4 mr-1 text-blue-400" />
-                    {selectedEvent.dividend_date ? format(new Date(selectedEvent.dividend_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-                <div className="bg-gray-800/50 p-3 rounded-lg border border-gray-700">
-                  <h4 className="text-sm font-medium text-gray-400 mb-1">Ex-Dividend Date</h4>
-                  <p className="text-purple-300 flex items-center">
-                    <CalendarIcon className="w-4 h-4 mr-1 text-purple-400" />
-                    {selectedEvent.ex_dividend_date ? format(new Date(selectedEvent.ex_dividend_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-              </div>
+              
               
               <div className="overflow-x-auto mt-2">
                 <div className="bg-gray-800/30 p-2 rounded-lg mb-4 flex items-center text-sm text-gray-300">
@@ -590,17 +548,19 @@ const DividendCalendar = () => {
                         Earnings (EPS)
                       </TableCell>
                       <TableCell className="p-3 text-center font-medium text-green-400">
-                        {selectedEvent.earnings_average?.toFixed(2) || "N/A"}
-                      </TableCell>
+            <div className="flex items-center justify-center gap-1">
+              <DollarSign className="w-4 h-4 text-yellow-400" />
+              <span>{selectedEvent.earnings_average?.toFixed(2) || "N/A"}</span>
+            </div>
+          </TableCell>
+
                       <TableCell className="p-3 text-center font-medium text-red-400">
                         <span className="inline-flex items-center">
-                          <TrendingDown className="w-4 h-4 inline-block mr-1" />
                           {selectedEvent.earnings_low?.toFixed(2) || "N/A"}
                         </span>
                       </TableCell>
                       <TableCell className="p-3 text-center font-medium text-blue-400">
                         <span className="inline-flex items-center">
-                          <TrendingUp className="w-4 h-4 inline-block mr-1" />
                           {selectedEvent.earnings_high?.toFixed(2) || "N/A"}
                         </span>
                       </TableCell>
@@ -624,7 +584,6 @@ const DividendCalendar = () => {
                       </TableCell>
                       <TableCell className="p-3 text-center font-medium text-red-400">
                         <span className="inline-flex items-center">
-                          <TrendingDown className="w-4 h-4 inline-block mr-1" />
                           {selectedEvent.revenue_low
                             ? new Intl.NumberFormat("en-US", {
                                 style: "currency",
@@ -637,7 +596,6 @@ const DividendCalendar = () => {
                       </TableCell>
                       <TableCell className="p-3 text-center font-medium text-blue-400">
                         <span className="inline-flex items-center">
-                          <TrendingUp className="w-4 h-4 inline-block mr-1" />
                           {selectedEvent.revenue_high
                             ? new Intl.NumberFormat("en-US", {
                                 style: "currency",
