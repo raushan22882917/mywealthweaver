@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader } from "@/components/ui/loader";
-import { Brain, Sparkles } from "lucide-react";
+import { Brain, Sparkles, Clock, AlertTriangle } from "lucide-react";
 
 // Database types
 interface InsightRow {
@@ -66,9 +66,15 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
           .eq('symbol', stockSymbol.toUpperCase())
           .single();
 
-        if (error) throw error;
-
-        if (data) {
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // No rows returned
+            setInsightData(null);
+            setError(null);
+          } else {
+            throw error;
+          }
+        } else if (data) {
           const formattedData: InsightData = {
             yield: data.yield,
             symbol: data.symbol,
@@ -106,7 +112,20 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
             <Loader message="Loading insight data..." />
           </div>
         ) : error ? (
-          <div className="text-sm text-red-500 dark:text-red-400">{error}</div>
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="p-2 bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+              <div className="flex-grow">
+                <p className="text-sm text-red-600 dark:text-red-400 leading-relaxed">
+                  {error}
+                </p>
+              </div>
+            </div>
+          </div>
         ) : insightData ? (
           <div className="space-y-3">
             <div className="flex items-start gap-3">
@@ -125,8 +144,19 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
             </div>
           </div>
         ) : (
-          <div className="text-sm text-muted-foreground text-center">
-            No insight data available for {stockSymbol}
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 mt-1">
+                <div className="p-2 bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-lg">
+                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+              <div className="flex-grow">
+                <p className="text-sm text-red-600 dark:text-red-400 leading-relaxed">
+                  Data coming soon for {stockSymbol}. Thank you for your patience.
+                </p>
+              </div>
+            </div>
           </div>
         )}
       </CardContent>
