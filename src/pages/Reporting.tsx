@@ -266,74 +266,7 @@ const Reporting: React.FC = () => {
       <main className="container mx-auto px-4 py-8">
         
 
-        {/* Price Status Alert with improved design */}
-        <Card className="mb-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg hover:shadow-xl transition-all">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-5 bg-green-500 rounded-sm"></div>
-                  <div className="w-2 h-5 bg-yellow-500 rounded-sm"></div>
-                  <div className="w-2 h-5 bg-red-500 rounded-sm"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-300">Prices are currently</span>
-                  <span className="text-amber-500 font-medium">high</span>
-                </div>
-              </div>
-              <Popover open={showPriceHistory} onOpenChange={setShowPriceHistory}>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    className="text-blue-400 hover:text-blue-300 flex items-center"
-                  >
-                    View price history
-                    <ChevronDown className="ml-1 h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-96 p-0 bg-gray-900 border-gray-800">
-                  <div className="p-4">
-                    <h3 className="font-medium text-white mb-2 flex items-center justify-between">
-                      Price History {selectedSymbol && `for ${selectedSymbol}`}
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-400 hover:text-gray-300"
-                        onClick={() => setShowPriceHistory(false)}
-                      >
-                        <ChevronUp className="h-4 w-4" />
-                      </Button>
-                    </h3>
-                    <div className="h-52">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={priceHistoryData}>
-                          <XAxis 
-                            dataKey="date" 
-                            tick={{fill: '#9ca3af'}}
-                            tickFormatter={(date) => format(new Date(date), 'MMM d')}
-                          />
-                          <YAxis tick={{fill: '#9ca3af'}} />
-                          <Tooltip 
-                            formatter={(value) => [`$${Number(value).toFixed(2)}`, 'Price']}
-                            contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', color: '#e5e7eb' }}
-                            labelStyle={{ color: '#e5e7eb' }}
-                          />
-                          <Line 
-                            type="monotone" 
-                            dataKey="price" 
-                            stroke="#3b82f6" 
-                            dot={false}
-                            strokeWidth={2}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </CardContent>
-        </Card>
+     
 
         {/* Price Tracking Controls with improved UI */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 bg-gray-900/80 backdrop-blur-sm p-5 rounded-lg border border-gray-800 shadow-md">
@@ -597,7 +530,7 @@ const Reporting: React.FC = () => {
         </div>
 
         {/* Report Table with improved UI */}
-        <Card className="mt-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg">
+        {/* <Card className="mt-8 bg-gray-900/80 backdrop-blur-sm border-gray-800 shadow-lg">
           <CardHeader>
             <CardTitle className="text-gradient bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               Dividend & Earnings Reports
@@ -780,7 +713,6 @@ const Reporting: React.FC = () => {
                     )}
                   </TableBody>
                 </Table>
-                {/* Add pagination controls with improved UI */}
                 {!loading && !error && filteredReports.length > 0 && (
                   <div className="flex items-center justify-between mt-6 bg-gray-800/70 backdrop-blur-sm p-4 rounded-lg border border-gray-700 shadow-md">
                     <Button
@@ -815,7 +747,7 @@ const Reporting: React.FC = () => {
               </div>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </main>
       <Footer />
     </div>
