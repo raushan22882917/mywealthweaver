@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
@@ -36,6 +35,30 @@ const NavbarNotificationSection: React.FC = () => {
         },
         () => {
           // Refresh notification count when new news items are added
+          loadNotificationCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'dividendsymbol'
+        },
+        () => {
+          // Refresh notification count when new dividend symbols are added
+          loadNotificationCount();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'dividend_reports'
+        },
+        () => {
+          // Refresh notification count when new dividend reports are added
           loadNotificationCount();
         }
       )
