@@ -1,17 +1,16 @@
-
 import { supabase } from '@/integrations/supabase/client';
+import { isToday } from 'date-fns';
 
 export interface Notification {
   id: string;
-  type: 'dividend' | 'price' | 'earnings' | 'news' | 'system' | string;
+  type: 'dividend' | 'price' | 'earnings' | 'news' | 'announcement' | 'system' | 'symbol' | 'report';
   title: string;
   message: string;
   related_symbol?: string;
-  news_id?: string;        // Added for news redirection
   read: boolean;
   created_at: string;
-  source?: string;         // Added for news source
-  weblink?: string;        // Added for news link
+  weblink?: string;
+  news_id?: string;
 }
 
 export interface DividendAnnouncement {
@@ -25,7 +24,7 @@ export interface DividendAnnouncement {
 }
 
 export interface NewsItem {
-  id: string;
+  id: number;
   news_title: string;
   weblink: string;
   source: string;
@@ -36,14 +35,13 @@ export interface NewsItem {
   original_link?: string;
 }
 
-// Function to fetch dividend announcements from Supabase
+// Fetch from Supabase
 export const fetchDividendAnnouncements = async (): Promise<DividendAnnouncement[]> => {
   try {
     const { data, error } = await supabase
       .from('dividend_announcements')
       .select('*')
-      .order('date', { ascending: false })
-      .limit(5);
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -53,14 +51,12 @@ export const fetchDividendAnnouncements = async (): Promise<DividendAnnouncement
   }
 };
 
-// Function to fetch news from Supabase
 export const fetchNewsItems = async (): Promise<NewsItem[]> => {
   try {
     const { data, error } = await supabase
       .from('news')
       .select('*')
-      .order('date', { ascending: false })
-      .limit(5);
+      .order('date', { ascending: false });
 
     if (error) throw error;
     return data || [];
@@ -70,79 +66,131 @@ export const fetchNewsItems = async (): Promise<NewsItem[]> => {
   }
 };
 
-// Convert dividend announcements to notifications format
-export const convertAnnouncementsToNotifications = (
-  announcements: DividendAnnouncement[]
-): Notification[] => {
-  return announcements.map((announcement) => ({
-    id: announcement.id,
-    type: 'dividend',
-    title: announcement.header,
-    message: announcement.message,
-    related_symbol: announcement.symbol,
-    read: false,
-    created_at: announcement.created_at,
-  }));
-};
+export const fetchDividendSymbols = async (): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('dividendsymbol')
+      .select('*')
+      .order('exdividenddate', { ascending: false });
 
-// Convert news items to notifications format
-export const convertNewsToNotifications = (
-  newsItems: NewsItem[]
-): Notification[] => {
-  return newsItems.map((news) => ({
-    id: news.id,
-    type: 'news',
-    title: `${news.symbol ? `${news.symbol}: ` : ''}${news.news_title}`,
-    message: `${news.source} - ${news.sentiment ? `Sentiment: ${news.sentiment}` : 'Latest market news'}`,
-    related_symbol: news.symbol,
-    news_id: news.id,
-    read: false,
-    created_at: news.date,
-    source: news.source,
-    weblink: news.weblink || news.original_link,
-  }));
-};
-
-// Format date for notifications display
-export const formatNotificationDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffTime = Math.abs(now.getTime() - date.getTime());
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) {
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    if (diffHours === 0) {
-      const diffMinutes = Math.floor(diffTime / (1000 * 60));
-      return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
-    }
-    return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
-  } else if (diffDays === 1) {
-    return 'Yesterday';
-  } else if (diffDays < 7) {
-    return `${diffDays} days ago`;
-  } else {
-    return date.toLocaleDateString();
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching dividend symbols:', error);
+    return [];
   }
 };
 
-// Mark a notification as read
+export const fetchDividendReports = async (): Promise<any[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('dividend_reports')
+      .select('*')
+      .order('ex_dividend_date', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching dividend reports:', error);
+    return [];
+  }
+};
+
+// Convert to notification formats
+export const convertAnnouncementsToNotifications = (
+  announcements: DividendAnnouncement[]
+): Notification[] => {
+  return announcements
+    .filter((a) => isToday(new Date(a.created_at)))
+    .map((announcement) => ({
+      id: announcement.id,
+      type: 'dividend',
+      title: `Dividend Announcement: ${announcement.symbol}`,
+      message: `Amount: $${announcement.amount} | Ex-Date: ${new Date(announcement.date).toLocaleDateString()}`,
+      related_symbol: announcement.symbol,
+      read: false,
+      created_at: announcement.created_at,
+    }));
+};
+
+export const convertNewsToNotifications = (
+  newsItems: NewsItem[]
+): Notification[] => {
+  return newsItems
+    .filter((news) => isToday(new Date(news.date)))
+    .map((news) => ({
+      id: news.id.toString(),
+      type: 'news',
+      title: news.news_title,
+      message: news.sentiment || news.source,
+      related_symbol: news.symbol,
+      read: false,
+      created_at: news.date,
+      weblink: news.weblink,
+      news_id: news.id.toString(),
+    }));
+};
+
+export const convertDividendSymbolsToNotifications = (
+  items: any[]
+): Notification[] => {
+  return items
+    .filter((item) => isToday(new Date(item.exdividenddate)))
+    .map((item) => ({
+      id: `symbol-${item.id}`,
+      type: 'symbol',
+      title: `Symbol Alert: ${item.symbol}`,
+      message: `Ex-Dividend Date: ${item.exdividenddate}`,
+      related_symbol: item.symbol,
+      read: false,
+      created_at: item.exdividenddate,
+    }));
+};
+
+export const convertDividendReportsToNotifications = (
+  items: any[]
+): Notification[] => {
+  return items
+    .filter((item) => isToday(new Date(item.ex_dividend_date)))
+    .map((item) => ({
+      id: `report-${item.id}`,
+      type: 'report',
+      title: `Dividend Report: ${item.symbol}`,
+      message: item.description || `Report available for ${item.symbol}`,
+      related_symbol: item.symbol,
+      read: false,
+      created_at: item.ex_dividend_date,
+    }));
+};
+
+export const formatNotificationDate = (date: string): string => {
+  const notificationDate = new Date(date);
+  const now = new Date();
+  const diffInHours = Math.abs(now.getTime() - notificationDate.getTime()) / 36e5;
+
+  if (diffInHours < 1) {
+    const diffInMinutes = Math.floor(diffInHours * 60);
+    return `${diffInMinutes}m ago`;
+  } else if (diffInHours < 24) {
+    return `${Math.floor(diffInHours)}h ago`;
+  } else {
+    return notificationDate.toLocaleDateString();
+  }
+};
+
+// Optional: mark as read
 export const markNotificationAsRead = async (notificationId: string): Promise<boolean> => {
   try {
-    // First check which table the notification belongs to
-    const { data: divNotification, error: divError } = await supabase
+    const { data: divNotification, error } = await supabase
       .from('dividend_announcements')
       .select('id')
       .eq('id', notificationId)
       .maybeSingle();
 
-    if (!divError && divNotification) {
-      // This is a dividend announcement, we would update read status
-      // For now, we'll just return success as if it was updated
+    if (!error && divNotification) {
       return true;
     }
 
-    // If we reach here, the notification wasn't found in any table
     return false;
   } catch (error) {
     console.error('Error marking notification as read:', error);
@@ -150,33 +198,26 @@ export const markNotificationAsRead = async (notificationId: string): Promise<bo
   }
 };
 
-// Function to get unread notification count
+// Total unread count (today only)
 export const getUnreadNotificationCount = async (): Promise<number> => {
   try {
-    // Get count of unread notifications from both tables
-    let notificationCount = 0;
+    const [ann, news, symbols, reports] = await Promise.all([
+      fetchDividendAnnouncements(),
+      fetchNewsItems(),
+      fetchDividendSymbols(),
+      fetchDividendReports()
+    ]);
 
-    // Get recent dividend announcements (assuming they're all "unread")
-    const { data: divAnnouncements, error: divError } = await supabase
-      .from('dividend_announcements')
-      .select('id')
-      .order('created_at', { ascending: false })
-      .limit(5);
+    const count = [
+      ...convertAnnouncementsToNotifications(ann),
+      ...convertNewsToNotifications(news),
+      ...convertDividendSymbolsToNotifications(symbols),
+      ...convertDividendReportsToNotifications(reports)
+    ].length;
 
-    const divCount = divAnnouncements?.length || 0;
-
-    // Get recent news items (assuming they're all "unread")
-    const { data: newsItems, error: newsError } = await supabase
-      .from('news')
-      .select('id')
-      .order('date', { ascending: false })
-      .limit(5);
-
-    const newsCount = newsItems?.length || 0;
-
-    return divCount + newsCount + notificationCount;
+    return count;
   } catch (error) {
-    console.error('Error getting unread notification count:', error);
+    console.error('Error getting notification count:', error);
     return 0;
   }
 };
