@@ -259,106 +259,33 @@ const DividendCalendar = () => {
     });
   };
 
-  const renderCalendarCell = (day: number) => {
-    const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
-    const dateKey = format(currentDate, 'yyyy-MM-dd');
-    const events = getEventsForDate(dateKey).sort((a, b) => 
-      a.symbol.localeCompare(b.symbol)
-    );
-    const isToday = isSameDay(currentDate, new Date());
-    const hasEvents = events.length > 0;
-    const showMore = events.length > 6;
-    const displayEvents = showMore ? events.slice(0, 6) : events;
-
-    return (
-      <div 
-        key={dateKey}
-        className={`
-          relative p-3 min-h-[180px] rounded-xl transition-all 
-          ${isToday ? 'bg-purple-900/20 border-purple-500/70' : 'bg-gray-900/80'}
-          ${hasEvents ? 'border-2 border-blue-500/50 hover:border-blue-400' : 'border border-gray-700 hover:border-gray-600'}
-          backdrop-blur-sm shadow-lg hover:shadow-xl
-        `}
-      >
-        <div className={`
-          absolute top-2 right-2 flex items-center justify-center
-          ${isToday ? 'text-purple-400' : 'text-gray-400'}
-          text-sm font-medium
-        `}>
-          {format(currentDate, 'EEE')}
-        </div>
-        
-        <div className={`
-          h-8 w-8 flex items-center justify-center rounded-full
-          ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
-          ${hasEvents ? 'ring-2 ring-blue-500 ring-offset-1 ring-offset-gray-900' : ''}
-          shadow-md
-        `}>
-          {day}
-        </div>
-
-        {hasEvents && (
-          <div className="mt-4">
-            <div className="grid grid-cols-3 gap-2">
-              {displayEvents.map((event, index) => (
-                <div
-                  key={`${event.id}-${index}`}
-                  onClick={() => handleEventClick(event)}
-                  className="flex flex-col items-center p-2 rounded-xl bg-gray-800/80 
-                           hover:bg-blue-500/20 cursor-pointer transition-all border border-gray-700 hover:border-blue-400"
-                >
-                  <div className="w-9 h-9 bg-white rounded-lg flex-shrink-0 overflow-hidden mb-1.5 shadow-sm">
-                    <img
-                      src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
-                      alt={event.symbol}
-                      className="w-full h-full object-contain p-1"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/stock.avif';
-                      }}
-                    />
-                  </div>
-                  <p className="text-xs font-semibold text-gray-100 text-center">
-                    {event.symbol}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {showMore && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  showDateEvents(currentDate, events);
-                }}
-                className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 
-                         transition-colors py-1.5 rounded-lg border border-gray-700 hover:border-blue-500 
-                         bg-gray-800/70 hover:bg-gray-800/90"
-              >
-                <Plus className="w-3 h-3" />
-                Show {events.length - 6} more stocks
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const handleFilterApply = (filters: StockFilterCriteria) => {
-    setFilterCriteria(filters);
-  };
-
   const renderCalendarGrid = () => {
-    const daysInMonth = getDaysInMonth(month);
-    const calendarDays = [];
+    if (view === "Weekly View") {
+      return renderWeeklyView();
+    } else {
+      return renderMonthlyView();
+    }
+  };
 
-    for (let day = 1; day <= daysInMonth; day++) {
-      const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
-      const dayOfWeek = getDay(currentDate);
-      
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        calendarDays.push(day);
-      }
+  const renderWeeklyView = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    
+    // Get the Monday of the current week
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - (currentDay === 0 ? 6 : currentDay - 1));
+    
+    // Get the Friday of the current week
+    const friday = new Date(monday);
+    friday.setDate(monday.getDate() + 4);
+    
+    const calendarDays = [];
+    let currentDate = new Date(monday);
+    
+    // Add all days from Monday to Friday
+    while (currentDate <= friday) {
+      calendarDays.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
     }
 
     return (
@@ -370,9 +297,229 @@ const DividendCalendar = () => {
           </div>
         ))}
         
-        {calendarDays.map(day => renderCalendarCell(day))}
+        {calendarDays.map((date, index) => {
+          const day = date.getDate();
+          
+          return (
+            <div 
+              key={`${date.getFullYear()}-${date.getMonth()}-${day}`}
+              className={`
+                relative p-3 min-h-[180px] rounded-xl transition-all 
+                bg-gray-900/80
+                ${isSameDay(date, new Date()) ? 'bg-purple-900/20 border-purple-500/70' : ''}
+                border border-gray-700 hover:border-gray-600
+                backdrop-blur-sm shadow-lg hover:shadow-xl
+              `}
+            >
+              <div className={`
+                absolute top-2 right-2 flex items-center justify-center
+                ${isSameDay(date, new Date()) ? 'text-purple-400' : 'text-gray-400'}
+                text-sm font-medium
+              `}>
+                {format(date, 'EEE')}
+              </div>
+              
+              <div className={`
+                h-8 w-8 flex items-center justify-center rounded-full
+                ${isSameDay(date, new Date()) ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
+                shadow-md
+              `}>
+                {day}
+              </div>
+
+              {getEventsForDate(format(date, 'yyyy-MM-dd')).length > 0 && (
+                <div className="mt-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    {getEventsForDate(format(date, 'yyyy-MM-dd'))
+                      .slice(0, 6)
+                      .map((event, index) => (
+                        <div
+                          key={`${event.id}-${index}`}
+                          onClick={() => handleEventClick(event)}
+                          className="flex flex-col items-center p-2 rounded-xl bg-gray-800/80 
+                                   hover:bg-blue-500/20 cursor-pointer transition-all border border-gray-700 hover:border-blue-400"
+                        >
+                          <div className="w-9 h-9 bg-white rounded-lg flex-shrink-0 overflow-hidden mb-1.5 shadow-sm">
+                            <img
+                              src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
+                              alt={event.symbol}
+                              className="w-full h-full object-contain p-1"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/stock.avif';
+                              }}
+                            />
+                          </div>
+                          <p className="text-xs font-semibold text-gray-100 text-center">
+                            {event.symbol}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+
+                  {getEventsForDate(format(date, 'yyyy-MM-dd')).length > 6 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        showDateEvents(date, getEventsForDate(format(date, 'yyyy-MM-dd')));
+                      }}
+                      className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 
+                               transition-colors py-1.5 rounded-lg border border-gray-700 hover:border-blue-500 
+                               bg-gray-800/70 hover:bg-gray-800/90"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Show {getEventsForDate(format(date, 'yyyy-MM-dd')).length - 6} more stocks
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     );
+  };
+
+  const renderMonthlyView = () => {
+    const daysInMonth = getDaysInMonth(month);
+    const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+    const lastDayOfMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0);
+    
+    // Get the first day of the week for the first day of the month
+    const firstDayOfWeek = firstDayOfMonth.getDay();
+    
+    // Calculate how many days from previous month to show
+    const daysFromPrevMonth = firstDayOfWeek === 0 ? 5 : firstDayOfWeek - 1;
+    
+    // Calculate total number of days to display (5 weeks * 5 days)
+    const totalDaysToShow = 25; // 5 weeks * 5 days (Mon-Fri)
+    
+    // Create array of all dates to display
+    const calendarDays = [];
+    let currentDate = new Date(firstDayOfMonth);
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < daysFromPrevMonth; i++) {
+      calendarDays.push(null);
+    }
+    
+    // Add all days of the current month
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(month.getFullYear(), month.getMonth(), day);
+      if (date.getDay() !== 0 && date.getDay() !== 6) { // Skip weekends
+        calendarDays.push(date);
+      }
+    }
+    
+    // Add empty cells to complete the grid
+    while (calendarDays.length < totalDaysToShow) {
+      calendarDays.push(null);
+    }
+
+    return (
+      <div className="grid grid-cols-5 gap-4">
+        {dayNames.map(day => (
+          <div key={day} className="text-center py-2 font-semibold text-gray-300 
+                                  bg-gray-800/70 rounded-xl backdrop-blur-sm border border-gray-700">
+            {day}
+          </div>
+        ))}
+        
+        {calendarDays.map((date, index) => {
+          if (!date) {
+            return (
+              <div 
+                key={`empty-${index}`}
+                className="relative p-3 min-h-[180px] rounded-xl transition-all 
+                         bg-gray-900/20 border border-gray-700/50
+                         backdrop-blur-sm shadow-lg"
+              />
+            );
+          }
+          
+          const day = date.getDate();
+          const isCurrentMonth = date.getMonth() === month.getMonth();
+          
+          return (
+            <div 
+              key={`${date.getFullYear()}-${date.getMonth()}-${day}`}
+              className={`
+                relative p-3 min-h-[180px] rounded-xl transition-all 
+                ${isCurrentMonth ? 'bg-gray-900/80' : 'bg-gray-900/40'}
+                ${isSameDay(date, new Date()) ? 'bg-purple-900/20 border-purple-500/70' : ''}
+                border border-gray-700 hover:border-gray-600
+                backdrop-blur-sm shadow-lg hover:shadow-xl
+              `}
+            >
+              <div className={`
+                absolute top-2 right-2 flex items-center justify-center
+                ${isSameDay(date, new Date()) ? 'text-purple-400' : 'text-gray-400'}
+                text-sm font-medium
+              `}>
+                {format(date, 'EEE')}
+              </div>
+              
+              <div className={`
+                h-8 w-8 flex items-center justify-center rounded-full
+                ${isSameDay(date, new Date()) ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-100'}
+                shadow-md
+              `}>
+                {day}
+              </div>
+
+              {getEventsForDate(format(date, 'yyyy-MM-dd')).length > 0 && (
+                <div className="mt-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    {getEventsForDate(format(date, 'yyyy-MM-dd'))
+                      .slice(0, 6)
+                      .map((event, index) => (
+                        <div
+                          key={`${event.id}-${index}`}
+                          onClick={() => handleEventClick(event)}
+                          className="flex flex-col items-center p-2 rounded-xl bg-gray-800/80 
+                                   hover:bg-blue-500/20 cursor-pointer transition-all border border-gray-700 hover:border-blue-400"
+                        >
+                          <div className="w-9 h-9 bg-white rounded-lg flex-shrink-0 overflow-hidden mb-1.5 shadow-sm">
+                            <img
+                              src={companyLogos.get(event.symbol.toUpperCase()) || '/stock.avif'}
+                              alt={event.symbol}
+                              className="w-full h-full object-contain p-1"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/stock.avif';
+                              }}
+                            />
+                          </div>
+                          <p className="text-xs font-semibold text-gray-100 text-center">
+                            {event.symbol}
+                          </p>
+                        </div>
+                      ))}
+                  </div>
+
+                  {getEventsForDate(format(date, 'yyyy-MM-dd')).length > 6 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        showDateEvents(date, getEventsForDate(format(date, 'yyyy-MM-dd')));
+                      }}
+                      className="mt-3 w-full flex items-center justify-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 
+                               transition-colors py-1.5 rounded-lg border border-gray-700 hover:border-blue-500 
+                               bg-gray-800/70 hover:bg-gray-800/90"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Show {getEventsForDate(format(date, 'yyyy-MM-dd')).length - 6} more stocks
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const handleFilterApply = (filters: StockFilterCriteria) => {
+    setFilterCriteria(filters);
   };
 
   return (
