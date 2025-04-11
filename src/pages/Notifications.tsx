@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -18,7 +17,8 @@ import {
   FileText,
   Check,
   X,
-  Filter
+  Filter,
+  ExternalLink
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -30,30 +30,56 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { format, isToday, isTomorrow, parseISO, isValid } from 'date-fns';
 
-interface Notification {
+interface DividendEvent {
   id: string;
-  user_id: string;
+  symbol: string;
+  dividend_date: string;
+  ex_dividend_date: string;
+  earnings_date: string;
+  earnings_average: number;
+  revenue_average: number;
+  LogoURL?: string;
+  company_name?: string;
+  earnings_low: number;
+  earnings_high: number;
+  revenue_low: number;
+  revenue_high: number;
+}
+
+interface DividendSymbol {
+  id: string;
+  symbol: string;
+  exdividenddate: string;
+  company_name?: string;
+  LogoURL?: string;
+}
+
+interface NewsEvent {
+  id: string;
   title: string;
-  message: string;
-  type: 'dividend' | 'price' | 'earnings' | 'news' | 'system';
-  related_symbol?: string;
-  read: boolean;
-  created_at: string;
+  content: string;
+  published_at: string;
+  source: string;
+  url: string;
+  symbol?: string;
+}
+
+interface DayGroup {
+  date: Date;
+  label: string;
+  notifications: (DividendEvent | NewsEvent | DividendSymbol)[];
 }
 
 const NotificationIcon = ({ type }: { type: string }) => {
   switch (type) {
     case 'dividend':
       return <DollarSign className="h-6 w-6 text-green-400" />;
-    case 'price':
-      return <TrendingUp className="h-6 w-6 text-blue-400" />;
     case 'earnings':
-      return <FileText className="h-6 w-6 text-purple-400" />;
+      return <TrendingUp className="h-6 w-6 text-blue-400" />;
     case 'news':
       return <AlertCircle className="h-6 w-6 text-yellow-400" />;
-    case 'system':
-      return <Bell className="h-6 w-6 text-gray-400" />;
     default:
       return <Mail className="h-6 w-6 text-gray-400" />;
   }
@@ -63,188 +89,300 @@ const NotificationBadge = ({ type }: { type: string }) => {
   switch (type) {
     case 'dividend':
       return <Badge className="ml-2 bg-green-900/60 text-green-300 hover:bg-green-800">Dividend</Badge>;
-    case 'price':
-      return <Badge className="ml-2 bg-blue-900/60 text-blue-300 hover:bg-blue-800">Price Alert</Badge>;
     case 'earnings':
-      return <Badge className="ml-2 bg-purple-900/60 text-purple-300 hover:bg-purple-800">Earnings</Badge>;
+      return <Badge className="ml-2 bg-blue-900/60 text-blue-300 hover:bg-blue-800">Earnings</Badge>;
     case 'news':
       return <Badge className="ml-2 bg-yellow-900/60 text-yellow-300 hover:bg-yellow-800">News</Badge>;
-    case 'system':
-      return <Badge className="ml-2 bg-gray-700/60 text-gray-300 hover:bg-gray-600">System</Badge>;
     default:
       return null;
   }
 };
 
-// Sample notification data
-const sampleNotifications: Notification[] = [
-  {
-    id: '1',
-    user_id: 'user123',
-    title: 'Upcoming Dividend',
-    message: 'AAPL will pay a dividend of $0.24 per share on August 15, 2023.',
-    type: 'dividend',
-    related_symbol: 'AAPL',
-    read: false,
-    created_at: '2023-08-10T14:30:00Z'
-  },
-  {
-    id: '2',
-    user_id: 'user123',
-    title: 'Price Alert',
-    message: 'MSFT has increased by 5% today, reaching a new high of $350.',
-    type: 'price',
-    related_symbol: 'MSFT',
-    read: true,
-    created_at: '2023-08-09T10:15:00Z'
-  },
-  {
-    id: '3',
-    user_id: 'user123',
-    title: 'Earnings Report',
-    message: 'AMZN reported quarterly earnings of $1.32 per share, exceeding analyst expectations.',
-    type: 'earnings',
-    related_symbol: 'AMZN',
-    read: false,
-    created_at: '2023-08-08T18:45:00Z'
-  },
-  {
-    id: '4',
-    user_id: 'user123',
-    title: 'Market News',
-    message: 'Fed announces interest rate hike. This may impact dividend-paying stocks.',
-    type: 'news',
-    read: true,
-    created_at: '2023-08-07T09:30:00Z'
-  },
-  {
-    id: '5',
-    user_id: 'user123',
-    title: 'Welcome to Intelligent Investor',
-    message: 'Thank you for joining Intelligent Investor. Start tracking your favorite dividend stocks now!',
-    type: 'system',
-    read: true,
-    created_at: '2023-08-01T12:00:00Z'
-  },
-  {
-    id: '6',
-    user_id: 'user123',
-    title: 'Price Drop Alert',
-    message: 'TSLA has decreased by 3.5% in the last hour.',
-    type: 'price',
-    related_symbol: 'TSLA',
-    read: false,
-    created_at: '2023-08-09T16:20:00Z'
-  },
-  {
-    id: '7',
-    user_id: 'user123',
-    title: 'Dividend Ex-Date Reminder',
-    message: 'Tomorrow is the ex-dividend date for KO. Make sure to hold shares to receive the upcoming dividend.',
-    type: 'dividend',
-    related_symbol: 'KO',
-    read: false,
-    created_at: '2023-08-08T14:00:00Z'
-  }
-];
-
 const Notifications = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
   const [filter, setFilter] = useState<string>('all');
-  const [hasMore, setHasMore] = useState(true);
+  const [companyLogos, setCompanyLogos] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // In a real app, this would fetch from the database
-    // For now, using the sample data
-    setIsLoading(true);
-    setTimeout(() => {
-      setNotifications(sampleNotifications);
-      setIsLoading(false);
-    }, 1000);
+    const loadCompanyLogos = async () => {
+      try {
+        const response = await fetch('/logos.csv');
+        const csvText = await response.text();
+        const rows = csvText.split('\n').slice(1);
+        const logos: Record<string, string> = {};
+        
+        rows.forEach(row => {
+          const [id, symbol, company_name, domain, logoUrl] = row.split(',');
+          if (symbol && logoUrl) {
+            logos[symbol] = logoUrl;
+          }
+        });
+        
+        setCompanyLogos(logos);
+      } catch (error) {
+        console.error('Error loading company logos:', error);
+      }
+    };
+
+    loadCompanyLogos();
   }, []);
 
-  const markAsRead = (id: string) => {
-    setNotifications(prevNotifications => 
-      prevNotifications.map(notification => 
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-    
-    // In a real app, you would update the database
-    toast({
-      title: "Notification marked as read",
-      description: "The notification has been marked as read.",
-    });
-  };
+  useEffect(() => {
+    const loadNotifications = async () => {
+      try {
+        setIsLoading(true);
+        const today = new Date();
+        const monday = new Date(today);
+        monday.setDate(today.getDate() - today.getDay() + 1);
+        const friday = new Date(monday);
+        friday.setDate(monday.getDate() + 4);
 
-  const markAllAsRead = () => {
-    setNotifications(prevNotifications => 
-      prevNotifications.map(notification => ({ ...notification, read: true }))
-    );
-    
-    // In a real app, you would update the database
-    toast({
-      title: "All notifications marked as read",
-      description: "All notifications have been marked as read.",
-    });
-  };
+        // Fetch from dividend_dates table
+        const { data: dividendDatesData, error: dividendDatesError } = await supabase
+          .from("dividend_dates")
+          .select("*")
+          .gte('ex_dividend_date', monday.toISOString())
+          .lte('ex_dividend_date', friday.toISOString());
 
-  const deleteNotification = (id: string) => {
-    setNotifications(prevNotifications => 
-      prevNotifications.filter(notification => notification.id !== id)
-    );
-    
-    // In a real app, you would update the database
-    toast({
-      title: "Notification deleted",
-      description: "The notification has been removed.",
-    });
-  };
+        if (dividendDatesError) throw dividendDatesError;
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
-    
-    // In a real app, you would update the database
-    toast({
-      title: "Notifications cleared",
-      description: "All notifications have been deleted.",
-    });
-  };
+        // Fetch from dividend_reports table
+        const { data: dividendReportsData, error: dividendReportsError } = await supabase
+          .from("dividend_reports")
+          .select("*")
+          .gte('ex_dividend_date', monday.toISOString())
+          .lte('ex_dividend_date', friday.toISOString());
 
-  const loadMore = () => {
-    // In a real app, this would fetch more notifications
-    // For this demo, we'll just disable the button
-    setHasMore(false);
-    
-    toast({
-      title: "No more notifications",
-      description: "You've reached the end of your notification history.",
-    });
-  };
+        if (dividendReportsError) throw dividendReportsError;
 
-  const filteredNotifications = filter === 'all' 
-    ? notifications 
-    : filter === 'unread'
-      ? notifications.filter(n => !n.read)
-      : notifications.filter(n => n.type === filter);
+        // Fetch from dividend_announcements table
+        const { data: dividendAnnouncementsData, error: dividendAnnouncementsError } = await supabase
+          .from("dividend_announcements")
+          .select("*")
+          .gte('published_at', monday.toISOString())
+          .lte('published_at', friday.toISOString());
+
+        if (dividendAnnouncementsError) throw dividendAnnouncementsError;
+
+        // Transform and combine all notifications
+        const allNotifications = [
+          ...(dividendDatesData?.map((item: any) => ({
+            id: `date-${item.id}`,
+            type: 'dividend',
+            ...item
+          })) || []),
+          ...(dividendReportsData?.map((item: any) => ({
+            id: `report-${item.id}`,
+            type: 'earnings',
+            ...item
+          })) || []),
+          ...(dividendAnnouncementsData?.map((item: any) => ({
+            id: `announcement-${item.id}`,
+            type: 'news',
+            ...item
+          })) || [])
+        ];
+
+        // Group notifications by day
+        const groupedNotifications = allNotifications.reduce((groups: { [key: string]: any[] }, notification) => {
+          const date = notification.ex_dividend_date || notification.published_at;
+          const dateKey = format(new Date(date), 'yyyy-MM-dd');
+          if (!groups[dateKey]) {
+            groups[dateKey] = [];
+          }
+          groups[dateKey].push(notification);
+          return groups;
+        }, {});
+
+        // Convert to array and sort by date
+        const sortedGroups = Object.entries(groupedNotifications)
+          .map(([dateKey, notifications]) => {
+            const date = parseISO(dateKey);
+            let label = format(date, 'EEEE, MMMM d');
+            if (isToday(date)) {
+              label = 'Today';
+            } else if (isTomorrow(date)) {
+              label = 'Tomorrow';
+            }
+            return {
+              date,
+              label,
+              notifications
+            };
+          })
+          .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+        setDayGroups(sortedGroups);
+      } catch (error) {
+        console.error('Error loading notifications:', error);
+    toast({
+          title: "Error",
+          description: "Failed to load notifications. Please try again later.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadNotifications();
+  }, [toast]);
 
   const formatDate = (dateString: string) => {
+    try {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) {
-      return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (diffDays === 1) {
-      return `Yesterday, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-    } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
+      if (!isValid(date)) {
+        console.warn('Invalid date:', dateString);
+        return 'Invalid date';
+      }
+      return format(date, 'MMM d, yyyy');
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
+  };
+
+  const renderNotification = (notification: any) => {
+    const logoUrl = notification.symbol ? companyLogos[notification.symbol] : null;
+
+    if (notification.type === 'dividend') {
+      return (
+        <div key={notification.id} className="p-4 hover:bg-gray-100 rounded-md transition-colors">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={`${notification.symbol} logo`}
+                  className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/40';
+                  }}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+                  <DollarSign className="h-5 w-5 text-green-600" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium truncate">{notification.symbol}</p>
+                  <NotificationBadge type={notification.type} />
+                </div>
+                <a href={`/stock/${notification.symbol}`} className="text-gray-400 hover:text-gray-600">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Ex-Dividend Date: {formatDate(notification.ex_dividend_date)}
+              </p>
+              {notification.company_name && (
+                <p className="text-xs text-gray-400 mt-1 truncate">{notification.company_name}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      );
+    } else if (notification.type === 'earnings') {
+      return (
+        <div key={notification.id} className="p-4 hover:bg-gray-100 rounded-md transition-colors">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={`${notification.symbol} logo`}
+                  className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/40';
+                  }}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <TrendingUp className="h-5 w-5 text-blue-600" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium truncate">{notification.symbol}</p>
+                  <NotificationBadge type={notification.type} />
+                </div>
+                <a href={`/stock/${notification.symbol}`} className="text-gray-400 hover:text-gray-600">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Earnings Date: {formatDate(notification.earnings_date)}
+              </p>
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Earnings</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    ${notification.earnings_average.toFixed(2)}
+                  </p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Revenue</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    ${(notification.revenue_average / 1000000).toFixed(2)}M
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
     } else {
-      return date.toLocaleDateString();
+      return (
+        <div key={notification.id} className="p-4 hover:bg-gray-100 rounded-md transition-colors">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              {logoUrl ? (
+                <img 
+                  src={logoUrl} 
+                  alt={`${notification.symbol} logo`}
+                  className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/40';
+                  }}
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
+                  <AlertCircle className="h-5 w-5 text-yellow-600" />
+                </div>
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium truncate">{notification.title}</p>
+                  <NotificationBadge type={notification.type} />
+                </div>
+                <a href={notification.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {notification.source} • {formatDate(notification.published_at)}
+              </p>
+              {notification.symbol && (
+                <p className="text-xs text-gray-400 mt-1 truncate">Related: {notification.symbol}</p>
+              )}
+              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.content}</p>
+            </div>
+          </div>
+        </div>
+      );
     }
   };
 
@@ -275,7 +413,7 @@ const Notifications = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800">
                     <Filter className="h-4 w-4 mr-2" />
-                    Filter: {filter === 'all' ? 'All' : filter === 'unread' ? 'Unread' : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                    Filter: {filter === 'all' ? 'All' : filter.charAt(0).toUpperCase() + filter.slice(1)}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="bg-gray-900 border-gray-700 text-white">
@@ -287,12 +425,6 @@ const Notifications = () => {
                   >
                     All
                   </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className={`hover:bg-gray-800 ${filter === 'unread' ? 'text-purple-400' : ''}`}
-                    onClick={() => setFilter('unread')}
-                  >
-                    Unread
-                  </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-gray-700" />
                   <DropdownMenuItem 
                     className={`hover:bg-gray-800 ${filter === 'dividend' ? 'text-green-400' : ''}`}
@@ -301,13 +433,7 @@ const Notifications = () => {
                     Dividend
                   </DropdownMenuItem>
                   <DropdownMenuItem 
-                    className={`hover:bg-gray-800 ${filter === 'price' ? 'text-blue-400' : ''}`}
-                    onClick={() => setFilter('price')}
-                  >
-                    Price Alerts
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    className={`hover:bg-gray-800 ${filter === 'earnings' ? 'text-purple-400' : ''}`}
+                    className={`hover:bg-gray-800 ${filter === 'earnings' ? 'text-blue-400' : ''}`}
                     onClick={() => setFilter('earnings')}
                   >
                     Earnings
@@ -320,135 +446,36 @@ const Notifications = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800">
-                    Actions
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-gray-900 border-gray-700 text-white">
-                  <DropdownMenuItem 
-                    className="hover:bg-gray-800 flex items-center text-blue-400"
-                    onClick={() => markAllAsRead()}
-                  >
-                    <Check className="mr-2 h-4 w-4" /> Mark all as read
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-gray-700" />
-                  <DropdownMenuItem 
-                    className="hover:bg-gray-800 flex items-center text-red-400"
-                    onClick={() => clearAllNotifications()}
-                  >
-                    <X className="mr-2 h-4 w-4" /> Clear all notifications
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
           </div>
           
-          {filteredNotifications.length > 0 ? (
+          {dayGroups.length > 0 ? (
             <div className="space-y-4">
-              {filteredNotifications.map((notification) => (
+              {dayGroups.map((group) => (
                 <Card 
-                  key={notification.id} 
-                  className={`p-4 hover:shadow-md transition-shadow duration-200 ${
-                    notification.read 
-                      ? 'bg-gray-900/60 backdrop-blur-sm border border-gray-800' 
-                      : 'bg-gray-900/80 backdrop-blur-sm border border-purple-900/40 shadow-lg'
-                  }`}
+                  key={group.label} 
+                  className="bg-gray-900/60 backdrop-blur-sm border border-gray-800"
                 >
-                  <div className="flex">
-                    <div className={`p-3 rounded-full ${
-                      notification.read ? 'bg-gray-800' : `bg-${notification.type === 'dividend' ? 'green' : notification.type === 'price' ? 'blue' : notification.type === 'earnings' ? 'purple' : notification.type === 'news' ? 'yellow' : 'gray'}-900/40`
-                    } mr-4`}>
-                      <NotificationIcon type={notification.type} />
+                  <div className="px-4 py-2 bg-gray-800/50">
+                    <h4 className="text-sm font-medium text-gray-300">{group.label}</h4>
                     </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <div className="flex items-center">
-                            <h3 className={`font-semibold text-lg ${notification.read ? 'text-gray-300' : 'text-white'}`}>
-                              {notification.title}
-                            </h3>
-                            <NotificationBadge type={notification.type} />
-                            {!notification.read && (
-                              <div className="w-2 h-2 rounded-full bg-purple-500 ml-2"></div>
-                            )}
-                          </div>
-                          <p className="text-gray-400 mt-1">{notification.message}</p>
-                          
-                          {notification.related_symbol && (
-                            <Button 
-                              variant="link" 
-                              className="px-0 py-1 text-purple-400 hover:text-purple-300"
-                              onClick={() => navigate(`/stock/${notification.related_symbol}`)}
-                            >
-                              View {notification.related_symbol} <ChevronRight className="h-4 w-4 ml-1" />
-                            </Button>
-                          )}
-                        </div>
-                        
-                        <div className="flex flex-col items-end">
-                          <span className="text-xs text-gray-500 mb-2">
-                            {formatDate(notification.created_at)}
-                          </span>
-                          
-                          <div className="flex space-x-2">
-                            {!notification.read && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 px-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20"
-                                onClick={() => markAsRead(notification.id)}
-                              >
-                                <Check className="h-4 w-4" />
-                              </Button>
-                            )}
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="h-8 px-2 text-red-400 hover:text-red-300 hover:bg-red-900/20"
-                              onClick={() => deleteNotification(notification.id)}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                  <div className="divide-y divide-gray-800">
+                    {group.notifications
+                      .filter(notification => filter === 'all' || notification.type === filter)
+                      .map(renderNotification)}
                   </div>
                 </Card>
               ))}
-              
-              {hasMore && (
-                <div className="flex justify-center mt-8">
-                  <Button 
-                    onClick={loadMore}
-                    className="bg-gray-800 hover:bg-gray-700 text-white"
-                  >
-                    Load More
-                  </Button>
-                </div>
-              )}
             </div>
           ) : (
             <Card className="p-12 bg-gray-900/60 backdrop-blur-sm border border-gray-800 text-center">
               <Bell className="h-16 w-16 mx-auto text-gray-600 mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No Notifications</h3>
-              <p className="text-gray-400 max-w-md mx-auto mb-6">
+              <p className="text-gray-400 max-w-md mx-auto">
                 {filter === 'all' 
                   ? "You don't have any notifications yet. They'll appear here when we have updates for you." 
-                  : `No ${filter === 'unread' ? 'unread' : filter} notifications found.`}
+                  : `No ${filter} notifications found.`}
               </p>
-              {filter !== 'all' && (
-                <Button 
-                  onClick={() => setFilter('all')}
-                  className="bg-purple-700 hover:bg-purple-600 text-white"
-                >
-                  View All Notifications
-                </Button>
-              )}
             </Card>
           )}
         </div>
