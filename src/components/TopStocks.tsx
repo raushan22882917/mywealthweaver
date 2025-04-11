@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Loader } from '@/components/ui/loader';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import StockDetailsDialog from '@/components/StockDetailsDialog';
 import {
   Table,
   TableBody,
@@ -16,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Search, Award, Star, BarChart2, DollarSign } from 'lucide-react';
+import { Search, Award, Star, BarChart2, DollarSign, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -36,6 +37,7 @@ const TopStocks: React.FC = () => {
   const [sectorFilter, setSectorFilter] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -234,9 +236,16 @@ const TopStocks: React.FC = () => {
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <DollarSign className="h-4 w-4 text-green-500" />
-                                  <span className="font-medium">{stock.symbol}</span>
+                                <div 
+                                  className="flex items-center gap-2 group cursor-pointer px-2 py-1 rounded-md transition-all duration-200
+                                    hover:bg-primary/5 hover:border-primary/20 hover:border
+                                    focus:bg-primary/5 focus:border-primary/20 focus:border focus:outline-none
+                                    active:bg-primary/10 active:border-primary/30 active:border"
+                                  onClick={() => setSelectedStock(stock)}
+                                  tabIndex={0}
+                                >
+                                  <Info className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                  <span className="font-medium group-hover:text-primary group-hover:underline transition-all">{stock.symbol}</span>
                                 </div>
                               </TableCell>
                               <TableCell>
@@ -308,6 +317,20 @@ const TopStocks: React.FC = () => {
         )}
       </main>
       <Footer />
+      {selectedStock && (
+        <StockDetailsDialog
+          stock={{
+            Symbol: selectedStock.symbol,
+            title: selectedStock.symbol,
+            cik_str: '',
+            LogoURL: undefined,
+            marketCap: undefined,
+            dividendyield: undefined
+          }}
+          isOpen={!!selectedStock}
+          setIsOpen={(open) => !open && setSelectedStock(null)}
+        />
+      )}
     </div>
   );
 };
