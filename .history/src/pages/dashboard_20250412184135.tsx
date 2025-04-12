@@ -65,10 +65,6 @@ interface SavedStock {
   report_date: string;
   special_dividend: number;
   total_dividend: number;
-  sector: string;
-  industry: string;
-  buy_date?: string;
-  dividend_rate: number;
 }
 
 interface UserProfile {
@@ -106,8 +102,6 @@ export default function Dashboard({ session }: DashboardProps) {
     { value: 'price-desc', label: 'Price (High to Low)' },
     { value: 'dividend-asc', label: 'Dividend Yield (Low to High)' },
     { value: 'dividend-desc', label: 'Dividend Yield (High to Low)' },
-    { value: 'sector', label: 'Sector' },
-    { value: 'industry', label: 'Industry' }
   ];
 
   // Sort stocks based on selected option
@@ -123,10 +117,6 @@ export default function Dashboard({ session }: DashboardProps) {
         return [...stocks].sort((a, b) => a.dividend_yield - b.dividend_yield);
       case 'dividend-desc':
         return [...stocks].sort((a, b) => b.dividend_yield - a.dividend_yield);
-      case 'sector':
-        return [...stocks].sort((a, b) => a.sector.localeCompare(b.sector));
-      case 'industry':
-        return [...stocks].sort((a, b) => a.industry.localeCompare(b.industry));
       default:
         return stocks;
     }
@@ -232,7 +222,6 @@ export default function Dashboard({ session }: DashboardProps) {
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            console.log('CSV parsing complete, found', results.data.length, 'logos');
             setCompanyLogos(results.data as CompanyLogo[]);
           },
           error: (error) => {
@@ -251,95 +240,54 @@ export default function Dashboard({ session }: DashboardProps) {
     try {
       setIsLoading(true);
 
-      // First get saved stocks
-      const { data: savedStocksData, error: savedStocksError } = await supabase
+      // First, get the stocks
+      const { data: stocksData, error: stocksError } = await supabase
         .from('saved_stocks')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-      if (savedStocksError) throw savedStocksError;
+      if (stocksError) throw stocksError;
 
-      if (savedStocksData) {
-        // Get logos from database
-        const { data: logoData } = await supabase
-          .from('company_logos')
-          .select('symbol, LogoURL');
+      // Then, get all logos from the database
+      const { data: dbLogos, error: logosError } = await supabase
+        .from('company_logos')
+        .select('Symbol, LogoURL');
 
-        // Create map of symbols to logos from database
-        const dbLogoMap = new Map(
-          logoData?.map(item => [item.symbol.toUpperCase(), item.LogoURL]) || []
-        );
+      if (logosError) throw logosError;
 
-        // Create map of symbols to logos from CSV
-        const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
+      // Create a map of database logos for faster lookup
+      const dbLogoMap = new Map(dbLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
 
-        // Get additional data from dividendsymbol table
-        const symbols = savedStocksData.map(stock => stock.symbol);
-        const { data: dividendData, error: dividendError } = await supabase
-          .from('dividendsymbol')
-          .select('symbol,buy_date,exdividenddate,earningsdate,payoutdate,shortname,dividendrate')
-          .in('symbol', symbols);
+      // Create a map of CSV logos for faster lookup
+      const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
 
-        if (dividendError) throw dividendError;
-
-        // Get sector and industry from top_stocks table
-        const { data: topStocksData, error: topStocksError } = await supabase
-          .from('top_stocks')
-          .select('symbol,sector,industry')
-          .in('symbol', symbols);
-
-        if (topStocksError) throw topStocksError;
-
-        // Merge all the data
-        const mergedStocks = savedStocksData.map(stock => {
-          const upperSymbol = stock.symbol.toUpperCase();
-          const dividendInfo = dividendData?.find(d => d.symbol.toUpperCase() === upperSymbol) || {
-            buy_date: null,
-            exdividenddate: null,
-            earningsdate: null,
-            payoutdate: null,
-            dividendrate: 0
-          };
-          const topStockInfo = topStocksData?.find(t => t.symbol.toUpperCase() === upperSymbol) || {
-            sector: 'N/A',
-            industry: 'N/A'
-          };
-
-          // Get logo from database first, then CSV, then fallback
-          const logoUrl = dbLogoMap.get(upperSymbol) ||
-                         csvLogoMap.get(upperSymbol) ||
-                         stock.LogoURL;
-
+      // Match logos with stocks, using database first, then CSV
+      const stocksWithLogos = stocksData?.map(stock => {
+        const upperSymbol = stock.symbol.toUpperCase();
+        // Try to get logo from database first
+        const dbLogo = dbLogoMap.get(upperSymbol);
+        if (dbLogo) {
           return {
             ...stock,
-            LogoURL: logoUrl,
-            buy_date: dividendInfo.buy_date || null,
-            ex_dividend_date: dividendInfo.exdividenddate || stock.ex_dividend_date || null,
-            report_date: dividendInfo.earningsdate || stock.report_date || null,
-            payout_date: dividendInfo.payoutdate || stock.payout_date || null,
-            dividend_rate: dividendInfo.dividendrate || 0,
-            sector: topStockInfo.sector,
-            industry: topStockInfo.industry,
-            special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0
+            LogoURL: dbLogo
           };
-        });
+        }
+        // If not in database, use CSV logo
+        return {
+          ...stock,
+          LogoURL: csvLogoMap.get(upperSymbol) || stock.LogoURL // Use existing LogoURL as final fallback
+        };
+      });
 
-        setSavedStocks(mergedStocks);
+      setSavedStocks(stocksWithLogos || []);
 
-        // Initialize quantities
-        const initialQuantities: { [key: string]: number } = {};
-        mergedStocks.forEach(stock => {
-          initialQuantities[stock.symbol] = stock.quantity || 1;
-        });
-        setQuantities(initialQuantities);
-      }
     } catch (error) {
       console.error('Error fetching stocks:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch saved stocks',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch your saved stocks. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -549,11 +497,8 @@ export default function Dashboard({ session }: DashboardProps) {
               <TableHead>Favorite</TableHead>
               <TableHead>Symbol</TableHead>
               <TableHead>Company</TableHead>
-              <TableHead>Sector</TableHead>
-              <TableHead>Industry</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Quantity</TableHead>
-              <TableHead>Dividend Rate</TableHead>
               <TableHead>Dividend Yield</TableHead>
               <TableHead>Ex-Dividend Date</TableHead>
               <TableHead>Payout Date</TableHead>
@@ -577,38 +522,8 @@ export default function Dashboard({ session }: DashboardProps) {
                     />
                   </Button>
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      // Find logo from CSV file by matching symbol
-                      const logoInfo = companyLogos.find(logo =>
-                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
-                      );
-
-                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
-
-                      return logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${stock.company_name} logo`}
-                          className="w-6 h-6 object-contain"
-                          onError={(e) => {
-                            // Fallback if image fails to load
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
-                        </div>
-                      );
-                    })()}
-                    <span>{stock.symbol}</span>
-                  </div>
-                </TableCell>
+                <TableCell>{stock.symbol}</TableCell>
                 <TableCell>{stock.company_name}</TableCell>
-                <TableCell>{stock.sector}</TableCell>
-                <TableCell>{stock.industry}</TableCell>
                 <TableCell>${stock.price.toFixed(2)}</TableCell>
                 <TableCell>
                   <Input
@@ -619,7 +534,6 @@ export default function Dashboard({ session }: DashboardProps) {
                     className="w-20"
                   />
                 </TableCell>
-                <TableCell>${stock.dividend_rate.toFixed(2)}</TableCell>
                 <TableCell>{stock.dividend_yield.toFixed(2)}%</TableCell>
                 <TableCell>{stock.ex_dividend_date || 'N/A'}</TableCell>
                 <TableCell>{stock.payout_date || 'N/A'}</TableCell>
@@ -653,3 +567,65 @@ export default function Dashboard({ session }: DashboardProps) {
     </div>
   );
 }
+
+const fetchDividendData = async (symbol: string) => {
+  try {
+    const [
+      { data: dividendData, error: dividendError },
+      { data: reportData, error: reportError },
+      { data: topStockData, error: topStockError }
+    ] = await Promise.all([
+      // Fetch from dividendsymbol table
+      supabase
+        .from('dividendsymbol')
+        .select(`
+          symbol,
+          dividendyield,
+          exdividenddate,
+          payoutdate
+        `)
+        .eq('symbol', symbol.toUpperCase())
+        .single(),
+
+      // Fetch from dividend_reports table
+      supabase
+        .from('dividend_reports')
+        .select(`
+          symbol,
+          ex_dividend_date
+        `)
+        .eq('symbol', symbol.toUpperCase())
+        .single(),
+
+      // Fetch from top_stocks table
+      supabase
+        .from('top_stocks')
+        .select(`
+          symbol,
+          industry,
+          sector,
+          "Rank",
+          "Score"
+        `)
+        .eq('symbol', symbol.toUpperCase())
+        .single()
+    ]);
+
+    if (dividendError) throw dividendError;
+    if (reportError) throw reportError;
+    if (topStockError) throw topStockError;
+
+    // Transform and combine the data
+    const transformedData = {
+      dividendYield: parseFloat(dividendData?.dividendyield) || 0,
+      exDividendDate: dividendData?.exdividenddate || '',
+      payoutDate: dividendData?.payoutdate || ''
+    };
+
+    return transformedData;
+
+  } catch (error) {
+    console.error('Error fetching dividend data:', error);
+    throw error;
+  }
+};

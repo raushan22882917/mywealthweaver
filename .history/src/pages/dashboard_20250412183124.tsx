@@ -40,6 +40,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Star } from 'lucide-react';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 interface CompanyLogo {
   Symbol: string;
@@ -65,10 +66,10 @@ interface SavedStock {
   report_date: string;
   special_dividend: number;
   total_dividend: number;
-  sector: string;
   industry: string;
-  buy_date?: string;
-  dividend_rate: number;
+  sector: string;
+  rank: number | null;
+  score: number | null;
 }
 
 interface UserProfile {
@@ -107,7 +108,9 @@ export default function Dashboard({ session }: DashboardProps) {
     { value: 'dividend-asc', label: 'Dividend Yield (Low to High)' },
     { value: 'dividend-desc', label: 'Dividend Yield (High to Low)' },
     { value: 'sector', label: 'Sector' },
-    { value: 'industry', label: 'Industry' }
+    { value: 'industry', label: 'Industry' },
+    { value: 'rank', label: 'Rank' },
+    { value: 'score', label: 'Score' }
   ];
 
   // Sort stocks based on selected option
@@ -127,6 +130,10 @@ export default function Dashboard({ session }: DashboardProps) {
         return [...stocks].sort((a, b) => a.sector.localeCompare(b.sector));
       case 'industry':
         return [...stocks].sort((a, b) => a.industry.localeCompare(b.industry));
+      case 'rank':
+        return [...stocks].sort((a, b) => (a.rank || 999) - (b.rank || 999));
+      case 'score':
+        return [...stocks].sort((a, b) => (b.score || 0) - (a.score || 0));
       default:
         return stocks;
     }
@@ -232,7 +239,6 @@ export default function Dashboard({ session }: DashboardProps) {
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            console.log('CSV parsing complete, found', results.data.length, 'logos');
             setCompanyLogos(results.data as CompanyLogo[]);
           },
           error: (error) => {
@@ -251,95 +257,44 @@ export default function Dashboard({ session }: DashboardProps) {
     try {
       setIsLoading(true);
 
-      // First get saved stocks
-      const { data: savedStocksData, error: savedStocksError } = await supabase
+      // First, get the saved stocks
+      const { data: stocksData, error: stocksError } = await supabase
         .from('saved_stocks')
         .select('*')
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-      if (savedStocksError) throw savedStocksError;
+      if (stocksError) throw stocksError;
 
-      if (savedStocksData) {
-        // Get logos from database
-        const { data: logoData } = await supabase
-          .from('company_logos')
-          .select('symbol, LogoURL');
+      // Get additional info from top_stocks table
+      const { data: topStocksData, error: topStocksError } = await supabase
+        .from('top_stocks')
+        .select('symbol, industry, sector, rank, score')
+        .in('symbol', stocksData.map(stock => stock.symbol));
 
-        // Create map of symbols to logos from database
-        const dbLogoMap = new Map(
-          logoData?.map(item => [item.symbol.toUpperCase(), item.LogoURL]) || []
-        );
+      if (topStocksError) throw topStocksError;
 
-        // Create map of symbols to logos from CSV
-        const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
+      // Create a map of top stocks data
+      const topStocksMap = new Map(
+        topStocksData.map(stock => [stock.symbol, stock])
+      );
 
-        // Get additional data from dividendsymbol table
-        const symbols = savedStocksData.map(stock => stock.symbol);
-        const { data: dividendData, error: dividendError } = await supabase
-          .from('dividendsymbol')
-          .select('symbol,buy_date,exdividenddate,earningsdate,payoutdate,shortname,dividendrate')
-          .in('symbol', symbols);
+      // Merge the data
+      const enrichedStocks = stocksData.map(stock => ({
+        ...stock,
+        industry: topStocksMap.get(stock.symbol)?.industry || 'N/A',
+        sector: topStocksMap.get(stock.symbol)?.sector || 'N/A',
+        rank: topStocksMap.get(stock.symbol)?.rank,
+        score: topStocksMap.get(stock.symbol)?.score
+      }));
 
-        if (dividendError) throw dividendError;
-
-        // Get sector and industry from top_stocks table
-        const { data: topStocksData, error: topStocksError } = await supabase
-          .from('top_stocks')
-          .select('symbol,sector,industry')
-          .in('symbol', symbols);
-
-        if (topStocksError) throw topStocksError;
-
-        // Merge all the data
-        const mergedStocks = savedStocksData.map(stock => {
-          const upperSymbol = stock.symbol.toUpperCase();
-          const dividendInfo = dividendData?.find(d => d.symbol.toUpperCase() === upperSymbol) || {
-            buy_date: null,
-            exdividenddate: null,
-            earningsdate: null,
-            payoutdate: null,
-            dividendrate: 0
-          };
-          const topStockInfo = topStocksData?.find(t => t.symbol.toUpperCase() === upperSymbol) || {
-            sector: 'N/A',
-            industry: 'N/A'
-          };
-
-          // Get logo from database first, then CSV, then fallback
-          const logoUrl = dbLogoMap.get(upperSymbol) ||
-                         csvLogoMap.get(upperSymbol) ||
-                         stock.LogoURL;
-
-          return {
-            ...stock,
-            LogoURL: logoUrl,
-            buy_date: dividendInfo.buy_date || null,
-            ex_dividend_date: dividendInfo.exdividenddate || stock.ex_dividend_date || null,
-            report_date: dividendInfo.earningsdate || stock.report_date || null,
-            payout_date: dividendInfo.payoutdate || stock.payout_date || null,
-            dividend_rate: dividendInfo.dividendrate || 0,
-            sector: topStockInfo.sector,
-            industry: topStockInfo.industry,
-            special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0
-          };
-        });
-
-        setSavedStocks(mergedStocks);
-
-        // Initialize quantities
-        const initialQuantities: { [key: string]: number } = {};
-        mergedStocks.forEach(stock => {
-          initialQuantities[stock.symbol] = stock.quantity || 1;
-        });
-        setQuantities(initialQuantities);
-      }
+      setSavedStocks(enrichedStocks);
     } catch (error) {
       console.error('Error fetching stocks:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch saved stocks',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to fetch stocks data",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -551,9 +506,10 @@ export default function Dashboard({ session }: DashboardProps) {
               <TableHead>Company</TableHead>
               <TableHead>Sector</TableHead>
               <TableHead>Industry</TableHead>
+              <TableHead>Rank</TableHead>
+              <TableHead>Score</TableHead>
               <TableHead>Price</TableHead>
               <TableHead>Quantity</TableHead>
-              <TableHead>Dividend Rate</TableHead>
               <TableHead>Dividend Yield</TableHead>
               <TableHead>Ex-Dividend Date</TableHead>
               <TableHead>Payout Date</TableHead>
@@ -577,38 +533,12 @@ export default function Dashboard({ session }: DashboardProps) {
                     />
                   </Button>
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      // Find logo from CSV file by matching symbol
-                      const logoInfo = companyLogos.find(logo =>
-                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
-                      );
-
-                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
-
-                      return logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${stock.company_name} logo`}
-                          className="w-6 h-6 object-contain"
-                          onError={(e) => {
-                            // Fallback if image fails to load
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
-                        </div>
-                      );
-                    })()}
-                    <span>{stock.symbol}</span>
-                  </div>
-                </TableCell>
+                <TableCell>{stock.symbol}</TableCell>
                 <TableCell>{stock.company_name}</TableCell>
                 <TableCell>{stock.sector}</TableCell>
                 <TableCell>{stock.industry}</TableCell>
+                <TableCell>{stock.rank || 'N/A'}</TableCell>
+                <TableCell>{stock.score?.toFixed(2) || 'N/A'}</TableCell>
                 <TableCell>${stock.price.toFixed(2)}</TableCell>
                 <TableCell>
                   <Input
@@ -619,7 +549,6 @@ export default function Dashboard({ session }: DashboardProps) {
                     className="w-20"
                   />
                 </TableCell>
-                <TableCell>${stock.dividend_rate.toFixed(2)}</TableCell>
                 <TableCell>{stock.dividend_yield.toFixed(2)}%</TableCell>
                 <TableCell>{stock.ex_dividend_date || 'N/A'}</TableCell>
                 <TableCell>{stock.payout_date || 'N/A'}</TableCell>
@@ -648,6 +577,53 @@ export default function Dashboard({ session }: DashboardProps) {
             ))}
           </TableBody>
         </Table>
+
+        {/* Add an Accordion view */}
+        <div className="mt-8">
+          <h2 className="text-xl font-bold mb-4">Grouped by Sector</h2>
+          {Object.entries(
+            savedStocks.reduce((acc, stock) => {
+              const sector = stock.sector || 'Unknown';
+              if (!acc[sector]) acc[sector] = [];
+              acc[sector].push(stock);
+              return acc;
+            }, {} as { [key: string]: SavedStock[] })
+          ).map(([sector, stocks]) => (
+            <Accordion type="single" collapsible key={sector}>
+              <AccordionItem value={sector}>
+                <AccordionTrigger>
+                  {sector} ({stocks.length} stocks)
+                </AccordionTrigger>
+                <AccordionContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Symbol</TableHead>
+                        <TableHead>Industry</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Dividend Yield</TableHead>
+                        <TableHead>Rank</TableHead>
+                        <TableHead>Score</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {stocks.map((stock) => (
+                        <TableRow key={stock.symbol}>
+                          <TableCell>{stock.symbol}</TableCell>
+                          <TableCell>{stock.industry}</TableCell>
+                          <TableCell>${stock.price.toFixed(2)}</TableCell>
+                          <TableCell>{stock.dividend_yield.toFixed(2)}%</TableCell>
+                          <TableCell>{stock.rank || 'N/A'}</TableCell>
+                          <TableCell>{stock.score?.toFixed(2) || 'N/A'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          ))}
+        </div>
       </div>
       <Footer />
     </div>

@@ -232,8 +232,8 @@ export default function Dashboard({ session }: DashboardProps) {
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            console.log('CSV parsing complete, found', results.data.length, 'logos');
             setCompanyLogos(results.data as CompanyLogo[]);
+            console.log('Loaded company logos:', results.data);
           },
           error: (error) => {
             console.error('Error parsing CSV:', error);
@@ -271,7 +271,11 @@ export default function Dashboard({ session }: DashboardProps) {
         );
 
         // Create map of symbols to logos from CSV
-        const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
+        const csvLogoMap = new Map(
+          companyLogos.length > 0
+            ? companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL])
+            : []
+        );
 
         // Get additional data from dividendsymbol table
         const symbols = savedStocksData.map(stock => stock.symbol);
@@ -549,6 +553,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <TableHead>Favorite</TableHead>
               <TableHead>Symbol</TableHead>
               <TableHead>Company</TableHead>
+              <TableHead>Logo</TableHead>
               <TableHead>Sector</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Price</TableHead>
@@ -577,36 +582,33 @@ export default function Dashboard({ session }: DashboardProps) {
                     />
                   </Button>
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      // Find logo from CSV file by matching symbol
-                      const logoInfo = companyLogos.find(logo =>
-                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
-                      );
-
-                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
-
-                      return logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${stock.company_name} logo`}
-                          className="w-6 h-6 object-contain"
-                          onError={(e) => {
-                            // Fallback if image fails to load
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
-                        </div>
-                      );
-                    })()}
-                    <span>{stock.symbol}</span>
-                  </div>
-                </TableCell>
+                <TableCell>{stock.symbol}</TableCell>
                 <TableCell>{stock.company_name}</TableCell>
+                <TableCell>
+                  {(() => {
+                    // Find logo from companyLogos array
+                    const logoInfo = companyLogos.find(logo =>
+                      logo.Symbol.toUpperCase() === stock.symbol.toUpperCase()
+                    );
+                    const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
+
+                    return logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt={`${stock.company_name} logo`}
+                        className="w-8 h-8 object-contain"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          e.currentTarget.src = 'https://via.placeholder.com/32?text=' + stock.symbol;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
+                      </div>
+                    );
+                  })()}
+                </TableCell>
                 <TableCell>{stock.sector}</TableCell>
                 <TableCell>{stock.industry}</TableCell>
                 <TableCell>${stock.price.toFixed(2)}</TableCell>

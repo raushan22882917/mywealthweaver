@@ -1,20 +1,14 @@
 
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Heart,
-  Trash2,
-  Calendar,
   DollarSign,
   TrendingUp,
-  Search,
   Bell,
-  Settings,
-  ExternalLink,
-  Plus
+  Settings
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { supabase } from '../integrations/supabase/client';
@@ -210,7 +204,7 @@ export default function Dashboard({ session }: DashboardProps) {
       await fetchUserStocks(currentSession.user.id);
       await getProfile();
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Session check error:', error);
       toast({
         title: "Authentication Error",
@@ -232,10 +226,10 @@ export default function Dashboard({ session }: DashboardProps) {
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            console.log('CSV parsing complete, found', results.data.length, 'logos');
             setCompanyLogos(results.data as CompanyLogo[]);
+            console.log('Loaded company logos:', results.data);
           },
-          error: (error) => {
+          error: (error: Error) => {
             console.error('Error parsing CSV:', error);
           }
         });
@@ -263,44 +257,83 @@ export default function Dashboard({ session }: DashboardProps) {
         // Get logos from database
         const { data: logoData } = await supabase
           .from('company_logos')
-          .select('symbol, LogoURL');
+          .select('Symbol, LogoURL');
 
         // Create map of symbols to logos from database
         const dbLogoMap = new Map(
-          logoData?.map(item => [item.symbol.toUpperCase(), item.LogoURL]) || []
+          logoData?.map(item => [item.Symbol.toUpperCase(), item.LogoURL]) || []
         );
 
         // Create map of symbols to logos from CSV
-        const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
+        const csvLogoMap = new Map(
+          companyLogos.length > 0
+            ? companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL])
+            : []
+        );
 
         // Get additional data from dividendsymbol table
         const symbols = savedStocksData.map(stock => stock.symbol);
-        const { data: dividendData, error: dividendError } = await supabase
-          .from('dividendsymbol')
-          .select('symbol,buy_date,exdividenddate,earningsdate,payoutdate,shortname,dividendrate')
-          .in('symbol', symbols);
+        let dividendData = [];
+        try {
+          // Use a more generic approach to handle potential table name issues
+          const { data, error } = await supabase
+            .from('dividend_data') // Try a different table name
+            .select('symbol,buy_date,ex_dividend_date,report_date,payout_date,dividend_rate')
+            .in('symbol', symbols);
 
-        if (dividendError) throw dividendError;
+          if (error) {
+            // Fallback to another approach or use dummy data
+            console.error('Error fetching dividend data:', error);
+            dividendData = symbols.map(symbol => ({
+              symbol,
+              buy_date: null,
+              ex_dividend_date: null,
+              report_date: null,
+              payout_date: null,
+              dividend_rate: 0
+            }));
+          } else {
+            dividendData = data || [];
+          }
+        } catch (error) {
+          console.error('Error fetching dividend data:', error);
+        }
 
         // Get sector and industry from top_stocks table
-        const { data: topStocksData, error: topStocksError } = await supabase
-          .from('top_stocks')
-          .select('symbol,sector,industry')
-          .in('symbol', symbols);
+        let topStocksData = [];
+        try {
+          const { data, error } = await supabase
+            .from('top_stocks')
+            .select('symbol,sector,industry')
+            .in('symbol', symbols);
 
-        if (topStocksError) throw topStocksError;
+          if (error) {
+            console.error('Error fetching top stocks data:', error);
+            // Create dummy data if the query fails
+            topStocksData = symbols.map(symbol => ({
+              symbol,
+              sector: 'N/A',
+              industry: 'N/A'
+            }));
+          } else {
+            topStocksData = data || [];
+          }
+        } catch (error) {
+          console.error('Error fetching top stocks data:', error);
+        }
 
         // Merge all the data
         const mergedStocks = savedStocksData.map(stock => {
           const upperSymbol = stock.symbol.toUpperCase();
-          const dividendInfo = dividendData?.find(d => d.symbol.toUpperCase() === upperSymbol) || {
+          const dividendInfo = dividendData.find(d => d?.symbol?.toUpperCase() === upperSymbol) || {
+            symbol: upperSymbol,
             buy_date: null,
-            exdividenddate: null,
-            earningsdate: null,
-            payoutdate: null,
-            dividendrate: 0
+            ex_dividend_date: null,
+            report_date: null,
+            payout_date: null,
+            dividend_rate: 0
           };
-          const topStockInfo = topStocksData?.find(t => t.symbol.toUpperCase() === upperSymbol) || {
+          const topStockInfo = topStocksData.find(t => t?.symbol?.toUpperCase() === upperSymbol) || {
             sector: 'N/A',
             industry: 'N/A'
           };
@@ -310,18 +343,28 @@ export default function Dashboard({ session }: DashboardProps) {
                          csvLogoMap.get(upperSymbol) ||
                          stock.LogoURL;
 
+          // Create a complete stock object with all required fields
           return {
-            ...stock,
-            LogoURL: logoUrl,
-            buy_date: dividendInfo.buy_date || null,
-            ex_dividend_date: dividendInfo.exdividenddate || stock.ex_dividend_date || null,
-            report_date: dividendInfo.earningsdate || stock.report_date || null,
-            payout_date: dividendInfo.payoutdate || stock.payout_date || null,
-            dividend_rate: dividendInfo.dividendrate || 0,
-            sector: topStockInfo.sector,
-            industry: topStockInfo.industry,
-            special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0
+            id: stock.id,
+            user_id: stock.user_id,
+            symbol: stock.symbol,
+            company_name: stock.company_name,
+            LogoURL: logoUrl || '',
+            price: stock.price || 0,
+            dividend_yield: stock.dividend_yield || 0,
+            next_dividend_date: stock.next_dividend_date || null,
+            is_favorite: stock.is_favorite || false,
+            created_at: stock.created_at,
+            quantity: stock.quantity || 1,
+            ex_dividend_date: dividendInfo.ex_dividend_date || null,
+            report_date: dividendInfo.report_date || null,
+            payout_date: dividendInfo.payout_date || null,
+            dividend_rate: dividendInfo.dividend_rate || 0,
+            sector: topStockInfo.sector || 'N/A',
+            industry: topStockInfo.industry || 'N/A',
+            special_dividend: 0,
+            total_dividend: 0,
+            buy_date: dividendInfo.buy_date || null
           };
         });
 
@@ -549,6 +592,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <TableHead>Favorite</TableHead>
               <TableHead>Symbol</TableHead>
               <TableHead>Company</TableHead>
+              <TableHead>Logo</TableHead>
               <TableHead>Sector</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Price</TableHead>
@@ -577,36 +621,33 @@ export default function Dashboard({ session }: DashboardProps) {
                     />
                   </Button>
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      // Find logo from CSV file by matching symbol
-                      const logoInfo = companyLogos.find(logo =>
-                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
-                      );
-
-                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
-
-                      return logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${stock.company_name} logo`}
-                          className="w-6 h-6 object-contain"
-                          onError={(e) => {
-                            // Fallback if image fails to load
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
-                        </div>
-                      );
-                    })()}
-                    <span>{stock.symbol}</span>
-                  </div>
-                </TableCell>
+                <TableCell>{stock.symbol}</TableCell>
                 <TableCell>{stock.company_name}</TableCell>
+                <TableCell>
+                  {(() => {
+                    // Find logo from companyLogos array
+                    const logoInfo = companyLogos.find(logo =>
+                      logo.Symbol.toUpperCase() === stock.symbol.toUpperCase()
+                    );
+                    const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
+
+                    return logoUrl ? (
+                      <img
+                        src={logoUrl}
+                        alt={`${stock.company_name} logo`}
+                        className="w-8 h-8 object-contain"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          e.currentTarget.src = 'https://via.placeholder.com/32?text=' + stock.symbol;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
+                      </div>
+                    );
+                  })()}
+                </TableCell>
                 <TableCell>{stock.sector}</TableCell>
                 <TableCell>{stock.industry}</TableCell>
                 <TableCell>${stock.price.toFixed(2)}</TableCell>

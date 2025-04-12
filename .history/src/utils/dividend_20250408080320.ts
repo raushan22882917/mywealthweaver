@@ -25,22 +25,6 @@ export interface DividendData {
   yieldRange: string;
   logo?: string;
   companyName?: string;
-  // New fields
-  industry: string;
-  sector: string;
-  rank?: number | null;
-  score?: number | null;
-  dividendReport?: {
-    earnings_high: number;
-    earnings_low: number;
-    earnings_average: number;
-    revenue_high: number;
-    revenue_low: number;
-    revenue_average: number;
-    price_history?: { date: string; price: number; }[];
-    current_price?: number;
-    price_status?: 'high' | 'low' | 'medium';
-  } | null;
 }
 
 export interface Holiday {

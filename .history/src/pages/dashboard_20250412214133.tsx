@@ -232,7 +232,6 @@ export default function Dashboard({ session }: DashboardProps) {
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            console.log('CSV parsing complete, found', results.data.length, 'logos');
             setCompanyLogos(results.data as CompanyLogo[]);
           },
           error: (error) => {
@@ -549,6 +548,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <TableHead>Favorite</TableHead>
               <TableHead>Symbol</TableHead>
               <TableHead>Company</TableHead>
+              <TableHead>Logo</TableHead>
               <TableHead>Sector</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Price</TableHead>
@@ -579,30 +579,21 @@ export default function Dashboard({ session }: DashboardProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {(() => {
-                      // Find logo from CSV file by matching symbol
-                      const logoInfo = companyLogos.find(logo =>
-                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
-                      );
-
-                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
-
-                      return logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${stock.company_name} logo`}
-                          className="w-6 h-6 object-contain"
-                          onError={(e) => {
-                            // Fallback if image fails to load
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
-                        </div>
-                      );
-                    })()}
+                    {stock.LogoURL ? (
+                      <img
+                        src={stock.LogoURL}
+                        alt={`${stock.company_name} logo`}
+                        className="w-6 h-6 object-contain"
+                        onError={(e) => {
+                          // Fallback if image fails to load
+                          e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
+                        }}
+                      />
+                    ) : (
+                      <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
+                      </div>
+                    )}
                     <span>{stock.symbol}</span>
                   </div>
                 </TableCell>

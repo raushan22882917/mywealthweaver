@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/lib/supabase";
@@ -247,40 +246,62 @@ const Settings = () => {
   };
 
   const uploadAvatar = async () => {
-    if (!avatarFile || !profile) return null;
-    
+    if (!avatarFile) return;
+
     try {
-      const fileExt = avatarFile.name.split('.').pop();
-      const filePath = `avatars/${profile.id}-${Date.now()}.${fileExt}`;
+      setIsSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No user found');
+
+      // Convert the file to base64 URL
+      const reader = new FileReader();
+      reader.readAsDataURL(avatarFile);
       
-      // Check if bucket exists and create if needed
-      if (!isStorageBucketCreated) {
-        const { data: buckets } = await supabase.storage.listBuckets();
-        if (!buckets?.some(bucket => bucket.name === 'user-avatars')) {
-          await supabase.storage.createBucket('user-avatars', { public: true });
+      reader.onload = async () => {
+        try {
+          const base64Url = reader.result as string;
+
+          // Update the user's profile with the base64 URL
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ avatar_url: base64Url })
+            .eq('id', user.id);
+
+          if (updateError) throw updateError;
+
+          setAvatarUrl(base64Url);
+          toast({
+            title: "Success",
+            description: "Avatar updated successfully",
+          });
+        } catch (error: any) {
+          console.error('Error updating profile:', error);
+          toast({
+            title: "Error",
+            description: error.message || "Failed to update avatar",
+            variant: "destructive",
+          });
         }
-        setIsStorageBucketCreated(true);
-      }
-      
-      const { error: uploadError } = await supabase.storage
-        .from('user-avatars')
-        .upload(filePath, avatarFile);
-      
-      if (uploadError) throw uploadError;
-      
-      const { data: { publicUrl } } = supabase.storage
-        .from('user-avatars')
-        .getPublicUrl(filePath);
-      
-      return publicUrl;
-    } catch (error) {
+      };
+
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        toast({
+          title: "Error",
+          description: "Failed to read image file",
+          variant: "destructive",
+        });
+      };
+
+    } catch (error: any) {
       console.error('Error uploading avatar:', error);
       toast({
-        title: 'Upload Failed',
-        description: 'Failed to upload avatar image',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to upload avatar",
+        variant: "destructive",
       });
-      return null;
+    } finally {
+      setIsSaving(false);
     }
   };
 

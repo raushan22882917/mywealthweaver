@@ -29,6 +29,7 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [username, setUsername] = useState<string>("");
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
@@ -63,7 +64,7 @@ const Navbar = () => {
         if (user) {
           const { data: profile, error: fetchError } = await supabase
             .from("profiles")
-            .select("username")
+            .select("username, avatar_url")
             .eq("id", user.id)
             .single();
 
@@ -84,6 +85,7 @@ const Navbar = () => {
             setUsername(user.email?.split('@')[0] || "");
           } else if (profile) {
             setUsername(profile.username);
+            setAvatarUrl(profile.avatar_url || "");
           }
         }
       } catch (error) {
@@ -381,29 +383,31 @@ const Navbar = () => {
             <NavbarNotificationSection />
             
             {/* User Menu */}
-            <div className="relative">
-              <button
-                className="flex items-center space-x-2 px-3 py-2 rounded-lg border border-gray-700 bg-gray-800 hover:bg-gray-700 transition-all"
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-              >
-                {username ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
-                        {username.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="hidden md:block">
-                        <p className="text-sm font-medium text-white">{username}</p>
-                      </div>
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
+            <div className="relative ml-3">
+              <div>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 transition-all"
+                >
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-700 border border-gray-600">
+                      {avatarUrl ? (
+                        <img 
+                          src={avatarUrl} 
+                          alt={username} 
+                          className="h-full w-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${username}&background=random`;
+                          }}
+                        />
+                      ) : (
+                        <User className="h-5 w-5 m-1.5 text-gray-400" />
+                      )}
                     </div>
-                  </>
-                ) : (
-                  <Button onClick={() => navigate("/auth")} className="bg-blue-600 hover:bg-blue-700 text-white">
-                    Log In
-                  </Button>
-                )}
-              </button>
+                    <ChevronDown className="ml-2 h-4 w-4 text-gray-400" />
+                  </div>
+                </button>
+              </div>
 
               {dropdownOpen && username && (
                 <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
