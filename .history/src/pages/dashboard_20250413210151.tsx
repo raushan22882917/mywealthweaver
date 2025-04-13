@@ -133,76 +133,11 @@ export default function Dashboard({ session }: DashboardProps) {
   };
 
   // Handle quantity change
-  const handleQuantityChange = async (symbol: string, value: number) => {
-    try {
-      // Update local state
-      setQuantities(prev => ({
-        ...prev,
-        [symbol]: value
-      }));
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        toast({
-          title: "Authentication Error",
-          description: "Please login to update quantities",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Check if quantity record exists
-      const { data: existingData, error: checkError } = await supabase
-        .from('quantity') // Use the correct table name
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('symbol', symbol)
-        .single();
-
-      if (checkError && checkError.code !== 'PGRST116') {
-        // Error other than 'not found'
-        throw checkError;
-      }
-
-      if (existingData) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from('quantity') // Use the correct table name
-          .update({ quantity: value })
-          .eq('user_id', user.id)
-          .eq('symbol', symbol);
-
-        if (updateError) throw updateError;
-      } else {
-        // Insert new record
-        const { error: insertError } = await supabase
-          .from('quantity') // Use the correct table name
-          .insert([
-            {
-              user_id: user.id,
-              symbol: symbol,
-              quantity: value
-            }
-          ]);
-
-        if (insertError) throw insertError;
-      }
-
-      // Show success toast
-      toast({
-        title: "Quantity Updated",
-        description: `Quantity for ${symbol} updated to ${value}`,
-      });
-    } catch (error) {
-      console.error('Error saving quantity:', error);
-      toast({
-        title: "Error",
-        description: "Failed to save quantity",
-        variant: "destructive",
-      });
-    }
+  const handleQuantityChange = (symbol: string, value: number) => {
+    setQuantities(prev => ({
+      ...prev,
+      [symbol]: value
+    }));
   };
 
   // Handle favorite toggle
@@ -325,33 +260,6 @@ export default function Dashboard({ session }: DashboardProps) {
 
       if (savedStocksError) throw savedStocksError;
 
-      // Fetch quantities from the quantity table
-      let quantityMap: { [key: string]: number } = {};
-      try {
-        const { data: quantityData } = await supabase
-          .from('quantity') // Use the correct table name
-          .select('symbol, quantity')
-          .eq('user_id', userId);
-
-        // Create a map of symbol to quantity
-        if (quantityData && quantityData.length > 0) {
-          quantityData.forEach(item => {
-            if (item && item.symbol && item.quantity) {
-              quantityMap[item.symbol] = item.quantity;
-            }
-          });
-          console.log('Loaded quantities from database:', quantityMap);
-        } else {
-          console.log('No quantities found in database');
-        }
-      } catch (error) {
-        console.error('Error fetching quantities:', error);
-        // Continue with the rest of the function even if quantities fetch fails
-      }
-
-      // Store the quantities in state
-      setQuantities(quantityMap);
-
       if (savedStocksData) {
         // Get logos from database
         const { data: logoData } = await supabase
@@ -360,20 +268,11 @@ export default function Dashboard({ session }: DashboardProps) {
 
         // Create map of symbols to logos from database
         const dbLogoMap = new Map(
-          logoData?.map(item => [
-            item?.symbol?.toUpperCase() || '',
-            item?.LogoURL || ''
-          ]) || []
+          logoData?.map(item => [item.symbol.toUpperCase(), item.LogoURL]) || []
         );
 
         // Create map of symbols to logos from CSV
-        const csvLogoMap = new Map(
-          companyLogos?.filter(logo => logo?.Symbol && logo?.LogoURL)
-            .map(logo => [
-              logo?.Symbol?.toUpperCase() || '',
-              logo?.LogoURL || ''
-            ]) || []
-        );
+        const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
 
         // Get additional data from dividendsymbol table
         const symbols = savedStocksData.map(stock => stock.symbol);
@@ -395,8 +294,7 @@ export default function Dashboard({ session }: DashboardProps) {
         // Merge all the data
         const mergedStocks = savedStocksData.map(stock => {
           const upperSymbol = stock.symbol.toUpperCase();
-          const dividendInfo = dividendData?.find(d => d?.symbol?.toUpperCase() === upperSymbol) || {
-            symbol: upperSymbol,
+          const dividendInfo = dividendData?.find(d => d.symbol.toUpperCase() === upperSymbol) || {
             buy_date: null,
             exdividenddate: null,
             earningsdate: null,
@@ -424,8 +322,7 @@ export default function Dashboard({ session }: DashboardProps) {
             sector: topStockInfo.sector,
             industry: topStockInfo.industry,
             special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0,
-            quantity: quantityMap[stock.symbol] || 1 // Use quantity from database or default to 1
+            total_dividend: stock.total_dividend || 0
           };
         });
 
@@ -623,6 +520,52 @@ export default function Dashboard({ session }: DashboardProps) {
             </div>
           </Card>
         </div>
+
+        {/* Saved Symbols and Quantities Table */}
+        <Card className="mb-8 bg-gradient-to-br from-gray-900 to-blue-900/20 border border-blue-900/30 shadow-xl">
+          <CardHeader>
+            <CardTitle className="text-xl text-white flex items-center gap-2">
+              <Star className="h-5 w-5 text-yellow-400" />
+              Saved Symbols and Quantities
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Symbol</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Dividend Rate</TableHead>
+                    <TableHead>Total Dividends</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(quantities).map(([symbol, quantity]) => {
+                    const stock = savedStocks.find(s => s.symbol === symbol);
+                    if (!stock) return null;
+                    return (
+                      <TableRow key={symbol}>
+                        <TableCell className="font-medium">{symbol}</TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={quantity}
+                            onChange={(e) => handleQuantityChange(symbol, parseInt(e.target.value) || 1)}
+                            className="w-20 bg-gray-800/50 border-gray-700 text-white"
+                            min="1"
+                          />
+                        </TableCell>
+                        <TableCell>${stock.dividend_rate?.toFixed(2) || '0.00'}</TableCell>
+                        <TableCell>${calculateTotalDividends(stock).toFixed(2)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Controls Section */}
         <div className="flex gap-4 mb-6">

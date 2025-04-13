@@ -424,8 +424,7 @@ export default function Dashboard({ session }: DashboardProps) {
             sector: topStockInfo.sector,
             industry: topStockInfo.industry,
             special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0,
-            quantity: quantityMap[stock.symbol] || 1 // Use quantity from database or default to 1
+            total_dividend: stock.total_dividend || 0
           };
         });
 

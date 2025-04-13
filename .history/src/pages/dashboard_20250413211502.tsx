@@ -326,7 +326,6 @@ export default function Dashboard({ session }: DashboardProps) {
       if (savedStocksError) throw savedStocksError;
 
       // Fetch quantities from the quantity table
-      let quantityMap: { [key: string]: number } = {};
       try {
         const { data: quantityData } = await supabase
           .from('quantity') // Use the correct table name
@@ -334,23 +333,18 @@ export default function Dashboard({ session }: DashboardProps) {
           .eq('user_id', userId);
 
         // Create a map of symbol to quantity
-        if (quantityData && quantityData.length > 0) {
+        const quantityMap: { [key: string]: number } = {};
+        if (quantityData) {
           quantityData.forEach(item => {
-            if (item && item.symbol && item.quantity) {
-              quantityMap[item.symbol] = item.quantity;
-            }
+            quantityMap[item.symbol] = item.quantity;
           });
-          console.log('Loaded quantities from database:', quantityMap);
-        } else {
-          console.log('No quantities found in database');
+          setQuantities(quantityMap);
+          console.log('Loaded quantities:', quantityMap);
         }
       } catch (error) {
         console.error('Error fetching quantities:', error);
         // Continue with the rest of the function even if quantities fetch fails
       }
-
-      // Store the quantities in state
-      setQuantities(quantityMap);
 
       if (savedStocksData) {
         // Get logos from database
@@ -360,20 +354,11 @@ export default function Dashboard({ session }: DashboardProps) {
 
         // Create map of symbols to logos from database
         const dbLogoMap = new Map(
-          logoData?.map(item => [
-            item?.symbol?.toUpperCase() || '',
-            item?.LogoURL || ''
-          ]) || []
+          logoData?.map(item => [item.symbol.toUpperCase(), item.LogoURL]) || []
         );
 
         // Create map of symbols to logos from CSV
-        const csvLogoMap = new Map(
-          companyLogos?.filter(logo => logo?.Symbol && logo?.LogoURL)
-            .map(logo => [
-              logo?.Symbol?.toUpperCase() || '',
-              logo?.LogoURL || ''
-            ]) || []
-        );
+        const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
 
         // Get additional data from dividendsymbol table
         const symbols = savedStocksData.map(stock => stock.symbol);
@@ -395,8 +380,7 @@ export default function Dashboard({ session }: DashboardProps) {
         // Merge all the data
         const mergedStocks = savedStocksData.map(stock => {
           const upperSymbol = stock.symbol.toUpperCase();
-          const dividendInfo = dividendData?.find(d => d?.symbol?.toUpperCase() === upperSymbol) || {
-            symbol: upperSymbol,
+          const dividendInfo = dividendData?.find(d => d.symbol.toUpperCase() === upperSymbol) || {
             buy_date: null,
             exdividenddate: null,
             earningsdate: null,
@@ -424,8 +408,7 @@ export default function Dashboard({ session }: DashboardProps) {
             sector: topStockInfo.sector,
             industry: topStockInfo.industry,
             special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0,
-            quantity: quantityMap[stock.symbol] || 1 // Use quantity from database or default to 1
+            total_dividend: stock.total_dividend || 0
           };
         });
 

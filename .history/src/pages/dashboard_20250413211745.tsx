@@ -326,7 +326,6 @@ export default function Dashboard({ session }: DashboardProps) {
       if (savedStocksError) throw savedStocksError;
 
       // Fetch quantities from the quantity table
-      let quantityMap: { [key: string]: number } = {};
       try {
         const { data: quantityData } = await supabase
           .from('quantity') // Use the correct table name
@@ -334,23 +333,18 @@ export default function Dashboard({ session }: DashboardProps) {
           .eq('user_id', userId);
 
         // Create a map of symbol to quantity
-        if (quantityData && quantityData.length > 0) {
+        const quantityMap: { [key: string]: number } = {};
+        if (quantityData) {
           quantityData.forEach(item => {
-            if (item && item.symbol && item.quantity) {
-              quantityMap[item.symbol] = item.quantity;
-            }
+            quantityMap[item.symbol] = item.quantity;
           });
-          console.log('Loaded quantities from database:', quantityMap);
-        } else {
-          console.log('No quantities found in database');
+          setQuantities(quantityMap);
+          console.log('Loaded quantities:', quantityMap);
         }
       } catch (error) {
         console.error('Error fetching quantities:', error);
         // Continue with the rest of the function even if quantities fetch fails
       }
-
-      // Store the quantities in state
-      setQuantities(quantityMap);
 
       if (savedStocksData) {
         // Get logos from database
@@ -424,8 +418,7 @@ export default function Dashboard({ session }: DashboardProps) {
             sector: topStockInfo.sector,
             industry: topStockInfo.industry,
             special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0,
-            quantity: quantityMap[stock.symbol] || 1 // Use quantity from database or default to 1
+            total_dividend: stock.total_dividend || 0
           };
         });
 
