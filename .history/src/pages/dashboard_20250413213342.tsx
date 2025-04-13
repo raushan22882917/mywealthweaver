@@ -92,7 +92,7 @@ export default function Dashboard({ session }: DashboardProps) {
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
   const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
   const [selectedStockForDetails, setSelectedStockForDetails] = useState<any>(null);
-
+  const [selectedStock, setSelectedStock] = useState<SavedStock | null>(null);
   const { theme: _ } = useTheme(); // Unused but kept for future use
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -205,7 +205,39 @@ export default function Dashboard({ session }: DashboardProps) {
     }
   };
 
+  // Handle favorite toggle
+  const toggleFavorite = async (stock: SavedStock) => {
+    try {
+      const { error } = await supabase
+        .from('saved_stocks')
+        .update({ is_favorite: !stock.is_favorite })
+        .eq('symbol', stock.symbol)
+        .eq('user_id', session?.user.id);
 
+      if (error) throw error;
+
+      // Update local state
+      setSavedStocks(stocks =>
+        stocks.map(s =>
+          s.symbol === stock.symbol
+            ? { ...s, is_favorite: !s.is_favorite }
+            : s
+        )
+      );
+
+      toast({
+        title: "Success",
+        description: `${stock.symbol} ${!stock.is_favorite ? 'added to' : 'removed from'} favorites`,
+      });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update favorite status",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Calculate total dividends
   const calculateTotalDividends = (stock: SavedStock) => {
@@ -418,8 +450,9 @@ export default function Dashboard({ session }: DashboardProps) {
     }
   };
 
-  // Filter stocks based on search
+  // Filter stocks based on search and favorites
   const filteredStocks = savedStocks
+    .filter(stock => filterFavorites ? stock.is_favorite : true)
     .filter(stock =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stock.company_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -722,19 +755,19 @@ export default function Dashboard({ session }: DashboardProps) {
       <Footer />
 
       {/* Stock Analysis Dialog */}
-      {selectedStockForDetails && (
+      {selectedStock && (
         <StockAnalysisDialog
           stock={{
-            symbol: selectedStockForDetails.symbol,
-            longName: selectedStockForDetails.company_name,
-            regularMarketPrice: selectedStockForDetails.price || 0,
+            symbol: selectedStock.symbol,
+            longName: selectedStock.company_name,
+            regularMarketPrice: selectedStock.price || 0,
             regularMarketChange: 0,
             regularMarketChangePercent: 0,
             marketCap: 0,
             regularMarketVolume: 0,
-            dividendYield: selectedStockForDetails.dividend_yield,
-            sector: selectedStockForDetails.sector || 'N/A',
-            industry: selectedStockForDetails.industry || 'N/A'
+            dividendYield: selectedStock.dividend_yield,
+            sector: selectedStock.sector || 'N/A',
+            industry: selectedStock.industry || 'N/A'
           }}
           isOpen={isAnalysisOpen}
           setIsOpen={setIsAnalysisOpen}

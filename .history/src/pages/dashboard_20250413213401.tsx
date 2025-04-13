@@ -722,19 +722,19 @@ export default function Dashboard({ session }: DashboardProps) {
       <Footer />
 
       {/* Stock Analysis Dialog */}
-      {selectedStockForDetails && (
+      {selectedStock && (
         <StockAnalysisDialog
           stock={{
-            symbol: selectedStockForDetails.symbol,
-            longName: selectedStockForDetails.company_name,
-            regularMarketPrice: selectedStockForDetails.price || 0,
+            symbol: selectedStock.symbol,
+            longName: selectedStock.company_name,
+            regularMarketPrice: selectedStock.price || 0,
             regularMarketChange: 0,
             regularMarketChangePercent: 0,
             marketCap: 0,
             regularMarketVolume: 0,
-            dividendYield: selectedStockForDetails.dividend_yield,
-            sector: selectedStockForDetails.sector || 'N/A',
-            industry: selectedStockForDetails.industry || 'N/A'
+            dividendYield: selectedStock.dividend_yield,
+            sector: selectedStock.sector || 'N/A',
+            industry: selectedStock.industry || 'N/A'
           }}
           isOpen={isAnalysisOpen}
           setIsOpen={setIsAnalysisOpen}
