@@ -1,17 +1,21 @@
 
 import { useState, useEffect } from 'react';
-import StockDetailsDialog from '@/components/StockDetailsDialog';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Heart,
+  Trash2,
+  Calendar,
   DollarSign,
   TrendingUp,
+  Search,
   Bell,
-  Settings
+  Settings,
+  ExternalLink,
+  Plus
 } from 'lucide-react';
-import StockAnalysisDialog from '@/components/StockAnalysisDialog';
 import { useTheme } from 'next-themes';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -89,10 +93,6 @@ export default function Dashboard({ session }: DashboardProps) {
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
-  const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
-  const [selectedStockForDetails, setSelectedStockForDetails] = useState<any>(null);
-  const [selectedStock, setSelectedStock] = useState<SavedStock | null>(null);
   const { theme: _ } = useTheme(); // Unused but kept for future use
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -177,8 +177,7 @@ export default function Dashboard({ session }: DashboardProps) {
   // Calculate total dividends
   const calculateTotalDividends = (stock: SavedStock) => {
     const quantity = quantities[stock.symbol] || 1;
-    // Use dividend_rate directly (annual dividend per share) multiplied by quantity
-    return (stock.dividend_rate * quantity) + (stock.special_dividend || 0);
+    return (stock.dividend_yield * stock.price * quantity / 100) + (stock.special_dividend || 0);
   };
 
   useEffect(() => {
@@ -233,7 +232,6 @@ export default function Dashboard({ session }: DashboardProps) {
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
-            console.log('CSV parsing complete, found', results.data.length, 'logos');
             setCompanyLogos(results.data as CompanyLogo[]);
           },
           error: (error) => {
@@ -285,7 +283,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
         // Get sector and industry from top_stocks table
         const { data: topStocksData, error: topStocksError } = await supabase
-          .from('company_profiles')
+          .from('top_stocks')
           .select('symbol,sector,industry')
           .in('symbol', symbols);
 
@@ -305,10 +303,10 @@ export default function Dashboard({ session }: DashboardProps) {
             sector: 'N/A',
             industry: 'N/A'
           };
-
+          
           // Get logo from database first, then CSV, then fallback
-          const logoUrl = dbLogoMap.get(upperSymbol) ||
-                         csvLogoMap.get(upperSymbol) ||
+          const logoUrl = dbLogoMap.get(upperSymbol) || 
+                         csvLogoMap.get(upperSymbol) || 
                          stock.LogoURL;
 
           return {
@@ -327,7 +325,7 @@ export default function Dashboard({ session }: DashboardProps) {
         });
 
         setSavedStocks(mergedStocks);
-
+        
         // Initialize quantities
         const initialQuantities: { [key: string]: number } = {};
         mergedStocks.forEach(stock => {
@@ -497,9 +495,9 @@ export default function Dashboard({ session }: DashboardProps) {
                 <Heart className="h-6 w-6 text-pink-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-400">Total Dividends</p>
+                <p className="text-sm font-medium text-gray-400">Favorites</p>
                 <p className="text-2xl font-bold text-white">
-                  ${savedStocks.reduce((total, stock) => total + calculateTotalDividends(stock), 0).toFixed(2)}
+                  {savedStocks.filter(s => s.is_favorite).length}
                 </p>
               </div>
             </div>
@@ -550,6 +548,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <TableHead>Favorite</TableHead>
               <TableHead>Symbol</TableHead>
               <TableHead>Company</TableHead>
+              <TableHead>Logo</TableHead>
               <TableHead>Sector</TableHead>
               <TableHead>Industry</TableHead>
               <TableHead>Price</TableHead>
@@ -578,36 +577,17 @@ export default function Dashboard({ session }: DashboardProps) {
                     />
                   </Button>
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      // Find logo from CSV file by matching symbol
-                      const logoInfo = companyLogos.find(logo =>
-                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
-                      );
-
-                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
-
-                      return logoUrl ? (
-                        <img
-                          src={logoUrl}
-                          alt={`${stock.company_name} logo`}
-                          className="w-6 h-6 object-contain"
-                          onError={(e) => {
-                            // Fallback if image fails to load
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
-                          }}
-                        />
-                      ) : (
-                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
-                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
-                        </div>
-                      );
-                    })()}
-                    <span>{stock.symbol}</span>
-                  </div>
-                </TableCell>
+                <TableCell>{stock.symbol}</TableCell>
                 <TableCell>{stock.company_name}</TableCell>
+                <TableCell>
+                  {stock.LogoURL && (
+                    <img
+                      src={stock.LogoURL}
+                      alt={`${stock.company_name} logo`}
+                      className="w-8 h-8 object-contain"
+                    />
+                  )}
+                </TableCell>
                 <TableCell>{stock.sector}</TableCell>
                 <TableCell>{stock.industry}</TableCell>
                 <TableCell>${stock.price.toFixed(2)}</TableCell>
@@ -640,18 +620,7 @@ export default function Dashboard({ session }: DashboardProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      // Create a stock object in the format expected by StockDetailsDialog
-                      const stockForDialog = {
-                        Symbol: stock.symbol,
-                        title: stock.company_name,
-                        LogoURL: stock.LogoURL,
-                        marketCap: stock.price,
-                        dividendyield: stock.dividend_yield
-                      };
-                      setSelectedStockForDetails(stockForDialog);
-                      setIsStockDetailsOpen(true);
-                    }}
+                    onClick={() => navigate(`/stock/${stock.symbol}`)}
                   >
                     View Details
                   </Button>
@@ -662,35 +631,6 @@ export default function Dashboard({ session }: DashboardProps) {
         </Table>
       </div>
       <Footer />
-
-      {/* Stock Analysis Dialog */}
-      {selectedStock && (
-        <StockAnalysisDialog
-          stock={{
-            symbol: selectedStock.symbol,
-            longName: selectedStock.company_name,
-            regularMarketPrice: selectedStock.price || 0,
-            regularMarketChange: 0,
-            regularMarketChangePercent: 0,
-            marketCap: 0,
-            regularMarketVolume: 0,
-            dividendYield: selectedStock.dividend_yield,
-            sector: selectedStock.sector || 'N/A',
-            industry: selectedStock.industry || 'N/A'
-          }}
-          isOpen={isAnalysisOpen}
-          setIsOpen={setIsAnalysisOpen}
-        />
-      )}
-
-      {/* Stock Details Dialog */}
-      {selectedStockForDetails && (
-        <StockDetailsDialog
-          stock={selectedStockForDetails}
-          isOpen={isStockDetailsOpen}
-          setIsOpen={setIsStockDetailsOpen}
-        />
-      )}
     </div>
   );
 }

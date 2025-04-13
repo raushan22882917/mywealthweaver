@@ -18,8 +18,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Search, Star, BarChart2, Award } from 'lucide-react';
+import { Search, Award, Star, BarChart2, DollarSign, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Stock {
   industry: string;
@@ -275,7 +276,7 @@ const TopStocks: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div>
+              <TooltipProvider>
                 <Table className="dark:border-gray-700">
                   <TableCaption className="dark:text-gray-400">Top performing stocks in the market today</TableCaption>
                   <TableHeader className="dark:bg-[#151a27]">
@@ -359,7 +360,7 @@ const TopStocks: React.FC = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </TooltipProvider>
               <div className="flex justify-between items-center mt-6 pt-4 border-t dark:border-gray-700">
                 <div className="text-sm text-muted-foreground">
                   Showing <span className="font-medium">{Math.min(filteredStocks.length, (currentPage - 1) * itemsPerPage + 1)}</span> to{' '}

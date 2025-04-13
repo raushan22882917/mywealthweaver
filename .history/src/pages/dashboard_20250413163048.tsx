@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from 'react';
-import StockDetailsDialog from '@/components/StockDetailsDialog';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,8 +89,6 @@ export default function Dashboard({ session }: DashboardProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
-  const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
-  const [selectedStockForDetails, setSelectedStockForDetails] = useState<any>(null);
   const [selectedStock, setSelectedStock] = useState<SavedStock | null>(null);
   const { theme: _ } = useTheme(); // Unused but kept for future use
   const { toast } = useToast();
@@ -641,16 +638,8 @@ export default function Dashboard({ session }: DashboardProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      // Create a stock object in the format expected by StockDetailsDialog
-                      const stockForDialog = {
-                        Symbol: stock.symbol,
-                        title: stock.company_name,
-                        LogoURL: stock.LogoURL,
-                        marketCap: stock.price,
-                        dividendyield: stock.dividend_yield
-                      };
-                      setSelectedStockForDetails(stockForDialog);
-                      setIsStockDetailsOpen(true);
+                      setSelectedStock(stock);
+                      setIsAnalysisOpen(true);
                     }}
                   >
                     View Details
@@ -680,15 +669,6 @@ export default function Dashboard({ session }: DashboardProps) {
           }}
           isOpen={isAnalysisOpen}
           setIsOpen={setIsAnalysisOpen}
-        />
-      )}
-
-      {/* Stock Details Dialog */}
-      {selectedStockForDetails && (
-        <StockDetailsDialog
-          stock={selectedStockForDetails}
-          isOpen={isStockDetailsOpen}
-          setIsOpen={setIsStockDetailsOpen}
         />
       )}
     </div>

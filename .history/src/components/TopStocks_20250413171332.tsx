@@ -18,8 +18,9 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Search, Star, BarChart2, Award } from 'lucide-react';
+import { Search, Award, Star, BarChart2, DollarSign, Info } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Stock {
   industry: string;
@@ -275,7 +276,7 @@ const TopStocks: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div>
+              <TooltipProvider>
                 <Table className="dark:border-gray-700">
                   <TableCaption className="dark:text-gray-400">Top performing stocks in the market today</TableCaption>
                   <TableHeader className="dark:bg-[#151a27]">
@@ -304,32 +305,75 @@ const TopStocks: React.FC = () => {
                             <TableRow key={stock.symbol} className={rank <= 3 ? 'bg-opacity-10 bg-primary dark:bg-[#212738]' : 'dark:bg-[#1a1f2e]'}>
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleSaveStock(stock);
-                                    }}
-                                    className="focus:outline-none"
-                                  >
-                                    <Star
-                                      className={`h-5 w-5 transition-colors ${isStockSaved(stock.symbol) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400 hover:text-yellow-400'}`}
-                                    />
-                                  </button>
+                                  {rank === 1 && (
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Award className="h-5 w-5 text-yellow-500" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Top Ranked Stock</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {rank === 2 && (
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Award className="h-5 w-5 text-gray-400" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Second Ranked Stock</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {rank === 3 && (
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Award className="h-5 w-5 text-amber-700" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Third Ranked Stock</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {rank > 3 && rank <= 10 && (
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <Star className="h-5 w-5 text-blue-500" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Top 10 Stock</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  )}
                                   <Badge variant={rank <= 3 ? "default" : "outline"} className={`font-bold ${rank > 3 ? 'dark:bg-[#151a27] dark:border-gray-700' : ''}`}>
                                     {rank}
                                   </Badge>
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <div
-                                  className="flex items-center gap-2 group cursor-pointer px-2 py-1 rounded-md transition-all duration-200
-                                    hover:bg-primary/5 hover:border-primary/20 hover:border
-                                    focus:bg-primary/5 focus:border-primary/20 focus:border focus:outline-none
-                                    active:bg-primary/10 active:border-primary/30 active:border"
-                                  onClick={() => setSelectedStock(stock)}
-                                  tabIndex={0}
-                                >
-                                  <span className="font-medium group-hover:text-primary group-hover:underline transition-all">{stock.symbol}</span>
+                                <div className="flex items-center gap-2">
+                                  <div
+                                    className="flex items-center gap-2 group cursor-pointer px-2 py-1 rounded-md transition-all duration-200
+                                      hover:bg-primary/5 hover:border-primary/20 hover:border
+                                      focus:bg-primary/5 focus:border-primary/20 focus:border focus:outline-none
+                                      active:bg-primary/10 active:border-primary/30 active:border"
+                                    onClick={() => setSelectedStock(stock)}
+                                    tabIndex={0}
+                                  >
+                                    <Info className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <span className="font-medium group-hover:text-primary group-hover:underline transition-all">{stock.symbol}</span>
+                                  </div>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleSaveStock(stock);
+                                    }}
+                                    className="ml-2 focus:outline-none"
+                                  >
+                                    <Star
+                                      className={`h-5 w-5 transition-colors ${isStockSaved(stock.symbol) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400 hover:text-yellow-400'}`}
+                                    />
+                                  </button>
                                 </div>
                               </TableCell>
                               <TableCell>
@@ -359,7 +403,7 @@ const TopStocks: React.FC = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </TooltipProvider>
               <div className="flex justify-between items-center mt-6 pt-4 border-t dark:border-gray-700">
                 <div className="text-sm text-muted-foreground">
                   Showing <span className="font-medium">{Math.min(filteredStocks.length, (currentPage - 1) * itemsPerPage + 1)}</span> to{' '}

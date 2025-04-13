@@ -682,15 +682,6 @@ export default function Dashboard({ session }: DashboardProps) {
           setIsOpen={setIsAnalysisOpen}
         />
       )}
-
-      {/* Stock Details Dialog */}
-      {selectedStockForDetails && (
-        <StockDetailsDialog
-          stock={selectedStockForDetails}
-          isOpen={isStockDetailsOpen}
-          setIsOpen={setIsStockDetailsOpen}
-        />
-      )}
     </div>
   );
 }

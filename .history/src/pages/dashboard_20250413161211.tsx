@@ -1,17 +1,21 @@
 
 import { useState, useEffect } from 'react';
-import StockDetailsDialog from '@/components/StockDetailsDialog';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Heart,
+  Trash2,
+  Calendar,
   DollarSign,
   TrendingUp,
+  Search,
   Bell,
-  Settings
+  Settings,
+  ExternalLink,
+  Plus
 } from 'lucide-react';
-import StockAnalysisDialog from '@/components/StockAnalysisDialog';
 import { useTheme } from 'next-themes';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -89,10 +93,6 @@ export default function Dashboard({ session }: DashboardProps) {
   const [filterFavorites, setFilterFavorites] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
-  const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
-  const [selectedStockForDetails, setSelectedStockForDetails] = useState<any>(null);
-  const [selectedStock, setSelectedStock] = useState<SavedStock | null>(null);
   const { theme: _ } = useTheme(); // Unused but kept for future use
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -499,7 +499,7 @@ export default function Dashboard({ session }: DashboardProps) {
               <div>
                 <p className="text-sm font-medium text-gray-400">Total Dividends</p>
                 <p className="text-2xl font-bold text-white">
-                  ${savedStocks.reduce((total, stock) => total + calculateTotalDividends(stock), 0).toFixed(2)}
+                  {savedStocks.reduce((total, stock) => total + calculateTotalDividends(stock), 0).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -640,18 +640,7 @@ export default function Dashboard({ session }: DashboardProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      // Create a stock object in the format expected by StockDetailsDialog
-                      const stockForDialog = {
-                        Symbol: stock.symbol,
-                        title: stock.company_name,
-                        LogoURL: stock.LogoURL,
-                        marketCap: stock.price,
-                        dividendyield: stock.dividend_yield
-                      };
-                      setSelectedStockForDetails(stockForDialog);
-                      setIsStockDetailsOpen(true);
-                    }}
+                    onClick={() => navigate(`/stock/${stock.symbol}`)}
                   >
                     View Details
                   </Button>
@@ -662,35 +651,6 @@ export default function Dashboard({ session }: DashboardProps) {
         </Table>
       </div>
       <Footer />
-
-      {/* Stock Analysis Dialog */}
-      {selectedStock && (
-        <StockAnalysisDialog
-          stock={{
-            symbol: selectedStock.symbol,
-            longName: selectedStock.company_name,
-            regularMarketPrice: selectedStock.price || 0,
-            regularMarketChange: 0,
-            regularMarketChangePercent: 0,
-            marketCap: 0,
-            regularMarketVolume: 0,
-            dividendYield: selectedStock.dividend_yield,
-            sector: selectedStock.sector || 'N/A',
-            industry: selectedStock.industry || 'N/A'
-          }}
-          isOpen={isAnalysisOpen}
-          setIsOpen={setIsAnalysisOpen}
-        />
-      )}
-
-      {/* Stock Details Dialog */}
-      {selectedStockForDetails && (
-        <StockDetailsDialog
-          stock={selectedStockForDetails}
-          isOpen={isStockDetailsOpen}
-          setIsOpen={setIsStockDetailsOpen}
-        />
-      )}
     </div>
   );
 }
