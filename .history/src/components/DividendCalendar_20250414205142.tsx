@@ -635,11 +635,11 @@ const DividendCalendar = () => {
 
       {selectedDateEvents && (
         <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
           onClick={closeDateEvents}
         >
           <div
-            className="bg-gradient-to-b from-[#1a2235] to-[#111827] rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 shadow-xl border border-gray-800 animate-slideUp"
+            className="bg-[#1a2235] rounded-md p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4"
             onClick={e => e.stopPropagation()}
           >
             {/* Header with glowing effect */}

@@ -1,21 +1,17 @@
 
 import { useState, useEffect } from 'react';
+import StockDetailsDialog from '@/components/StockDetailsDialog';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Heart,
-  Trash2,
-  Calendar,
   DollarSign,
   TrendingUp,
-  Search,
   Bell,
-  Settings,
-  ExternalLink,
-  Plus
+  Settings
 } from 'lucide-react';
+import StockAnalysisDialog from '@/components/StockAnalysisDialog';
 import { useTheme } from 'next-themes';
 import { supabase } from '../integrations/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
@@ -39,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Star } from 'lucide-react';
+
 
 interface CompanyLogo {
   Symbol: string;
@@ -90,9 +86,13 @@ export default function Dashboard({ session }: DashboardProps) {
   const [savedStocks, setSavedStocks] = useState<SavedStock[]>([]);
   const [companyLogos, setCompanyLogos] = useState<CompanyLogo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterFavorites, setFilterFavorites] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+  const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
+  const [selectedStockForDetails, setSelectedStockForDetails] = useState<any>(null);
+
   const { theme: _ } = useTheme(); // Unused but kept for future use
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -120,9 +120,9 @@ export default function Dashboard({ session }: DashboardProps) {
       case 'price-desc':
         return [...stocks].sort((a, b) => b.price - a.price);
       case 'dividend-asc':
-        return [...stocks].sort((a, b) => a.dividend_yield - b.dividend_yield);
+        return [...stocks].sort((a, b) => a.dividendyield - b.dividendyield);
       case 'dividend-desc':
-        return [...stocks].sort((a, b) => b.dividend_yield - a.dividend_yield);
+        return [...stocks].sort((a, b) => b.dividendyield - a.dividendyield);
       case 'sector':
         return [...stocks].sort((a, b) => a.sector.localeCompare(b.sector));
       case 'industry':
@@ -133,51 +133,85 @@ export default function Dashboard({ session }: DashboardProps) {
   };
 
   // Handle quantity change
-  const handleQuantityChange = (symbol: string, value: number) => {
-    setQuantities(prev => ({
-      ...prev,
-      [symbol]: value
-    }));
-  };
-
-  // Handle favorite toggle
-  const toggleFavorite = async (stock: SavedStock) => {
+  const handleQuantityChange = async (symbol: string, value: number) => {
     try {
-      const { error } = await supabase
-        .from('saved_stocks')
-        .update({ is_favorite: !stock.is_favorite })
-        .eq('symbol', stock.symbol)
-        .eq('user_id', session?.user.id);
-
-      if (error) throw error;
-
       // Update local state
-      setSavedStocks(stocks =>
-        stocks.map(s =>
-          s.symbol === stock.symbol
-            ? { ...s, is_favorite: !s.is_favorite }
-            : s
-        )
-      );
+      setQuantities(prev => ({
+        ...prev,
+        [symbol]: value
+      }));
 
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login to update quantities",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check if quantity record exists
+      const { data: existingData, error: checkError } = await supabase
+        .from('quantity') // Use the correct table name
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('symbol', symbol)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        // Error other than 'not found'
+        throw checkError;
+      }
+
+      if (existingData) {
+        // Update existing record
+        const { error: updateError } = await supabase
+          .from('quantity') // Use the correct table name
+          .update({ quantity: value })
+          .eq('user_id', user.id)
+          .eq('symbol', symbol);
+
+        if (updateError) throw updateError;
+      } else {
+        // Insert new record
+        const { error: insertError } = await supabase
+          .from('quantity') // Use the correct table name
+          .insert([
+            {
+              user_id: user.id,
+              symbol: symbol,
+              quantity: value
+            }
+          ]);
+
+        if (insertError) throw insertError;
+      }
+
+      // Show success toast
       toast({
-        title: "Success",
-        description: `${stock.symbol} ${!stock.is_favorite ? 'added to' : 'removed from'} favorites`,
+        title: "Quantity Updated",
+        description: `Quantity for ${symbol} updated to ${value}`,
       });
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      console.error('Error saving quantity:', error);
       toast({
         title: "Error",
-        description: "Failed to update favorite status",
+        description: "Failed to save quantity",
         variant: "destructive",
       });
     }
   };
 
+
+
   // Calculate total dividends
   const calculateTotalDividends = (stock: SavedStock) => {
     const quantity = quantities[stock.symbol] || 1;
-    return (stock.dividend_yield * stock.price * quantity / 100) + (stock.special_dividend || 0);
+    // Use dividend_rate directly (annual dividend per share) multiplied by quantity
+    return (stock.dividend_rate * quantity) + (stock.special_dividend || 0);
   };
 
   useEffect(() => {
@@ -232,6 +266,7 @@ export default function Dashboard({ session }: DashboardProps) {
         Papa.parse(csvText, {
           header: true,
           complete: (results) => {
+            console.log('CSV parsing complete, found', results.data.length, 'logos');
             setCompanyLogos(results.data as CompanyLogo[]);
           },
           error: (error) => {
@@ -258,6 +293,33 @@ export default function Dashboard({ session }: DashboardProps) {
 
       if (savedStocksError) throw savedStocksError;
 
+      // Fetch quantities from the quantity table
+      let quantityMap: { [key: string]: number } = {};
+      try {
+        const { data: quantityData } = await supabase
+          .from('quantity') // Use the correct table name
+          .select('symbol, quantity')
+          .eq('user_id', userId);
+
+        // Create a map of symbol to quantity
+        if (quantityData && quantityData.length > 0) {
+          quantityData.forEach(item => {
+            if (item && item.symbol && item.quantity) {
+              quantityMap[item.symbol] = item.quantity;
+            }
+          });
+          console.log('Loaded quantities from database:', quantityMap);
+        } else {
+          console.log('No quantities found in database');
+        }
+      } catch (error) {
+        console.error('Error fetching quantities:', error);
+        // Continue with the rest of the function even if quantities fetch fails
+      }
+
+      // Store the quantities in state
+      setQuantities(quantityMap);
+
       if (savedStocksData) {
         // Get logos from database
         const { data: logoData } = await supabase
@@ -266,24 +328,33 @@ export default function Dashboard({ session }: DashboardProps) {
 
         // Create map of symbols to logos from database
         const dbLogoMap = new Map(
-          logoData?.map(item => [item.symbol.toUpperCase(), item.LogoURL]) || []
+          logoData?.map(item => [
+            item?.symbol?.toUpperCase() || '',
+            item?.LogoURL || ''
+          ]) || []
         );
 
         // Create map of symbols to logos from CSV
-        const csvLogoMap = new Map(companyLogos.map(logo => [logo.Symbol.toUpperCase(), logo.LogoURL]));
+        const csvLogoMap = new Map(
+          companyLogos?.filter(logo => logo?.Symbol && logo?.LogoURL)
+            .map(logo => [
+              logo?.Symbol?.toUpperCase() || '',
+              logo?.LogoURL || ''
+            ]) || []
+        );
 
         // Get additional data from dividendsymbol table
         const symbols = savedStocksData.map(stock => stock.symbol);
         const { data: dividendData, error: dividendError } = await supabase
           .from('dividendsymbol')
-          .select('symbol,buy_date,exdividenddate,earningsdate,payoutdate,shortname,dividendrate')
+          .select('symbol,buy_date,exdividenddate,earningsdate,payoutdate,shortname,dividendrate,dividendyield')
           .in('symbol', symbols);
 
         if (dividendError) throw dividendError;
 
         // Get sector and industry from top_stocks table
         const { data: topStocksData, error: topStocksError } = await supabase
-          .from('top_stocks')
+          .from('company_profiles')
           .select('symbol,sector,industry')
           .in('symbol', symbols);
 
@@ -292,7 +363,8 @@ export default function Dashboard({ session }: DashboardProps) {
         // Merge all the data
         const mergedStocks = savedStocksData.map(stock => {
           const upperSymbol = stock.symbol.toUpperCase();
-          const dividendInfo = dividendData?.find(d => d.symbol.toUpperCase() === upperSymbol) || {
+          const dividendInfo = dividendData?.find(d => d?.symbol?.toUpperCase() === upperSymbol) || {
+            symbol: upperSymbol,
             buy_date: null,
             exdividenddate: null,
             earningsdate: null,
@@ -303,10 +375,10 @@ export default function Dashboard({ session }: DashboardProps) {
             sector: 'N/A',
             industry: 'N/A'
           };
-          
+
           // Get logo from database first, then CSV, then fallback
-          const logoUrl = dbLogoMap.get(upperSymbol) || 
-                         csvLogoMap.get(upperSymbol) || 
+          const logoUrl = dbLogoMap.get(upperSymbol) ||
+                         csvLogoMap.get(upperSymbol) ||
                          stock.LogoURL;
 
           return {
@@ -320,12 +392,13 @@ export default function Dashboard({ session }: DashboardProps) {
             sector: topStockInfo.sector,
             industry: topStockInfo.industry,
             special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0
+            total_dividend: stock.total_dividend || 0,
+            quantity: quantityMap[stock.symbol] || 1 // Use quantity from database or default to 1
           };
         });
 
         setSavedStocks(mergedStocks);
-        
+
         // Initialize quantities
         const initialQuantities: { [key: string]: number } = {};
         mergedStocks.forEach(stock => {
@@ -345,9 +418,8 @@ export default function Dashboard({ session }: DashboardProps) {
     }
   };
 
-  // Filter stocks based on search and favorites
+  // Filter stocks based on search
   const filteredStocks = savedStocks
-    .filter(stock => filterFavorites ? stock.is_favorite : true)
     .filter(stock =>
       stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
       stock.company_name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -495,9 +567,9 @@ export default function Dashboard({ session }: DashboardProps) {
                 <Heart className="h-6 w-6 text-pink-400" />
               </div>
               <div>
-                <p className="text-sm font-medium text-gray-400">Favorites</p>
+                <p className="text-sm font-medium text-gray-400">Total Dividends</p>
                 <p className="text-2xl font-bold text-white">
-                  {savedStocks.filter(s => s.is_favorite).length}
+                  ${savedStocks.reduce((total, stock) => total + calculateTotalDividends(stock), 0).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -545,13 +617,10 @@ export default function Dashboard({ session }: DashboardProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Favorite</TableHead>
               <TableHead>Symbol</TableHead>
               <TableHead>Company</TableHead>
-              <TableHead>Logo</TableHead>
               <TableHead>Sector</TableHead>
               <TableHead>Industry</TableHead>
-              <TableHead>Price</TableHead>
               <TableHead>Quantity</TableHead>
               <TableHead>Dividend Rate</TableHead>
               <TableHead>Dividend Yield</TableHead>
@@ -567,30 +636,37 @@ export default function Dashboard({ session }: DashboardProps) {
             {sortStocks(filteredStocks).map((stock) => (
               <TableRow key={stock.symbol}>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleFavorite(stock)}
-                  >
-                    <Star
-                      className={stock.is_favorite ? "fill-yellow-400 text-yellow-400" : ""}
-                    />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      // Find logo from CSV file by matching symbol
+                      const logoInfo = companyLogos.find(logo =>
+                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
+                      );
+
+                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
+
+                      return logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt={`${stock.company_name} logo`}
+                          className="w-6 h-6 object-contain"
+                          onError={(e) => {
+                            // Fallback if image fails to load
+                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
+                          }}
+                        />
+                      ) : (
+                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
+                        </div>
+                      );
+                    })()}
+                    <span>{stock.symbol}</span>
+                  </div>
                 </TableCell>
-                <TableCell>{stock.symbol}</TableCell>
                 <TableCell>{stock.company_name}</TableCell>
-                <TableCell>
-                  {stock.LogoURL && (
-                    <img
-                      src={stock.LogoURL}
-                      alt={`${stock.company_name} logo`}
-                      className="w-8 h-8 object-contain"
-                    />
-                  )}
-                </TableCell>
                 <TableCell>{stock.sector}</TableCell>
                 <TableCell>{stock.industry}</TableCell>
-                <TableCell>${stock.price.toFixed(2)}</TableCell>
                 <TableCell>
                   <Input
                     type="number"
@@ -601,7 +677,7 @@ export default function Dashboard({ session }: DashboardProps) {
                   />
                 </TableCell>
                 <TableCell>${stock.dividend_rate.toFixed(2)}</TableCell>
-                <TableCell>{stock.dividend_yield.toFixed(2)}%</TableCell>
+                <TableCell>{stock.dividendyield}%</TableCell>
                 <TableCell>{stock.ex_dividend_date || 'N/A'}</TableCell>
                 <TableCell>{stock.payout_date || 'N/A'}</TableCell>
                 <TableCell>{stock.report_date || 'N/A'}</TableCell>
@@ -620,7 +696,18 @@ export default function Dashboard({ session }: DashboardProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => navigate(`/stock/${stock.symbol}`)}
+                    onClick={() => {
+                      // Create a stock object in the format expected by StockDetailsDialog
+                      const stockForDialog = {
+                        Symbol: stock.symbol,
+                        title: stock.company_name,
+                        LogoURL: stock.LogoURL,
+                        marketCap: stock.price,
+                        dividendyield: stock.dividend_yield
+                      };
+                      setSelectedStockForDetails(stockForDialog);
+                      setIsStockDetailsOpen(true);
+                    }}
                   >
                     View Details
                   </Button>
@@ -631,6 +718,35 @@ export default function Dashboard({ session }: DashboardProps) {
         </Table>
       </div>
       <Footer />
+
+      {/* Stock Analysis Dialog */}
+      {selectedStockForDetails && (
+        <StockAnalysisDialog
+          stock={{
+            symbol: selectedStockForDetails.symbol,
+            longName: selectedStockForDetails.company_name,
+            regularMarketPrice: selectedStockForDetails.price || 0,
+            regularMarketChange: 0,
+            regularMarketChangePercent: 0,
+            marketCap: 0,
+            regularMarketVolume: 0,
+            dividendYield: selectedStockForDetails.dividend_yield,
+            sector: selectedStockForDetails.sector || 'N/A',
+            industry: selectedStockForDetails.industry || 'N/A'
+          }}
+          isOpen={isAnalysisOpen}
+          setIsOpen={setIsAnalysisOpen}
+        />
+      )}
+
+      {/* Stock Details Dialog */}
+      {selectedStockForDetails && (
+        <StockDetailsDialog
+          stock={selectedStockForDetails}
+          isOpen={isStockDetailsOpen}
+          setIsOpen={setIsStockDetailsOpen}
+        />
+      )}
     </div>
   );
 }

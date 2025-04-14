@@ -25,9 +25,6 @@ interface DividendEvent {
   earnings_high: number;
   revenue_low: number;
   revenue_high: number;
-  quantity?: number;
-  price?: number;
-  dividend_yield?: number;
 }
 
 const dayNames = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -77,34 +74,6 @@ const DividendCalendar = () => {
 
         if (dividendError) throw dividendError;
 
-        // Create mock quantity data for testing
-        const quantityMap = new Map<string, number>();
-        // Add some mock quantity data for common stocks
-        const mockQuantities = [
-          { symbol: 'AAPL', quantity: 25 },
-          { symbol: 'MSFT', quantity: 15 },
-          { symbol: 'GOOGL', quantity: 10 },
-          { symbol: 'AMZN', quantity: 8 },
-          { symbol: 'META', quantity: 20 },
-          { symbol: 'TSLA', quantity: 30 },
-          { symbol: 'NVDA', quantity: 12 },
-          { symbol: 'JPM', quantity: 18 },
-          { symbol: 'V', quantity: 22 },
-          { symbol: 'JNJ', quantity: 15 }
-        ];
-
-        // Add mock quantities to the map
-        mockQuantities.forEach(item => {
-          quantityMap.set(item.symbol, item.quantity);
-        });
-
-        // For other stocks, generate random quantities
-        dividendData.forEach((event: any) => {
-          if (!quantityMap.has(event.symbol.toUpperCase())) {
-            quantityMap.set(event.symbol.toUpperCase(), Math.floor(Math.random() * 50) + 1);
-          }
-        });
-
         const { data: logosData, error: logosError } = await supabase
           .from("company_logos")
           .select("Symbol, LogoURL");
@@ -122,8 +91,7 @@ const DividendCalendar = () => {
         const eventsWithLogos = dividendData.map((event: any) => ({
           ...event,
           LogoURL: logoMap.get(event.symbol.toUpperCase()) || null,
-          company_name: event.company_name || event.symbol,
-          quantity: quantityMap.get(event.symbol.toUpperCase()) || null
+          company_name: event.company_name || event.symbol
         }));
 
         setDividendEvents(eventsWithLogos);
@@ -635,62 +603,55 @@ const DividendCalendar = () => {
 
       {selectedDateEvents && (
         <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
           onClick={closeDateEvents}
         >
           <div
-            className="bg-gradient-to-b from-[#1a2235] to-[#111827] rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 shadow-xl border border-gray-800 animate-slideUp"
+            className="bg-[#1a2235] rounded-md p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4"
             onClick={e => e.stopPropagation()}
           >
             {/* Header with glowing effect */}
-            <div className="mb-6 pb-3 border-b border-gray-700">
+            <div className="mb-6 pb-2 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-bold text-white bg-gradient-to-r from-red-500 to-red-300 bg-clip-text text-transparent">
-                    Dividend Stocks
-                  </h3>
-                  <span className="text-sm text-gray-300 bg-gray-800 px-3 py-1 rounded-md border border-gray-700">{selectedDateEvents.events.length} stocks found</span>
+                <h3 className="text-xl font-bold text-white">
+                  Dividend Stocks
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-400">{selectedDateEvents.events.length} stocks found</span>
+                  <button
+                    onClick={closeDateEvents}
+                    className="text-gray-400 hover:text-red-400 transition-all duration-300 bg-gray-800/60 p-2 rounded-full hover:bg-gray-800 hover:shadow-[0_0_10px_rgba(255,0,0,0.3)]"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <button
-                  onClick={closeDateEvents}
-                  className="text-gray-400 hover:text-red-400 transition-all duration-300 bg-gray-800/60 p-2 rounded-full hover:bg-gray-800 hover:shadow-[0_0_10px_rgba(255,0,0,0.3)]"
-                >
-                  <X className="w-4 h-4" />
-                </button>
               </div>
             </div>
 
             {/* Grid layout matching the image */}
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-x-4 gap-y-6 px-2 py-4">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3 px-1">
               {selectedDateEvents.events.map((stock, index) => (
                 <div
                   key={index}
                   className="flex flex-col items-center cursor-pointer group relative w-[50px]"
                   onClick={() => handleEventClick(stock)}
                 >
-                  {/* Combined stock card with single border */}
-                  <div className="relative w-[50px] h-[60px] border border-red-500 rounded overflow-hidden shadow-md group-hover:shadow-lg group-hover:shadow-red-500/20 transition-all duration-300">
-                    {/* Logo container with gradient background */}
-                    <div className="absolute top-0 left-0 right-0 h-[40px] bg-gradient-to-b from-white to-gray-100 overflow-hidden flex items-center justify-center">
+                  {/* Stock card with fixed dimensions */}
+                  <div className="relative w-[50px] h-[50px]">
+                    {/* Logo container with border */}
+                    <div className="absolute inset-0 bg-white rounded-sm overflow-hidden border border-gray-700 group-hover:border-red-500 transition-colors">
                       <img
                         src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
                         alt={stock.symbol}
-                        className="max-w-[80%] max-h-[80%] object-contain"
+                        className="w-full h-full object-contain p-1"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/stock.avif';
                         }}
                       />
                     </div>
 
-                    {/* Symbol text directly below logo in same container */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[20px] bg-[#1a2235] group-hover:bg-red-900 transition-colors flex items-center justify-center">
-                      <p className="text-xs font-bold text-red-400 group-hover:text-red-300 truncate px-1 text-center">
-                        {stock.symbol}
-                      </p>
-                    </div>
-
                     {/* Animated border effect on hover */}
-                    <div className="absolute inset-0 border border-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute inset-0 rounded-sm border border-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="absolute inset-0 overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-500 to-transparent animate-borderRunHorizontal"></div>
                         <div className="absolute top-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-red-500 to-transparent animate-borderRunVertical"></div>
@@ -698,6 +659,13 @@ const DividendCalendar = () => {
                         <div className="absolute bottom-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-red-500 to-transparent animate-borderRunVerticalReverse"></div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Symbol text */}
+                  <div className="w-[50px] bg-[#1e293b] py-1 text-center group-hover:bg-red-900/80 transition-colors">
+                    <p className="text-xs font-bold text-red-400 group-hover:text-red-300">
+                      {stock.symbol}
+                    </p>
                   </div>
 
                   {/* Expanded view on hover */}

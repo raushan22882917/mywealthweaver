@@ -25,9 +25,6 @@ interface DividendEvent {
   earnings_high: number;
   revenue_low: number;
   revenue_high: number;
-  quantity?: number;
-  price?: number;
-  dividend_yield?: number;
 }
 
 const dayNames = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -77,34 +74,6 @@ const DividendCalendar = () => {
 
         if (dividendError) throw dividendError;
 
-        // Create mock quantity data for testing
-        const quantityMap = new Map<string, number>();
-        // Add some mock quantity data for common stocks
-        const mockQuantities = [
-          { symbol: 'AAPL', quantity: 25 },
-          { symbol: 'MSFT', quantity: 15 },
-          { symbol: 'GOOGL', quantity: 10 },
-          { symbol: 'AMZN', quantity: 8 },
-          { symbol: 'META', quantity: 20 },
-          { symbol: 'TSLA', quantity: 30 },
-          { symbol: 'NVDA', quantity: 12 },
-          { symbol: 'JPM', quantity: 18 },
-          { symbol: 'V', quantity: 22 },
-          { symbol: 'JNJ', quantity: 15 }
-        ];
-
-        // Add mock quantities to the map
-        mockQuantities.forEach(item => {
-          quantityMap.set(item.symbol, item.quantity);
-        });
-
-        // For other stocks, generate random quantities
-        dividendData.forEach((event: any) => {
-          if (!quantityMap.has(event.symbol.toUpperCase())) {
-            quantityMap.set(event.symbol.toUpperCase(), Math.floor(Math.random() * 50) + 1);
-          }
-        });
-
         const { data: logosData, error: logosError } = await supabase
           .from("company_logos")
           .select("Symbol, LogoURL");
@@ -122,8 +91,7 @@ const DividendCalendar = () => {
         const eventsWithLogos = dividendData.map((event: any) => ({
           ...event,
           LogoURL: logoMap.get(event.symbol.toUpperCase()) || null,
-          company_name: event.company_name || event.symbol,
-          quantity: quantityMap.get(event.symbol.toUpperCase()) || null
+          company_name: event.company_name || event.symbol
         }));
 
         setDividendEvents(eventsWithLogos);
@@ -635,22 +603,29 @@ const DividendCalendar = () => {
 
       {selectedDateEvents && (
         <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center z-50 animate-fadeIn"
           onClick={closeDateEvents}
         >
           <div
-            className="bg-gradient-to-b from-[#1a2235] to-[#111827] rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 shadow-xl border border-gray-800 animate-slideUp"
+            className="bg-gradient-to-br from-gray-900 via-gray-900 to-black rounded-2xl p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 shadow-[0_0_30px_rgba(255,0,0,0.2)] animate-slideUp"
+            style={{
+              boxShadow: '0 0 30px rgba(255, 0, 0, 0.2), inset 0 0 20px rgba(255, 0, 0, 0.05)',
+              border: '1px solid rgba(255, 0, 0, 0.3)'
+            }}
             onClick={e => e.stopPropagation()}
           >
             {/* Header with glowing effect */}
-            <div className="mb-6 pb-3 border-b border-gray-700">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-bold text-white bg-gradient-to-r from-red-500 to-red-300 bg-clip-text text-transparent">
-                    Dividend Stocks
-                  </h3>
-                  <span className="text-sm text-gray-300 bg-gray-800 px-3 py-1 rounded-md border border-gray-700">{selectedDateEvents.events.length} stocks found</span>
-                </div>
+            <div className="relative mb-8 pb-4">
+              <div className="absolute -inset-1 bg-gradient-to-r from-red-500 to-red-700 rounded-lg opacity-20 blur-md"></div>
+              <div className="relative flex justify-between items-center bg-gray-900/80 rounded-lg p-4 backdrop-blur-sm">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3">
+                  <div className="bg-red-500/20 p-2 rounded-full">
+                    <CalendarIcon className="h-5 w-5 text-red-400" />
+                  </div>
+                  <span className="bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent">
+                    Stocks for {format(selectedDateEvents.date, 'MMMM d, yyyy')}
+                  </span>
+                </h3>
                 <button
                   onClick={closeDateEvents}
                   className="text-gray-400 hover:text-red-400 transition-all duration-300 bg-gray-800/60 p-2 rounded-full hover:bg-gray-800 hover:shadow-[0_0_10px_rgba(255,0,0,0.3)]"
@@ -660,58 +635,48 @@ const DividendCalendar = () => {
               </div>
             </div>
 
-            {/* Grid layout matching the image */}
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-x-4 gap-y-6 px-2 py-4">
+            {/* Grid layout with improved spacing */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 px-1">
               {selectedDateEvents.events.map((stock, index) => (
                 <div
                   key={index}
-                  className="flex flex-col items-center cursor-pointer group relative w-[50px]"
+                  className="inline-flex flex-col items-center p-3 rounded-xl bg-gray-900/70 hover:bg-gray-800/70 transition-all duration-300
+                            cursor-pointer group relative overflow-hidden w-max mx-auto
+                            hover:shadow-[0_0_15px_rgba(255,0,0,0.3)] hover:-translate-y-1"
+                  style={{ width: 'fit-content' }}
                   onClick={() => handleEventClick(stock)}
                 >
-                  {/* Combined stock card with single border */}
-                  <div className="relative w-[50px] h-[60px] border border-red-500 rounded overflow-hidden shadow-md group-hover:shadow-lg group-hover:shadow-red-500/20 transition-all duration-300">
-                    {/* Logo container with gradient background */}
-                    <div className="absolute top-0 left-0 right-0 h-[40px] bg-gradient-to-b from-white to-gray-100 overflow-hidden flex items-center justify-center">
-                      <img
-                        src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
-                        alt={stock.symbol}
-                        className="max-w-[80%] max-h-[80%] object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/stock.avif';
-                        }}
-                      />
-                    </div>
-
-                    {/* Symbol text directly below logo in same container */}
-                    <div className="absolute bottom-0 left-0 right-0 h-[20px] bg-[#1a2235] group-hover:bg-red-900 transition-colors flex items-center justify-center">
-                      <p className="text-xs font-bold text-red-400 group-hover:text-red-300 truncate px-1 text-center">
-                        {stock.symbol}
-                      </p>
-                    </div>
-
-                    {/* Animated border effect on hover */}
-                    <div className="absolute inset-0 border border-red-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="absolute inset-0 overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-500 to-transparent animate-borderRunHorizontal"></div>
-                        <div className="absolute top-0 right-0 w-[1px] h-full bg-gradient-to-b from-transparent via-red-500 to-transparent animate-borderRunVertical"></div>
-                        <div className="absolute bottom-0 right-0 w-full h-[1px] bg-gradient-to-r from-transparent via-red-500 to-transparent animate-borderRunHorizontalReverse"></div>
-                        <div className="absolute bottom-0 left-0 w-[1px] h-full bg-gradient-to-b from-transparent via-red-500 to-transparent animate-borderRunVerticalReverse"></div>
-                      </div>
+                  {/* Animated running border effect - improved */}
+                  <div className="absolute inset-0 overflow-hidden rounded-xl border-2 border-red-500/70">
+                    <div className="absolute inset-0 overflow-hidden">
+                      {/* Top running light */}
+                      <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent animate-borderRunHorizontal"></div>
+                      {/* Right running light */}
+                      <div className="absolute top-0 right-0 w-[2px] h-full bg-gradient-to-b from-transparent via-red-500 to-transparent animate-borderRunVertical"></div>
+                      {/* Bottom running light */}
+                      <div className="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-r from-transparent via-red-500 to-transparent animate-borderRunHorizontalReverse"></div>
+                      {/* Left running light */}
+                      <div className="absolute bottom-0 left-0 w-[2px] h-full bg-gradient-to-b from-transparent via-red-500 to-transparent animate-borderRunVerticalReverse"></div>
                     </div>
                   </div>
 
-                  {/* Expanded view on hover */}
-                  <div className="fixed inset-0 bg-black/70 backdrop-blur-sm opacity-0 group-hover:opacity-0 pointer-events-none z-40 transition-opacity duration-300">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg w-[400px] h-[400px] flex items-center justify-center p-4 opacity-0 group-hover:opacity-0 transition-all duration-300">
+                  {/* Content with improved styling */}
+                  <div className="z-10 flex flex-col items-center">
+                    <div className="w-14 h-14 bg-white rounded-lg overflow-hidden mb-3 shadow-md flex items-center justify-center
+                                  group-hover:scale-110 transition-transform duration-300 p-0.5">
                       <img
                         src={companyLogos.get(stock.symbol.toUpperCase()) || '/stock.avif'}
                         alt={stock.symbol}
-                        className="max-w-full max-h-full object-contain"
+                        className="w-full h-full object-contain"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src = '/stock.avif';
                         }}
                       />
                     </div>
+                    <p className="text-sm font-bold text-white text-center bg-gradient-to-r from-red-400 to-red-300 bg-clip-text text-transparent
+                                group-hover:scale-105 transition-all duration-300">
+                      {stock.symbol}
+                    </p>
                   </div>
                 </div>
               ))}

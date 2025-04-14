@@ -104,12 +104,6 @@ export default {
         "pulse-gentle": "pulse-gentle 3s ease-in-out infinite",
         "fade-in": "fade-in 0.8s ease-out forwards",
         "scale-in": "scale-in 0.4s ease-out forwards",
-        "fadeIn": "fadeIn 0.5s ease-out forwards",
-        "slideUp": "slideUp 0.5s ease-out forwards",
-        "borderRunHorizontal": "borderRunHorizontal 2s linear infinite",
-        "borderRunVertical": "borderRunVertical 2s linear infinite",
-        "borderRunHorizontalReverse": "borderRunHorizontalReverse 2s linear infinite",
-        "borderRunVerticalReverse": "borderRunVerticalReverse 2s linear infinite",
       },
       boxShadow: {
         'subtle': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',

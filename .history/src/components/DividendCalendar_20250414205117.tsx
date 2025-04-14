@@ -635,21 +635,21 @@ const DividendCalendar = () => {
 
       {selectedDateEvents && (
         <div
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn"
+          className="fixed inset-0 bg-black/90 flex items-center justify-center z-50"
           onClick={closeDateEvents}
         >
           <div
-            className="bg-gradient-to-b from-[#1a2235] to-[#111827] rounded-lg p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 shadow-xl border border-gray-800 animate-slideUp"
+            className="bg-[#1a2235] rounded-md p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4"
             onClick={e => e.stopPropagation()}
           >
             {/* Header with glowing effect */}
-            <div className="mb-6 pb-3 border-b border-gray-700">
+            <div className="mb-4 pb-2 border-b border-gray-800">
               <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <h3 className="text-xl font-bold text-white bg-gradient-to-r from-red-500 to-red-300 bg-clip-text text-transparent">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-xl font-bold text-white">
                     Dividend Stocks
                   </h3>
-                  <span className="text-sm text-gray-300 bg-gray-800 px-3 py-1 rounded-md border border-gray-700">{selectedDateEvents.events.length} stocks found</span>
+                  <span className="text-sm text-gray-400 bg-gray-800 px-2 py-0.5 rounded-md">{selectedDateEvents.events.length} stocks found</span>
                 </div>
                 <button
                   onClick={closeDateEvents}
@@ -661,11 +661,11 @@ const DividendCalendar = () => {
             </div>
 
             {/* Grid layout matching the image */}
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-x-4 gap-y-6 px-2 py-4">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-x-3 gap-y-6 px-1 py-2">
               {selectedDateEvents.events.map((stock, index) => (
                 <div
                   key={index}
-                  className="flex flex-col items-center cursor-pointer group relative w-[50px]"
+                  className="flex flex-col items-center cursor-pointer group relative w-[40px]"
                   onClick={() => handleEventClick(stock)}
                 >
                   {/* Combined stock card with single border */}
