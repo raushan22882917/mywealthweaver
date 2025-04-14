@@ -4,6 +4,7 @@ import { Loader } from '@/components/ui/loader';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import StockDetailsDialog from '@/components/StockDetailsDialog';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Table,
   TableBody,
@@ -17,9 +18,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
-import { Search, Award, Star, BarChart2, DollarSign, Info } from 'lucide-react';
+import { Search, Star, BarChart2, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Stock {
   industry: string;
@@ -27,6 +27,14 @@ interface Stock {
   symbol: string;
   Score: number;
   Rank: number;
+}
+
+interface SavedStock {
+  id?: string;
+  user_id: string;
+  symbol: string;
+  company_name: string;
+  is_favorite: boolean;
 }
 
 const TopStocks: React.FC = () => {
@@ -38,10 +46,13 @@ const TopStocks: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
+  const [savedStocks, setSavedStocks] = useState<SavedStock[]>([]);
+  const { toast } = useToast();
   const itemsPerPage = 10;
 
   useEffect(() => {
     fetchTopStocks();
+    fetchSavedStocks();
   }, []);
 
   const fetchTopStocks = async () => {
@@ -60,6 +71,109 @@ const TopStocks: React.FC = () => {
       setError(err instanceof Error ? err.message : 'Failed to load top stocks');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchSavedStocks = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('saved_stocks')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setSavedStocks(data || []);
+    } catch (err) {
+      console.error('Error fetching saved stocks:', err);
+    }
+  };
+
+  const isStockSaved = (symbol: string) => {
+    return savedStocks.some(stock => stock.symbol === symbol);
+  };
+
+  const toggleSaveStock = async (stock: Stock) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login to save stocks",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const isSaved = isStockSaved(stock.symbol);
+
+      if (isSaved) {
+        // Remove the stock if it's already saved
+        const { error } = await supabase
+          .from('saved_stocks')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('symbol', stock.symbol);
+
+        if (error) {
+          console.error('Error removing stock:', error);
+          toast({
+            title: "Error",
+            description: error.message || "Failed to remove stock from watchlist",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Update local state
+        setSavedStocks(savedStocks.filter(s => s.symbol !== stock.symbol));
+
+        toast({
+          title: "Success",
+          description: `${stock.symbol} removed from watchlist`,
+        });
+      } else {
+        // Save new stock
+        const stockData: SavedStock = {
+          user_id: user.id,
+          symbol: stock.symbol,
+          company_name: stock.symbol, // Using symbol as company name since we don't have it
+          is_favorite: false
+        };
+
+        const { error } = await supabase
+          .from('saved_stocks')
+          .insert([stockData]);
+
+        if (error) {
+          console.error('Error saving stock:', error);
+          toast({
+            title: "Error",
+            description: error.message || "Failed to save stock to watchlist",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Update local state
+        setSavedStocks([...savedStocks, stockData]);
+
+        toast({
+          title: "Success",
+          description: `${stock.symbol} saved to watchlist`,
+        });
+      }
+    } catch (error) {
+      console.error('Error saving stock:', error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
   };
 
@@ -161,7 +275,7 @@ const TopStocks: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <TooltipProvider>
+              <div>
                 <Table className="dark:border-gray-700">
                   <TableCaption className="dark:text-gray-400">Top performing stocks in the market today</TableCaption>
                   <TableHeader className="dark:bg-[#151a27]">
@@ -190,46 +304,17 @@ const TopStocks: React.FC = () => {
                             <TableRow key={stock.symbol} className={rank <= 3 ? 'bg-opacity-10 bg-primary dark:bg-[#212738]' : 'dark:bg-[#1a1f2e]'}>
                               <TableCell>
                                 <div className="flex items-center gap-2">
-                                  {rank === 1 && (
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <Award className="h-5 w-5 text-yellow-500" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Top Ranked Stock</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  )}
-                                  {rank === 2 && (
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <Award className="h-5 w-5 text-gray-400" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Second Ranked Stock</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  )}
-                                  {rank === 3 && (
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <Award className="h-5 w-5 text-amber-700" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Third Ranked Stock</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  )}
-                                  {rank > 3 && rank <= 10 && (
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <Star className="h-5 w-5 text-blue-500" />
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Top 10 Stock</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  )}
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleSaveStock(stock);
+                                    }}
+                                    className="focus:outline-none"
+                                  >
+                                    <Star
+                                      className={`h-5 w-5 transition-colors ${isStockSaved(stock.symbol) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-400 hover:text-yellow-400'}`}
+                                    />
+                                  </button>
                                   <Badge variant={rank <= 3 ? "default" : "outline"} className={`font-bold ${rank > 3 ? 'dark:bg-[#151a27] dark:border-gray-700' : ''}`}>
                                     {rank}
                                   </Badge>
@@ -244,7 +329,6 @@ const TopStocks: React.FC = () => {
                                   onClick={() => setSelectedStock(stock)}
                                   tabIndex={0}
                                 >
-                                  <Info className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                   <span className="font-medium group-hover:text-primary group-hover:underline transition-all">{stock.symbol}</span>
                                 </div>
                               </TableCell>
@@ -275,7 +359,7 @@ const TopStocks: React.FC = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </TooltipProvider>
+              </div>
               <div className="flex justify-between items-center mt-6 pt-4 border-t dark:border-gray-700">
                 <div className="text-sm text-muted-foreground">
                   Showing <span className="font-medium">{Math.min(filteredStocks.length, (currentPage - 1) * itemsPerPage + 1)}</span> to{' '}
