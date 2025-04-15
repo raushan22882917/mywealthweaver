@@ -1419,27 +1419,54 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                             key={company.similar_symbol}
                             className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                             onClick={() => {
-                              // Always open the StockDetailsDialog for the similar symbol
-                              // Close current dialog
-                              setIsOpen(false);
-                              // Wait for dialog to close, then open new one
-                              setTimeout(() => {
-                                // Create a new stock object for the similar company
-                                const newStock = {
-                                  Symbol: company.similar_symbol,
-                                  title: company.similar_company || company.similar_symbol,
-                                  cik_str: '',
-                                  LogoURL: company.LogoURL
-                                };
-                                // Open a new dialog for this stock
-                                const event = new CustomEvent('openStockDetails', { detail: newStock });
-                                window.dispatchEvent(event);
-                              }, 300);
+                              // If user holds Shift key, show popup instead
+                              if (window.event?.shiftKey) {
+                                setSelectedStock(company);
+                              } else {
+                                // Close current dialog
+                                setIsOpen(false);
+                                // Wait for dialog to close, then open new one
+                                setTimeout(() => {
+                                  // Create a new stock object for the similar company
+                                  const newStock = {
+                                    Symbol: company.similar_symbol,
+                                    cik_str: '',
+                                    LogoURL: company.LogoURL
+                                  };
+                                  // Open a new dialog for this stock
+                                  const event = new CustomEvent('openStockDetails', { detail: newStock });
+                                  window.dispatchEvent(event);
+                                }, 300);
+                              }
                             }}
                           >
                             <td className="px-3 py-2 font-medium text-blue-600 dark:text-blue-400">
                               <div
                                 className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1 rounded-md"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent triggering the row click handler
+
+                                  // If user holds Shift key, show popup instead
+                                  if (e.shiftKey) {
+                                    setSelectedStock(company);
+                                  } else {
+                                    // Close current dialog
+                                    setIsOpen(false);
+                                    // Wait for dialog to close, then open new one
+                                    setTimeout(() => {
+                                      // Create a new stock object for the similar company
+                                      const newStock = {
+                                        Symbol: company.similar_symbol,
+                                        title: company.similar_company || company.similar_symbol,
+                                        cik_str: '',
+                                        LogoURL: company.LogoURL
+                                      };
+                                      // Open a new dialog for this stock
+                                      const event = new CustomEvent('openStockDetails', { detail: newStock });
+                                      window.dispatchEvent(event);
+                                    }, 300);
+                                  }
+                                }}
                               >
                                 <div
                                   className="w-5 h-5 bg-center bg-no-repeat bg-contain rounded border border-red-500 flex-shrink-0 animate-pulse-border"
@@ -1449,6 +1476,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                                 />
                                 <div className="flex flex-col">
                                   <span className="text-xs font-medium">{company.similar_symbol}</span>
+                                  <span className="text-xs text-gray-500 truncate max-w-[120px]">{company.similar_company || company.similar_symbol}</span>
                                 </div>
                               </div>
                             </td>
@@ -1497,7 +1525,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     </table>
                   </div>
                   <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                    Click on any company to open its details in a new dialog. Click the risk icon <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-red-100 text-red-500"><AlertTriangle className="w-2 h-2" /></span> to view risk information.
+                    Click on any company to open in a new dialog. <span className="font-medium text-blue-500">Hold Shift + Click</span> to view in a popup instead.
                   </p>
                 </PopoverContent>
               </Popover>
@@ -1591,7 +1619,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               {/* Action Buttons */}
               <div className="mt-4 flex justify-between">
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white font-bold flex items-center gap-2"
+                  className="bg-green-500 hover:bg-green-600 text-white"
                   onClick={() => {
                     // Close current dialogs
                     setSelectedStock(null);
@@ -1612,12 +1640,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     }, 300);
                   }}
                 >
-                  <div className="w-4 h-4 bg-center bg-no-repeat bg-contain rounded-full border border-white"
-                    style={{
-                      backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
-                    }}
-                  />
-                  Open {selectedStock?.similar_symbol} Details
+                  Open {selectedStock?.similar_symbol}
                 </Button>
 
                 <Button

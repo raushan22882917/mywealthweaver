@@ -1407,7 +1407,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
                         <tr>
-                          <th className="px-3 py-2 text-left font-medium">Symbol Company</th>
+                          <th className="px-3 py-2 text-left font-medium">Symbol & Company</th>
                           <th className="px-3 py-2 text-left font-medium">Revenue 2025</th>
                           <th className="px-3 py-2 text-right font-medium">Dividend Yield</th>
                           <th className="px-3 py-2 text-right font-medium">Risks</th>
@@ -1418,39 +1418,16 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                           <tr
                             key={company.similar_symbol}
                             className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                            onClick={() => {
-                              // Always open the StockDetailsDialog for the similar symbol
-                              // Close current dialog
-                              setIsOpen(false);
-                              // Wait for dialog to close, then open new one
-                              setTimeout(() => {
-                                // Create a new stock object for the similar company
-                                const newStock = {
-                                  Symbol: company.similar_symbol,
-                                  title: company.similar_company || company.similar_symbol,
-                                  cik_str: '',
-                                  LogoURL: company.LogoURL
-                                };
-                                // Open a new dialog for this stock
-                                const event = new CustomEvent('openStockDetails', { detail: newStock });
-                                window.dispatchEvent(event);
-                              }, 300);
-                            }}
+                            onClick={() => setSelectedStock(company)}
                           >
-                            <td className="px-3 py-2 font-medium text-blue-600 dark:text-blue-400">
+                            <td className="px-3 py-2 font-medium text-blue-600 dark:text-blue-400 flex items-center gap-2">
                               <div
-                                className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1 rounded-md"
-                              >
-                                <div
-                                  className="w-5 h-5 bg-center bg-no-repeat bg-contain rounded border border-red-500 flex-shrink-0 animate-pulse-border"
-                                  style={{
-                                    backgroundImage: `url(${company.LogoURL || "/stock.avif"})`
-                                  }}
-                                />
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-medium">{company.similar_symbol}</span>
-                                </div>
-                              </div>
+                                className="w-5 h-5 bg-center bg-no-repeat bg-contain rounded border border-red-500 flex-shrink-0"
+                                style={{
+                                  backgroundImage: `url(${company.LogoURL || "/stock.avif"})`
+                                }}
+                              />
+                              {company.similar_symbol}
                             </td>
                             <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
                               {company.revenue_2025 || 'N/A'}
@@ -1467,22 +1444,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                                 </span>
                                 <Popover>
                                   <PopoverTrigger asChild>
-                                    <button
-                                      className="w-5 h-5 flex items-center justify-center rounded-full border border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                      onClick={(e) => {
-                                        e.stopPropagation(); // Prevent row click
-                                      }}
-                                    >
+                                    <button className="w-5 h-5 flex items-center justify-center rounded-full border border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
                                       <AlertTriangle className="w-3 h-3" />
                                     </button>
                                   </PopoverTrigger>
-                                  <PopoverContent
-                                    className="w-72 p-3 text-sm rounded-xl shadow-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
-                                    onPointerDownOutside={(e) => {
-                                      // Auto-close when clicking outside
-                                      e.preventDefault();
-                                    }}
-                                  >
+                                  <PopoverContent className="w-72 p-3 text-sm rounded-xl shadow-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
                                     <p className="font-semibold text-red-500 mb-1">Risk Factors</p>
                                     <p className="text-xs text-gray-700 dark:text-gray-300">
                                       {company.risks || 'No risk information available'}
@@ -1496,12 +1462,41 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                       </tbody>
                     </table>
                   </div>
-                  <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                    Click on any company to open its details in a new dialog. Click the risk icon <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-red-100 text-red-500"><AlertTriangle className="w-2 h-2" /></span> to view risk information.
-                  </p>
+                  <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">Click on any company to view detailed information</p>
                 </PopoverContent>
               </Popover>
-
+              <div className="flex gap-1">
+                {similarCompanies.slice(0, 3).map((similarStock) => (
+                  <div
+                    key={similarStock.similar_symbol}
+                    onClick={() => setSelectedStock(similarStock)}
+                    className="flex items-center gap-1 px-2 py-1 rounded-lg border border-red-500 bg-white dark:bg-gray-800 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-300 dark:hover:border-blue-700 transition cursor-pointer group"
+                  >
+                    <div
+                      className="w-5 h-5 bg-center bg-no-repeat bg-contain rounded border border-red-500 animate-pulse-border"
+                      style={{
+                        backgroundImage: `url(${similarStock.LogoURL || "/stock.avif"})`
+                      }}
+                    />
+                    <span className="text-xs font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                      {similarStock.similar_symbol}
+                    </span>
+                  </div>
+                ))}
+                {similarCompanies.length > 3 && (
+                  <div
+                    className="flex items-center justify-center px-2 py-1 rounded-lg border border-red-500 bg-white dark:bg-gray-800 text-xs font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                    onClick={() => {
+                      toast({
+                        title: "More Similar Companies",
+                        description: `${similarCompanies.length - 3} more similar companies available.`,
+                      });
+                    }}
+                  >
+                    +{similarCompanies.length - 3}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </DialogTitle>
@@ -1536,14 +1531,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           </div>
         </div>
         {/* Similar Company Details Dialog */}
-        <Dialog
-          open={!!selectedStock}
-          onOpenChange={() => setSelectedStock(null)}
-          onPointerDownOutside={(e) => {
-            // Auto-close when clicking outside
-            setSelectedStock(null);
-          }}
-        >
+        <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
@@ -1588,38 +1576,8 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                 </table>
               </div>
 
-              {/* Action Buttons */}
-              <div className="mt-4 flex justify-between">
-                <Button
-                  className="bg-green-500 hover:bg-green-600 text-white font-bold flex items-center gap-2"
-                  onClick={() => {
-                    // Close current dialogs
-                    setSelectedStock(null);
-                    setIsOpen(false);
-
-                    // Wait for dialogs to close, then open new one
-                    setTimeout(() => {
-                      // Create a new stock object for the similar company
-                      const newStock = {
-                        Symbol: selectedStock?.similar_symbol || '',
-                        title: selectedStock?.similar_company || selectedStock?.similar_symbol || '',
-                        cik_str: '',
-                        LogoURL: selectedStock?.LogoURL || ''
-                      };
-                      // Open a new dialog for this stock
-                      const event = new CustomEvent('openStockDetails', { detail: newStock });
-                      window.dispatchEvent(event);
-                    }, 300);
-                  }}
-                >
-                  <div className="w-4 h-4 bg-center bg-no-repeat bg-contain rounded-full border border-white"
-                    style={{
-                      backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
-                    }}
-                  />
-                  Open {selectedStock?.similar_symbol} Details
-                </Button>
-
+              {/* Compare Button */}
+              <div className="mt-4 flex justify-end">
                 <Button
                   className="bg-blue-500 hover:bg-blue-600 text-white"
                   onClick={() => {

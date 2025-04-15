@@ -24,7 +24,7 @@ import {
   Scatter,
 } from "recharts";
 import { useTheme } from "next-themes";
-import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, AlertTriangle, Heart } from "lucide-react";
+import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -594,7 +594,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           return;
         }
 
-        if (similarData && similarData.length > 0) {
+        if (similarData) {
           // Fetch logos for similar companies
           const symbols = similarData.map(item => item.similar_symbol);
           const { data: logoData, error: logoError } = await supabase
@@ -614,35 +614,16 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             });
           }
 
-          // Fetch company names for similar symbols
-          const { data: companyData, error: companyError } = await supabase
-            .from('company_profiles')
-            .select('symbol, company_name')
-            .in('symbol', symbols);
-
-          // Create a map of symbols to company names
-          const companyNameMap = new Map();
-          if (companyData && !companyError) {
-            companyData.forEach((company: any) => {
-              companyNameMap.set(company.symbol.toUpperCase(), company.company_name);
-            });
-          } else if (companyError) {
-            console.error('Error fetching company names:', companyError);
-          }
-
           const formattedData: SimilarCompany[] = similarData.map(company => ({
             symbol: company.symbol,
             similar_symbol: company.similar_symbol,
-            similar_company: companyNameMap.get(company.similar_symbol?.toUpperCase()) || company.similar_symbol,
+            similar_company: company.similar_company || company.similar_symbol,
             revenue_2025: company.revenue_2025 || 'N/A',
             dividend_yield: company.dividend_yield || 'N/A',
             risks: company.risks || 'N/A',
             LogoURL: logoMap.get(company.similar_symbol?.toUpperCase()) || '/stock.avif'
           }));
           setSimilarCompanies(formattedData);
-        } else {
-          console.log('No similar companies found for', stock.Symbol);
-          setSimilarCompanies([]);
         }
       } catch (error) {
         console.error('Error in fetchSimilarCompanies:', error);
@@ -1395,113 +1376,39 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           <div className="flex items-center gap-4">
             <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
             <div className="flex items-center gap-2">
-              <div className="text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md">Similar Companies</div>
+              <div className="text-xs font-medium">Similar</div>
               <Popover>
                 <PopoverTrigger asChild>
                   <button className="w-5 h-5 flex items-center justify-center rounded-full border border-gray-400 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
                     <AlertCircle className="w-3 h-3" />
                   </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-96 p-4 text-sm rounded-xl shadow-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-                  <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
-                        <tr>
-                          <th className="px-3 py-2 text-left font-medium">Symbol Company</th>
-                          <th className="px-3 py-2 text-left font-medium">Revenue 2025</th>
-                          <th className="px-3 py-2 text-right font-medium">Dividend Yield</th>
-                          <th className="px-3 py-2 text-right font-medium">Risks</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {similarCompanies.slice(0, 5).map((company) => (
-                          <tr
-                            key={company.similar_symbol}
-                            className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                            onClick={() => {
-                              // Always open the StockDetailsDialog for the similar symbol
-                              // Close current dialog
-                              setIsOpen(false);
-                              // Wait for dialog to close, then open new one
-                              setTimeout(() => {
-                                // Create a new stock object for the similar company
-                                const newStock = {
-                                  Symbol: company.similar_symbol,
-                                  title: company.similar_company || company.similar_symbol,
-                                  cik_str: '',
-                                  LogoURL: company.LogoURL
-                                };
-                                // Open a new dialog for this stock
-                                const event = new CustomEvent('openStockDetails', { detail: newStock });
-                                window.dispatchEvent(event);
-                              }, 300);
-                            }}
-                          >
-                            <td className="px-3 py-2 font-medium text-blue-600 dark:text-blue-400">
-                              <div
-                                className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1 rounded-md"
-                              >
-                                <div
-                                  className="w-5 h-5 bg-center bg-no-repeat bg-contain rounded border border-red-500 flex-shrink-0 animate-pulse-border"
-                                  style={{
-                                    backgroundImage: `url(${company.LogoURL || "/stock.avif"})`
-                                  }}
-                                />
-                                <div className="flex flex-col">
-                                  <span className="text-xs font-medium">{company.similar_symbol}</span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
-                              {company.revenue_2025 || 'N/A'}
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              <span className={`font-medium ${parseFloat(company.dividend_yield) > 3 ? 'text-green-500' : 'text-blue-500'}`}>
-                                {company.dividend_yield || 'N/A'}
-                              </span>
-                            </td>
-                            <td className="px-3 py-2 text-right">
-                              <div className="flex items-center justify-end gap-1">
-                                <span className="text-xs text-gray-500 truncate max-w-[60px] overflow-hidden">
-                                  {company.risks ? (company.risks.length > 10 ? company.risks.substring(0, 10) + '...' : company.risks) : 'N/A'}
-                                </span>
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <button
-                                      className="w-5 h-5 flex items-center justify-center rounded-full border border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                      onClick={(e) => {
-                                        e.stopPropagation(); // Prevent row click
-                                      }}
-                                    >
-                                      <AlertTriangle className="w-3 h-3" />
-                                    </button>
-                                  </PopoverTrigger>
-                                  <PopoverContent
-                                    className="w-72 p-3 text-sm rounded-xl shadow-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
-                                    onPointerDownOutside={(e) => {
-                                      // Auto-close when clicking outside
-                                      e.preventDefault();
-                                    }}
-                                  >
-                                    <p className="font-semibold text-red-500 mb-1">Risk Factors</p>
-                                    <p className="text-xs text-gray-700 dark:text-gray-300">
-                                      {company.risks || 'No risk information available'}
-                                    </p>
-                                  </PopoverContent>
-                                </Popover>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                    Click on any company to open its details in a new dialog. Click the risk icon <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-red-100 text-red-500"><AlertTriangle className="w-2 h-2" /></span> to view risk information.
-                  </p>
+                <PopoverContent className="w-72 p-4 text-sm rounded-xl shadow-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  <p className="font-semibold text-lg">📈 Similar Stocks</p>
+                  <p className="mt-2">Click on any company to view more details.</p>
                 </PopoverContent>
               </Popover>
-
+              <div className="flex gap-1">
+                {similarCompanies.slice(0, 3).map((similarStock) => (
+                  <div
+                    key={similarStock.symbol}
+                    onClick={() => setSelectedStock(similarStock)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition cursor-pointer"
+                  >
+                    <div
+                      className="w-6 h-6 bg-center bg-no-repeat bg-contain rounded"
+                      style={{
+                        backgroundImage: `url(${similarStock.logoUrl || "/default-logo.png"})`
+                      }}
+                    />
+                  </div>
+                ))}
+                {similarCompanies.length > 3 && (
+                  <div className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-medium text-gray-500">
+                    +{similarCompanies.length - 3}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </DialogTitle>
@@ -1535,103 +1442,29 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             {renderTabContent()}
           </div>
         </div>
-        {/* Similar Company Details Dialog */}
-        <Dialog
-          open={!!selectedStock}
-          onOpenChange={() => setSelectedStock(null)}
-          onPointerDownOutside={(e) => {
-            // Auto-close when clicking outside
-            setSelectedStock(null);
-          }}
-        >
+        {/* Stock Details Dialog */}
+        <Dialog open={!!selectedStock} onOpenChange={() => setSelectedStock(null)}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <div
-                  className="w-8 h-8 bg-center bg-no-repeat bg-contain rounded-lg border border-red-500 animate-pulse-border"
+                  className="w-8 h-8 bg-center bg-no-repeat bg-contain rounded-lg"
                   style={{
-                    backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
+                    backgroundImage: `url(${selectedStock?.logoUrl || "/default-logo.png"})`
                   }}
                 />
                 <div>
-                  <div className="text-base font-bold">{selectedStock?.similar_symbol}</div>
-                  <div className="text-xs text-gray-500">{selectedStock?.similar_company || selectedStock?.similar_symbol}</div>
+                  <div className="text-base font-bold">{selectedStock?.symbol}</div>
+                  <div className="text-xs text-gray-500">{selectedStock?.similar_company}</div>
                 </div>
               </DialogTitle>
             </DialogHeader>
             <div className="p-3">
-              {/* Company Details Table */}
-              <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-                <table className="w-full text-sm">
-                  <tbody>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <td className="px-4 py-2 font-medium bg-gray-50 dark:bg-gray-800">Revenue 2025</td>
-                      <td className="px-4 py-2">{selectedStock?.revenue_2025 || 'N/A'}</td>
-                    </tr>
-                    <tr className="border-b border-gray-200 dark:border-gray-700">
-                      <td className="px-4 py-2 font-medium bg-gray-50 dark:bg-gray-800">Dividend Yield</td>
-                      <td className="px-4 py-2">
-                        <span className={`font-medium ${Number(selectedStock?.dividend_yield) > 3 ? 'text-green-500' : 'text-blue-500'}`}>
-                          {selectedStock?.dividend_yield || 'N/A'}
-                        </span>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 font-medium bg-gray-50 dark:bg-gray-800">Risks</td>
-                      <td className="px-4 py-2">
-                        <div className="text-xs text-gray-600 max-h-24 overflow-y-auto">
-                          {selectedStock?.risks || 'No risk information available'}
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div className="text-sm text-gray-600 bg-gray-100 dark:bg-gray-800 p-3 rounded-lg">
+                {selectedStock?.revenue_2024 || 'No description available'}
               </div>
-
-              {/* Action Buttons */}
-              <div className="mt-4 flex justify-between">
-                <Button
-                  className="bg-green-500 hover:bg-green-600 text-white font-bold flex items-center gap-2"
-                  onClick={() => {
-                    // Close current dialogs
-                    setSelectedStock(null);
-                    setIsOpen(false);
-
-                    // Wait for dialogs to close, then open new one
-                    setTimeout(() => {
-                      // Create a new stock object for the similar company
-                      const newStock = {
-                        Symbol: selectedStock?.similar_symbol || '',
-                        title: selectedStock?.similar_company || selectedStock?.similar_symbol || '',
-                        cik_str: '',
-                        LogoURL: selectedStock?.LogoURL || ''
-                      };
-                      // Open a new dialog for this stock
-                      const event = new CustomEvent('openStockDetails', { detail: newStock });
-                      window.dispatchEvent(event);
-                    }, 300);
-                  }}
-                >
-                  <div className="w-4 h-4 bg-center bg-no-repeat bg-contain rounded-full border border-white"
-                    style={{
-                      backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
-                    }}
-                  />
-                  Open {selectedStock?.similar_symbol} Details
-                </Button>
-
-                <Button
-                  className="bg-blue-500 hover:bg-blue-600 text-white"
-                  onClick={() => {
-                    // Handle comparison logic here
-                    toast({
-                      title: "Comparison",
-                      description: `Comparing ${stock.Symbol} with ${selectedStock?.similar_symbol}`,
-                    });
-                  }}
-                >
-                  Compare with {stock.Symbol}
-                </Button>
+              <div className="mt-2 text-xs text-gray-500">
+                Estimated Revenue 2024: ${selectedStock?.revenue_2024}B
               </div>
             </div>
           </DialogContent>

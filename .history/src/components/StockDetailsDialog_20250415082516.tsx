@@ -1440,6 +1440,26 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                             <td className="px-3 py-2 font-medium text-blue-600 dark:text-blue-400">
                               <div
                                 className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1 rounded-md"
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent triggering the row click handler
+
+                                  // Always open the StockDetailsDialog for the similar symbol
+                                  // Close current dialog
+                                  setIsOpen(false);
+                                  // Wait for dialog to close, then open new one
+                                  setTimeout(() => {
+                                    // Create a new stock object for the similar company
+                                    const newStock = {
+                                      Symbol: company.similar_symbol,
+                                      title: company.similar_company || company.similar_symbol,
+                                      cik_str: '',
+                                      LogoURL: company.LogoURL
+                                    };
+                                    // Open a new dialog for this stock
+                                    const event = new CustomEvent('openStockDetails', { detail: newStock });
+                                    window.dispatchEvent(event);
+                                  }, 300);
+                                }}
                               >
                                 <div
                                   className="w-5 h-5 bg-center bg-no-repeat bg-contain rounded border border-red-500 flex-shrink-0 animate-pulse-border"
@@ -1591,7 +1611,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               {/* Action Buttons */}
               <div className="mt-4 flex justify-between">
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white font-bold flex items-center gap-2"
+                  className="bg-green-500 hover:bg-green-600 text-white"
                   onClick={() => {
                     // Close current dialogs
                     setSelectedStock(null);
@@ -1612,12 +1632,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     }, 300);
                   }}
                 >
-                  <div className="w-4 h-4 bg-center bg-no-repeat bg-contain rounded-full border border-white"
-                    style={{
-                      backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
-                    }}
-                  />
-                  Open {selectedStock?.similar_symbol} Details
+                  Open {selectedStock?.similar_symbol}
                 </Button>
 
                 <Button

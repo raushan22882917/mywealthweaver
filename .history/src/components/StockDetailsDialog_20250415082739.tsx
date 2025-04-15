@@ -1591,7 +1591,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
               {/* Action Buttons */}
               <div className="mt-4 flex justify-between">
                 <Button
-                  className="bg-green-500 hover:bg-green-600 text-white font-bold flex items-center gap-2"
+                  className="bg-green-500 hover:bg-green-600 text-white"
                   onClick={() => {
                     // Close current dialogs
                     setSelectedStock(null);
@@ -1612,12 +1612,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     }, 300);
                   }}
                 >
-                  <div className="w-4 h-4 bg-center bg-no-repeat bg-contain rounded-full border border-white"
-                    style={{
-                      backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
-                    }}
-                  />
-                  Open {selectedStock?.similar_symbol} Details
+                  Open {selectedStock?.similar_symbol}
                 </Button>
 
                 <Button
