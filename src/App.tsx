@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -30,6 +31,7 @@ import Announcements from "./pages/Announcements";
 import DividendDetail from "./pages/dividenddetail";
 import DividendYield from "./pages/DividendYield";
 import InsightPage from "./pages/insight";
+import HelpSupport from "./pages/HelpSupport";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
@@ -70,13 +72,6 @@ function App() {
     },
   }));
 
-  // These states are not used in the current implementation
-  // but kept for future reference
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentStockSymbol, setCurrentStockSymbol] = useState('');
-  const [selectedStock, setSelectedStock] = useState<{ cik_str: string; Symbol: string; title: string } | null>(null);
-
-  // Session management
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -129,6 +124,7 @@ function App() {
               <Route path="/news/:id?" element={<News />} />
               <Route path="/insight" element={<InsightPage />} />
               <Route path="/insight/:symbol?" element={<InsightPage />} />
+              <Route path="/help" element={<HelpSupport />} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard session={session} /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
