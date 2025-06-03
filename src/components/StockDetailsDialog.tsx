@@ -1,461 +1,1641 @@
 import React, { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
+
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Tooltip,
+  LabelList,
+  Scatter,
+} from "recharts";
+import { useTheme } from "next-themes";
+import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, AlertTriangle, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Heart, TrendingUp, TrendingDown, DollarSign, Calendar, Building, Globe, Phone, MapPin, AlertTriangle, CheckCircle, XCircle, Star, BookOpen, BarChart3, LineChart, Activity, Target, Shield, Zap, Award } from "lucide-react";
-import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
-import { format } from "date-fns";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import Papa, { ParseResult } from 'papaparse';
+import { filterDividendData, type DividendHistoryData } from '@/utils/dividend';
+import UpDown from "@/pages/UpDown";
+import DividendYield from "@/pages/DividendYield";
+
+interface Stock {
+  cik_str: string;
+  Symbol: string;
+  title: string;
+  LogoURL?: string;
+  marketCap?: number;
+  dividendyield?: number;
+}
 
 interface StockDetailsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  symbol: string;
+  stock: Stock;
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
 }
 
 interface CompanyProfile {
   symbol: string;
-  shortName: string;
-  longBusinessSummary: string;
-  sector: string;
-  industry: string;
-  fullTimeEmployees: number;
-  website: string;
   phone: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-  marketCap: number;
-  trailingPE: number;
-  forwardPE: number;
-  pegRatio: number;
-  bookValue: number;
-  priceToBook: number;
-  enterpriseValue: number;
-  totalRevenue: number;
-  revenuePerShare: number;
-  revenueGrowth: number;
-  earningsGrowth: number;
-  totalCash: number;
-  totalDebt: number;
-  debtToEquity: number;
-  currentRatio: number;
-  returnOnAssets: number;
-  returnOnEquity: number;
-  profitMargins: number;
-  operatingMargins: number;
+  website: string;
+  industry: string;
+  sector: string;
+  long_business_summary: string;
+  fullTimeEmployees: string;
+  auditRisk: number;
+  boardRisk: number;
+  compensationRisk: number;
+  shareHolderRightsRisk: number;
+  overallRisk: number;
   dividendRate: number;
   dividendYield: number;
+  dividendPayoutRatio: number;
   exDividendDate: string;
+  payoutRatio: number;
+  fiveYearAvgDividendYield: number;
+  beta: number;
+  trailingPE: number;
+  forwardPE: number;
+  priceToSalesTrailing12Months: number;
+  fiftyDayAverage: number;
+  twoHundredDayAverage: number;
+  trailingAnnualDividendRate: number;
+  trailingAnnualDividendYield: number;
+  profitMargins: number;
+  heldPercentInsiders: number;
+  heldPercentInstitutions: number;
+  bookValue: number;
+  priceToBook: number;
+  lastFiscalYearEnd: string;
+  earningsQuarterlyGrowth: number;
+  netIncomeToCommon: number;
+  trailingEps: number;
+  forwardEps: number;
+  enterpriseToRevenue: number;
+  enterpriseToEbitda: number;
+  weekChange52: number;
+  sandP52WeekChange: number;
+  lastDividendValue: number;
   lastDividendDate: string;
+  exchange: string;
+  quoteType: string;
+  shortName: string;
+  targetHighPrice: number;
+  targetLowPrice: number;
+  targetMeanPrice: number;
+  targetMedianPrice: number;
+  recommendationMean: number;
+  recommendationKey: string;
+  numberOfAnalystOpinions: number;
+  totalCash: number;
+  totalCashPerShare: number;
+  ebitda: number;
+  totalDebt: number;
+  quickRatio: number;
+  currentRatio: number;
+  totalRevenue: number;
+  debtToEquity: number;
+  revenuePerShare: number;
+  returnOnAssets: number;
+  returnOnEquity: number;
+  grossProfits: number;
+  freeCashflow: number;
+  operatingCashflow: number;
+  earningsGrowth: number;
+  revenueGrowth: number;
+  grossMargins: number;
+  ebitdaMargins: number;
+  operatingMargins: number;
+  trailingPegRatio: number;
+  address: string;
+}
+
+interface DividendHistory {
+  date: string;
+  dividend: number;
+}
+
+interface RankingData {
+  index: string;
+  industry: string;
+  sector: string;
+  Symbol: string;
+  score: string;
+  rank: string;
 }
 
 interface RankingDisplayData {
   rank: string;
   score: string;
-  sector: string;
-  industry: string;
   industryRank: string;
   totalStocks: string;
   totalIndustryStocks: string;
+  industry: string;
+  sector: string;
 }
 
-const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({ open, onOpenChange, symbol }) => {
-  const [loading, setLoading] = useState(false);
-  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [rankingData, setRankingData] = useState<RankingDisplayData | null>(null);
-  const [similarCompanies, setSimilarCompanies] = useState<any[]>([]);
-  const [dividendData, setDividendData] = useState<any[]>([]);
-  const [priceHistory, setPriceHistory] = useState<any[]>([]);
-  const [session, setSession] = useState<any>(null);
+interface fetchRankingData {
+  symbol: string;
+  score: string;
+  rank: string;
+  industry: string;
+  sector: string;
+}
 
+interface SimilarCompany {
+  symbol: string;
+  similar_symbol: string;
+  similar_company: string;
+  revenue_2025: string;
+  LogoURL: string;
+  logoUrl?: string; // Add this for compatibility
+  dividend_yield?: string;
+  risks?: string;
+}
+
+interface LogoData {
+  Symbol: string;
+  LogoURL: string;
+}
+
+interface DividendData {
+  symbol: string;
+  date: string;
+  dividends: string;
+}
+
+interface SavedStock {
+  user_id: string;
+  symbol: string;
+  company_name: string;
+  logoUrl: string;
+  next_dividend_date?: string;
+  is_favorite: boolean;
+}
+
+interface DividendSymbol {
+  buy_date: string;
+  symbol: string;
+  dividend: string;
+  dividendrate: string;
+  payoutdate?: string;
+  exdividenddate?: string;
+}
+
+interface DividendCountdownProps {
+  symbol: string;
+}
+
+const DividendCountdown: React.FC<DividendCountdownProps> = ({ symbol }) => {
+  const [timeLeft, setTimeLeft] = useState<{
+    exDividendDays: number;
+    exDividendHours: number;
+    isExDividendPassed: boolean;
+  }>({
+    exDividendDays: 0,
+    exDividendHours: 0,
+    isExDividendPassed: false,
+  });
+
+  const [exDividendDate, setExDividendDate] = useState<string | null>(null);
+
+  // Fetch buy_date from Supabase
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
+    const fetchDates = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('dividendsymbol') // Updated to use correct table name from schema
+          .select<'*', DividendSymbol>('*')
+          .eq('symbol', symbol)
+          .order('buy_date', { ascending: true })
+          .limit(1);  // Get the earliest buy_date
+
+        if (error) {
+          console.error("Database error:", error);
+          return;
+        }
+
+        if (!data || data.length === 0 || !data[0]?.buy_date || isNaN(Date.parse(data[0].buy_date))) {
+          console.log("No valid buy_date found for", symbol);
+          setExDividendDate(null);
+          return;
+        }
+
+        // Format the date to YYYY-MM-DD
+        const formattedDate = new Date(data[0].buy_date).toISOString().split('T')[0];
+        setExDividendDate(formattedDate);
+        console.log("Ex-Dividend Date set for", symbol, formattedDate);
+      } catch (error) {
+        console.error("Error fetching dates:", error);
+      }
     };
 
-    getSession();
-  }, []);
+    if (symbol) {
+      fetchDates();
+    }
+  }, [symbol]);
+
+  // Countdown Timer
+  useEffect(() => {
+    if (!exDividendDate) return;
+
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const targetDate = new Date(exDividendDate);
+
+      const timeDiff = targetDate.getTime() - currentDate.getTime();
+      const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+      // Calculate remaining hours in the current day
+      const hoursDiff = 24 - now.getHours() - 1;
+
+      console.log('Buy Date:', exDividendDate);
+      console.log('Current Date:', currentDate.toISOString().split('T')[0]);
+      console.log('Days Difference:', daysDiff);
+      console.log('Time Difference:', timeDiff);
+
+      return {
+        exDividendDays: Math.max(0, daysDiff),
+        exDividendHours: Math.max(0, hoursDiff),
+        isExDividendPassed: timeDiff < 0
+      };
+    };
+
+    // Initial calculation
+    setTimeLeft(calculateTimeLeft());
+
+    // Update every hour
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000 * 60 * 60);
+
+    return () => clearInterval(timer);
+  }, [exDividendDate]);
+
+  // Countdown UI
+  return (
+    <div>
+     <Card className="w-full h-[80px] bg-gradient-to-br from-gray-900 to-blue-900 shadow-lg rounded-xl text-white relative overflow-hidden m-0 flex items-center justify-center">
+  <div className="absolute inset-0 bg-[url('/airplane-bg.jpg')] opacity-10 bg-cover bg-center" />
+  <div className="relative z-10 w-full flex items-center justify-center">
+    {!timeLeft.isExDividendPassed ? (
+      <div className="flex items-center justify-center gap-12">
+        {[
+          { label: "Days", value: String(timeLeft.exDividendDays) },
+          {
+            label: "Hours",
+            value: String(timeLeft.exDividendHours),
+            color:
+              timeLeft.exDividendDays === 0
+                ? "text-red-500"
+                : "text-white",
+          },
+        ].map((item, index) => (
+          <div
+            key={index}
+            className="flex flex-col items-center bg-black/20 px-4 py-2 rounded-lg"
+          >
+            <div
+              className={`text-3xl font-bold ${
+                item.color || "text-white"
+              } font-mono tracking-wider`}
+            >
+              {(item.value + '').padStart(2, "0")}
+            </div>
+            <div className="text-sm text-blue-200 font-medium uppercase tracking-wide">
+              {item.label}
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div className="flex items-center justify-center gap-3 text-red-500 text-base font-bold">
+        <AlertCircle className="w-5 h-5" />
+        Ex-Dividend Date Has Passed
+      </div>
+    )}
+  </div>
+</Card>
+
+    </div>
+  );
+};
+
+
+const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProps) => {
+  const [selectedTab, setSelectedTab] = useState("Company");
+  const [activeTab, setActiveTab] = useState("Company");
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
+  const [yieldData, setYieldData] = useState<any[]>([]);
+  const [payoutData, setPayoutData] = useState<any[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState("1Y");
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
+  const [email, setEmail] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedDataType, setSelectedDataType] = useState<'default' | 'annual' | 'quarterly'>('default');
+  const [dividendHistory, setDividendHistory] = useState<DividendHistory[]>([]);
+  const [timeRange, setTimeRange] = useState('5Y');
+  const [isHidden, setIsHidden] = useState(false);
+  const [similarCompanies, setSimilarCompanies] = useState<SimilarCompany[]>([]);
+  const [activeDividendTab, setActiveDividendTab] = useState('quarterly');
+  const [dividendHistoryData, setDividendHistoryData] = useState<DividendHistoryData[]>([]);
+  const [rankingCSVData, setRankingCSVData] = useState<RankingDisplayData | null>(null);
+  const [rankingData, setRankingData] = useState<RankingData | null>(null);
+  const { theme } = useTheme();
+  const { toast } = useToast();
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState(true); // Replace with actual auth check
+
+  const handleToggle = () => {
+    if (!isUserLoggedIn) {
+      setIsLoginPopupOpen(true);
+      return;
+    }
+    setIsSubscribed(!isSubscribed);
+    saveSubscriptionStatus(!isSubscribed);
+
+    setTimeout(() => {
+      setShowMessage(false);
+    }, 3000);
+  };
+
+  const saveSubscriptionStatus = (status: boolean) => {
+    // Implement saving logic (e.g., API call to save user preference)
+    console.log('Subscription status saved:', status);
+  };
+  const [logoURL, setLogoURL] = useState<string>('');
+  const [annualDividend, setAnnualDividend] = useState<{ current: string; last: string }>({
+    current: '0',
+    last: '0'
+  });
+  const [quarterlyDividend, setQuarterlyDividend] = useState<{ current: string; last: string }>({
+    current: '0',
+    last: '0'
+  });
+  const [latestDividends, setLatestDividends] = useState<{
+    dividend: string | null;
+    dividendrate: string | null;
+    quarterly: string | null;
+    annualDate: string | null;
+    quarterlyDate: string | null;
+    annual: string | null;
+    exDividendDate: string | null;
+    dividendyield: string | null;
+  }>({
+    dividend: null,
+    dividendrate: null,
+    quarterly: null,
+    annualDate: null,
+    quarterlyDate: null,
+    annual: null,
+    exDividendDate: null,
+    dividendyield: null
+  });
+  const [similarStocks, setSimilarStocks] = useState<Array<{
+    symbol: string;
+    company: string;
+    description: string;
+    logoUrl: string;
+  }>>([]);
+  const [selectedStock, setSelectedStock] = useState<SimilarCompany | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Function to fetch all dividend data for a specific stock symbol
+  const fetchDividendData = async (symbol: string) => {
+    if (!symbol) {
+      console.error('No symbol provided for dividend data fetch');
+      return null;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('dividendsymbol') // Updated to use correct table name from schema
+        .select('*')
+        .eq('symbol', symbol.toUpperCase())
+        .order('buy_date', { ascending: true });
+
+      if (error) {
+        console.error('Database error:', error);
+        return null;
+      }
+
+      if (!data || data.length === 0) {
+        console.log('No dividend data found for', symbol);
+        return null;
+      }
+
+      // Calculate dividend yield
+      const dividendYield = data[0].currentprice ? ((data[0].dividendrate / data[0].currentprice) * 100).toFixed(2) : '';
+
+      // Transform data to match expected format
+      return {
+        dividend: data[0].dividend?.toString() || '',
+        dividendrate: data[0].dividendrate?.toString() || '',
+        quarterly: data[0].dividend?.toString() || '',
+        annualDate: data[0].buy_date || null,
+        quarterlyDate: data[0].payoutdate || '',
+        annual: data[0].dividendrate?.toString() || '',
+        exDividendDate: data[0].exdividenddate || '',
+        dividendyield: data[0].dividendyield.toString() || ''
+      };
+    } catch (error) {
+      console.error('Exception fetching dividend data:', error);
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedTab("Company");
+      setActiveTab("Company");
+      setTimeRange('5Y');
+
+      // Fetch dividend data when dialog opens
+      if (stock?.Symbol) {
+        fetchDividendData(stock.Symbol).then(data => {
+          if (data) {
+            console.log('Fetched dividend data:', data);
+
+            // Update latest dividends
+            setLatestDividends({
+              dividend: data.dividend,
+              dividendrate: data.dividendrate,
+              quarterly: data.dividend,
+              annualDate: data.annualDate,
+              quarterlyDate: data.quarterlyDate,
+              annual: data.annual,
+              exDividendDate: data.exDividendDate,
+              dividendyield: data.dividendyield
+            });
+
+            console.log('Dividend data mapped:', {
+              dividend: data.dividend,
+              dividendrate: data.dividendrate,
+              quarterly: data.dividend,
+              annualDate: data.annualDate,
+              quarterlyDate: data.quarterlyDate,
+              annual: data.annual,
+              exDividendDate: data.exDividendDate,
+              dividendyield: data.dividendyield
+            });
+
+            // Log the ex-dividend date for debugging
+            if (data.annualDate) {
+              console.log('Ex-Dividend Date:', new Date(data.annualDate).toLocaleDateString());
+            }
+          }
+        });
+      }
+    }
+  }, [isOpen, stock?.Symbol]);
 
   useEffect(() => {
     const fetchCompanyProfile = async () => {
-      setLoading(true);
       try {
         const { data, error } = await supabase
           .from('company_profiles')
           .select('*')
-          .eq('symbol', symbol)
+          .eq('symbol', stock.Symbol)
           .single();
 
         if (error) throw error;
 
-        setCompanyProfile(data);
-      } catch (error) {
-        console.error('Error fetching company profile:', error);
-      } finally {
-        setLoading(false);
+        if (data) {
+          const formattedData: CompanyProfile = {
+            ...data,
+            dividendRate: Number(data.dividend_rate) || 0,
+            dividendYield: Number(data.dividend_yield) || 0,
+            shareHolderRightsRisk: Number(data.shareholder_rights_risk) || 0,
+            overallRisk: Number(data.overall_risk) || 0,
+            dividendPayoutRatio: Number(data.dividend_payout_ratio) || 0,
+            payoutRatio: Number(data.payout_ratio) || 0,
+          };
+          setCompanyProfile(formattedData);
+        }
+      } catch (err) {
+        console.error('Error fetching company profile:', err);
       }
     };
 
     fetchCompanyProfile();
-  }, [symbol]);
+  }, [stock?.Symbol]);
+
 
   useEffect(() => {
     const fetchRankingData = async () => {
+      if (!stock?.Symbol) return;
+
       try {
-        const { data, error } = await supabase
+        const { data: rankingData, error } = await supabase
           .from('top_stocks')
           .select('*')
-          .eq('symbol', symbol)
+          .eq('symbol', stock.Symbol.toUpperCase())  // Ensure uppercase symbol
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Database error:', error);
+          setRankingCSVData(null);
+          return;
+        }
 
-        const totalStocks = await supabase
-          .from('top_stocks')
-          .select('*', { count: 'exact' });
-
-        const totalIndustryStocks = await supabase
-          .from('top_stocks')
-          .select('*', { count: 'exact' })
-          .eq('Industry', data.Industry);
-
-        setRankingData({
-          rank: data.Rank,
-          score: data.Score,
-          sector: data.Sector,
-          industry: data.Industry,
-          industryRank: data.Industry_Rank,
-          totalStocks: totalStocks.count,
-          totalIndustryStocks: totalIndustryStocks.count
-        } as RankingDisplayData);
+        if (rankingData) {
+          const formattedData: string = rankingData.Score?.toString() || 'N/A';
+          setRankingCSVData({
+            rank: rankingData.Rank?.toString() || 'N/A',
+            score: formattedData,
+            sector: rankingData.sector || 'Unknown',
+            industry: rankingData.industry || 'Unknown'
+          });
+        }
       } catch (error) {
         console.error('Error fetching ranking data:', error);
+        setRankingCSVData(null);
       }
     };
 
     fetchRankingData();
-  }, [symbol]);
+  }, [stock?.Symbol]);
 
   useEffect(() => {
     const fetchSimilarCompanies = async () => {
+      if (!stock?.Symbol) return;
+
       try {
-        const { data, error } = await supabase
-          .from('company_profiles')
-          .select('symbol, shortName, sector, industry')
-          .eq('sector', companyProfile?.sector)
-          .limit(5);
+        // Fetch similar companies based on stock symbol
+        const { data: similarData, error: similarError } = await supabase
+          .from('similar_companies')
+          .select('*')
+          .eq('symbol', stock.Symbol);
 
-        if (error) throw error;
+        if (similarError) {
+          toast({
+            title: "Error fetching similar companies",
+            description: similarError.message,
+            variant: "destructive",
+          });
+          return;
+        }
 
-        setSimilarCompanies(data);
+        if (similarData && similarData.length > 0) {
+          // Fetch logos for similar companies
+          const symbols = similarData.map(item => item.similar_symbol);
+          const { data: logoData, error: logoError } = await supabase
+            .from('company_logos')
+            .select('Symbol, LogoURL')
+            .in('Symbol', symbols);
+
+          if (logoError) {
+            console.error('Error fetching logos:', logoError);
+          }
+
+          // Create a map of symbols to logos
+          const logoMap = new Map();
+          if (logoData) {
+            logoData.forEach((logo: LogoData) => {
+              logoMap.set(logo.Symbol.toUpperCase(), logo.LogoURL);
+            });
+          }
+
+          // Fetch company names for similar symbols
+          const { data: companyData, error: companyError } = await supabase
+            .from('company_profiles')
+            .select('symbol, company_name')
+            .in('symbol', symbols);
+
+          // Create a map of symbols to company names
+          const companyNameMap = new Map();
+          if (companyData && !companyError) {
+            companyData.forEach((company: any) => {
+              companyNameMap.set(company.symbol.toUpperCase(), company.company_name);
+            });
+          } else if (companyError) {
+            console.error('Error fetching company names:', companyError);
+          }
+
+          const formattedData: SimilarCompany[] = similarData.map(company => ({
+            symbol: company.symbol,
+            similar_symbol: company.similar_symbol,
+            similar_company: companyNameMap.get(company.similar_symbol?.toUpperCase()) || company.similar_symbol,
+            revenue_2025: company.revenue_2025 || 'N/A',
+            dividend_yield: company.dividend_yield || 'N/A',
+            risks: company.risks || 'N/A',
+            LogoURL: logoMap.get(company.similar_symbol?.toUpperCase()) || '/stock.avif'
+          }));
+          setSimilarCompanies(formattedData);
+        } else {
+          console.log('No similar companies found for', stock.Symbol);
+          setSimilarCompanies([]);
+        }
       } catch (error) {
-        console.error('Error fetching similar companies:', error);
+        console.error('Error in fetchSimilarCompanies:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch similar companies",
+          variant: "destructive",
+        });
       }
     };
 
-    if (companyProfile?.sector) {
-      fetchSimilarCompanies();
+    fetchSimilarCompanies();
+  }, [stock?.Symbol, toast]);
+
+  useEffect(() => {
+    const fetchPayoutHistory = async () => {
+      if (!stock?.Symbol) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('payout_history')
+          .select('*')
+          .eq('symbol', stock.Symbol)
+          .order('date', { ascending: false });
+
+        if (error) throw error;
+        setPayoutData(data);
+      } catch (error) {
+        console.error('Error fetching payout history:', error);
+      }
+    };
+
+    fetchPayoutHistory();
+  }, [stock?.Symbol]);
+
+  useEffect(() => {
+    const fetchDividendHistoryData = async () => {
+      if (!stock?.Symbol) return;
+
+      try {
+        const { data, error } = await supabase
+          .from(activeDividendTab === 'annual' ? 'annual_dividend_history' : 'quarterly_dividend_history')
+          .select('*')
+          .eq('symbol', stock.Symbol)
+          .order('date', { ascending: true });
+
+        if (error) throw error;
+        setDividendHistoryData(data);
+      } catch (error) {
+        console.error('Error fetching dividend history data:', error);
+      }
+    };
+
+    fetchDividendHistoryData();
+  }, [stock?.Symbol, activeDividendTab]);
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      if (stock?.Symbol) {
+        try {
+          const { data, error } = await supabase
+            .from('company_logos')
+            .select('*')
+            .eq('Symbol', stock.Symbol)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+          if (error) throw error;
+          setLogoURL(data[0].LogoURL);
+        } catch (error) {
+          console.error('Error fetching logo:', error);
+        }
+      }
+    };
+
+    fetchLogo();
+  }, [stock?.Symbol]);
+
+  useEffect(() => {
+    const fetchSimilarStocks = async () => {
+      if (stock?.Symbol) {
+        try {
+          const { data: similarData, error: similarError } = await supabase
+            .from('similar_companies')
+            .select('*')
+            .eq('symbol', stock.Symbol);
+
+          if (similarError) throw similarError;
+
+          const { data: logoData, error: logoError } = await supabase
+            .from('company_logos')
+            .select('*')
+            .in('Symbol', similarData.map(company => company.similar_symbol));
+
+          if (logoError) throw logoError;
+
+          const combinedData = similarData.map(company => ({
+            ...company,
+            logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
+          }));
+
+          setSimilarStocks(combinedData.map(item => ({
+            symbol: item.symbol,
+            company: item.company_name,
+            description: item.description || '',
+            logoUrl: item.logo || ''
+          })));
+        } catch (error) {
+          console.error('Error fetching similar stocks:', error);
+        }
+      }
+    };
+
+    fetchSimilarStocks();
+  }, [stock?.Symbol]);
+
+  const filterDataByPeriod = (period: string) => {
+    const periodMap: { [key: string]: number } = {
+      "1Y": 12,
+      "5Y": 60,
+      "10Y": 120
+    };
+
+    const monthsToShow = periodMap[period];
+    return yieldData.slice(0, Math.ceil(monthsToShow / 3)); // Since data is quarterly
+  };
+
+  const currentYield = yieldData[0]?.value || 0;
+  const previousYield = yieldData[1]?.value || 0;
+  const yieldChange = ((currentYield - previousYield) / previousYield) * 100;
+
+  const handleSubscribe = async () => {
+    if (!email || !email.includes("@")) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
     }
-  }, [companyProfile?.sector]);
 
-  useEffect(() => {
-    const fetchDividendData = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('dividendsymbol')
-          .select('*')
-          .eq('symbol', symbol)
-          .limit(5);
+    if (!stock?.Symbol) {
+      toast({
+        title: "Error",
+        description: "Stock symbol not found",
+        variant: "destructive",
+      });
+      return;
+    }
 
-        if (error) throw error;
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from("stock_subscriptions")
+        .insert([
+          {
+            email: email,
+            stock_symbol: stock.Symbol,
+          },
+        ]);
 
-        setDividendData(data);
-      } catch (error) {
-        console.error('Error fetching dividend data:', error);
+      if (error) {
+        if (error.code === "23505") {
+          toast({
+            title: "Already subscribed",
+            description: "You are already subscribed to updates for this stock",
+            variant: "default",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Subscription successful",
+          description: "You will receive updates about this stock",
+          variant: "default",
+        });
+        setEmail("");
       }
-    };
+    } catch (error) {
+      console.error("Subscription error:", error);
+      toast({
+        title: "Subscription failed",
+        description: "Unable to subscribe at this time. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    fetchDividendData();
-  }, [symbol]);
+  const filterDividendHistory = (data: DividendHistory[], range: string) => {
+    const now = new Date();
+    const yearsAgo = new Date();
 
+    switch (range) {
+      case '1Y':
+        yearsAgo.setFullYear(now.getFullYear() - 1);
+        break;
+      case '3Y':
+        yearsAgo.setFullYear(now.getFullYear() - 3);
+        break;
+      case '5Y':
+        yearsAgo.setFullYear(now.getFullYear() - 5);
+        break;
+      case '10Y':
+        yearsAgo.setFullYear(now.getFullYear() - 10);
+        break;
+      case 'MAX':
+        return data;
+      default:
+        yearsAgo.setFullYear(now.getFullYear() - 1);
+    }
+
+    return data.filter(item => new Date(item.date) >= yearsAgo);
+  };
+
+  // Check if stock is already saved when dialog opens
   useEffect(() => {
-    const fetchPriceHistory = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('pricehistory')
-          .select('Date, Close')
-          .eq('Symbol', symbol)
-          .order('Date', { ascending: false })
-          .limit(30);
+    if (stock?.Symbol) {
+      checkIfStockIsSaved(stock.Symbol);
+    }
+  }, [stock]);
 
-        if (error) throw error;
+  const checkIfStockIsSaved = async (symbol: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
 
-        const formattedData = data.map(item => ({
-          date: format(new Date(item.Date), 'MMM dd'),
-          price: item.Close
-        }));
+      if (!user) return;
 
-        setPriceHistory(formattedData);
-      } catch (error) {
-        console.error('Error fetching price history:', error);
+      const { data, error } = await supabase
+        .from('saved_stocks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('symbol', symbol)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is the "not found" error
+        throw error;
       }
-    };
 
-    fetchPriceHistory();
-  }, [symbol]);
+      setIsSaved(!!data && data.length > 0);
+    } catch (error) {
+      console.error('Error checking saved stock:', error);
+    }
+  };
 
-  useEffect(() => {
-    const checkFavoriteStatus = async () => {
-      if (!session?.user?.id) return;
+  const handleSaveStock = async () => {
+    if (!stock) return;
 
-      try {
-        const { data, error } = await supabase
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        toast({
+          title: "Authentication Error",
+          description: "Please login to save stocks",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (isSaved) {
+        // Remove stock if it's already saved
+        const { error } = await supabase
           .from('saved_stocks')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .eq('symbol', symbol)
+          .delete()
+          .eq('user_id', user.id)
+          .eq('symbol', stock.Symbol);
+
+        if (error) {
+          console.error('Error removing stock:', error);
+          toast({
+            title: "Error",
+            description: error.message || "Failed to remove stock from watchlist",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setIsSaved(false);
+        toast({
+          title: "Success",
+          description: "Stock removed from watchlist",
+        });
+      } else {
+        // Validate stock data before saving
+        if (!stock.Symbol || !stock.title) {
+          toast({
+            title: "Error",
+            description: "Invalid stock data. Missing required fields.",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        // Check if stock already exists for this user
+        const { data: existingStock } = await supabase
+          .from('saved_stocks')
+          .select()
+          .eq('user_id', user.id)
+          .eq('symbol', stock.Symbol)
           .single();
 
-        if (error && error.code !== 'PGRST116') throw error;
+        if (existingStock) {
+          toast({
+            title: "Info",
+            description: "This stock is already in your watchlist",
+          });
+          setIsSaved(true);
+          return;
+        }
 
-        setIsFavorite(!!data);
-      } catch (error) {
-        console.error('Error checking favorite status:', error);
+        // Save new stock
+        const stockData: SavedStock = {
+          user_id: user.id,
+          symbol: stock.Symbol,
+          company_name: stock.title,
+          LogoURL: stock.LogoURL || '',
+          next_dividend_date: stock['Ex-Dividend Date'] || null,
+          is_favorite: false
+        };
+
+        const { error } = await supabase
+          .from('saved_stocks')
+          .insert([stockData]);
+
+        if (error) {
+          console.error('Error saving stock:', error);
+          toast({
+            title: "Error",
+            description: error.message || "Failed to save stock to watchlist",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        setIsSaved(true);
+        toast({
+          title: "Success",
+          description: "Stock saved to watchlist",
+        });
       }
-    };
-
-    checkFavoriteStatus();
-  }, [symbol, session]);
-
-  const handleSaveToFavorites = async () => {
-    try {
-      if (!session?.user?.id) {
-        toast.error("Please sign in to save stocks to favorites");
-        return;
-      }
-
-      const savedStock = {
-        user_id: session.user.id,
-        symbol: symbol,
-        company_name: companyProfile?.shortName || symbol,
-        price: 0,
-        dividend_yield: 0,
-        is_favorite: true,
-        logoUrl: "/logo.png"
-      };
-
-      const { error } = await supabase
-        .from('saved_stocks')
-        .insert([savedStock]);
-
-      if (error) throw error;
-
-      setIsFavorite(true);
-      toast.success("Stock saved to favorites!");
     } catch (error) {
-      console.error('Error saving to favorites:', error);
-      toast.error("Failed to save stock to favorites");
+      console.error('Error saving stock:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleRemoveFromFavorites = async () => {
-    try {
-      if (!session?.user?.id) {
-        toast.error("Please sign in to remove stocks from favorites");
-        return;
-      }
+  if (!stock) return null;
 
-      const { error } = await supabase
-        .from('saved_stocks')
-        .delete()
-        .eq('user_id', session.user.id)
-        .eq('symbol', symbol);
+  const renderTabContent = () => {
+    switch (selectedTab) {
+      case "Company":
+        return (
+          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+            <div className="space-y-6">
+              <div className="grid grid-cols-[250px,1fr] gap-8 transition-all duration-300" style={{ height: isHidden ? '0px' : 'auto', overflow: 'hidden' }}>
+                {/* Left Column - Company Overview */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Company Profile</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <div className="text-sm">Website</div>
+                      <div className="text-sm text-blue-600 hover:underline">
+                        <a href={companyProfile?.website} target="_blank" rel="noopener noreferrer">
+                          {companyProfile?.website}
+                        </a>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm">Address</div>
+                      <div className="text-sm">{companyProfile?.address || '-'}</div>
+                    </div>
+                  </div>
+                </div>
+                {/* Right Column - Company Description & Dividends */}
+                <div className="space-y-4">
+                  <div className="text-sm text-gray-600 leading-relaxed">
+                    {companyProfile?.long_business_summary || 'No description available.'}
+                  </div>
+                </div>
+              </div>
+              {/* Similar Companies Section - Always visible */}
+              <div className="mt-2">
+              </div>
+            </div>
+          </div>
+        );
+        case "Dividend Yield":
+          return (
+            <div style={{ display: "flex", flexDirection: "column", height: "auto" }}>
+              <DividendYield symbol={stock.Symbol} />
+            </div>
+          );
 
-      if (error) throw error;
-
-      setIsFavorite(false);
-      toast.success("Stock removed from favorites!");
-    } catch (error) {
-      console.error('Error removing from favorites:', error);
-      toast.error("Failed to remove stock from favorites");
+      case "Payout":
+        const lastPayout = payoutData[0]?.value || 0;
+        const healthyPayoutRange = { min: 40, max: 60 };
+        const isHealthyPayout = lastPayout >= healthyPayoutRange.min && lastPayout <= healthyPayoutRange.max;
+        const isHighPayout = lastPayout > healthyPayoutRange.max;
+        return (
+          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xl font-semibold mb-2 text-white">Payout Ratio Analysis</h3>
+              <div className={`text-2xl font-bold mb-4 ${
+                isHealthyPayout ? 'text-yellow-500' :
+                isHighPayout ? 'text-red-500' : 'text-green-500'
+              }`}>
+                {lastPayout.toFixed(2)}%
+              </div>
+              <div className="px-4 h-[300px] relative">
+                {/* Background color zones */}
+                <div className="absolute inset-0 flex flex-col">
+                  <div className="h-1/3 bg-red-600 opacity-20" />
+                  <div className="h-1/3 bg-yellow-400 opacity-20" />
+                  <div className="h-1/3 bg-green-500 opacity-20" />
+                </div>
+                {/* Zone labels */}
+                <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between pr-2 text-sm">
+                  <span className="text-white mt-2">65%</span>
+                  <span className="text-white">35%</span>
+                </div>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={payoutData}
+                    margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
+                  >
+                    <XAxis
+                      dataKey="quarter"
+                      axisLine={false}
+                      tickLine={false}
+                      stroke="#fff"
+                      fontSize={12}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      axisLine={false}
+                      tickLine={false}
+                      stroke="#fff"
+                      fontSize={12}
+                      tickFormatter={(value) => `${value}%`}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="#2563eb"
+                      strokeWidth={2}
+                      dot={(props) => {
+                        const { cx, cy, payload } = props;
+                        // Use star marker for future projections (2025 onwards)
+                        const isFuture = payload.quarter.includes('2025');
+                        if (isFuture) {
+                          return (
+                            <path
+                              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
+                              transform={`translate(${cx - 10}, ${cy - 10}) scale(0.8)`}
+                              fill="#2563eb"
+                              stroke="none"
+                            />
+                          );
+                        }
+                        // Use square marker for historical data
+                        return (
+                          <rect
+                            x={cx - 4}
+                            y={cy - 4}
+                            width={8}
+                            height={8}
+                            fill="#2563eb"
+                            transform={`rotate(45, ${cx}, ${cy})`}
+                          />
+                        );
+                      }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        );
+      case "Dividend History":
+        return (
+          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+            <div className="space-y-4 mt-6">
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex space-x-4">
+                  <Button
+                    variant={activeDividendTab === 'annual' ? 'default' : 'outline'}
+                    onClick={() => setActiveDividendTab('annual')}
+                    className={`w-32 ${activeDividendTab === 'annual' && 'bg-primary text-primary-foreground'}`}
+                  >
+                    Annual
+                  </Button>
+                  <Button
+                    variant={activeDividendTab === 'quarterly' ? 'default' : 'outline'}
+                    onClick={() => setActiveDividendTab('quarterly')}
+                    className={`w-32 ${activeDividendTab === 'quarterly' && 'bg-primary text-primary-foreground'}`}
+                  >
+                    Quarterly
+                  </Button>
+                </div>
+                <div className="flex space-x-2">
+                  {['1Y', '3Y', '5Y', 'MAX'].map((range) => (
+                    <Button
+                      key={range}
+                      variant={timeRange === range ? 'default' : 'outline'}
+                      onClick={() => setTimeRange(range)}
+                      className={`px-3 py-1 ${
+                        timeRange === range ? 'bg-primary text-primary-foreground' : ''
+                      }`}
+                      size="sm"
+                    >
+                      {range}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={filterDividendData(dividendHistoryData, timeRange)}
+                    margin={{ top: 20, right: 30, left: 40, bottom: 30 }}
+                  >
+                    {/* X-Axis */}
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
+                      axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+                      tickLine={false}
+                    />
+                    {/* Y-Axis */}
+                    <YAxis
+                      tick={{ fontSize: 12, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
+                      tickFormatter={(value) => `$${value.toFixed(2)}`}
+                      axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
+                      tickLine={false}
+                    />
+                    {/* Tooltip */}
+                    <Tooltip
+                      cursor={false}
+                      formatter={(value: number) => [`$${value.toFixed(2)}`, 'Dividend']}
+                      labelFormatter={(label) => `Year: ${label}`}
+                      contentStyle={{
+                        backgroundColor: theme === 'dark' ? '#1f2937' : 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                        padding: '12px'
+                      }}
+                    />
+                    {/* Bar Graph */}
+                    <Bar
+                      dataKey="dividends"
+                      fill={theme === 'dark' ? '#6366f1' : '#4f46e5'}
+                      name="Dividend Amount"
+                      radius={[6, 6, 0, 0]}
+                    >
+                      <LabelList
+                        dataKey="dividends"
+                        position="top"
+                        formatter={(value: number) => `$${value.toFixed(2)}`}
+                        style={{
+                          fontSize: '10px',
+                          fill: theme === 'dark' ? '#9CA3AF' : '#4B5563'
+                        }}
+                      />
+                    </Bar>
+                    {/* Red Line Graph - Ensures It Touches Midpoints of Bars */}
+                    <Line
+                      type="monotone"
+                      dataKey="dividends"
+                      stroke="red"
+                      strokeWidth={2}
+                      dot={{
+                        r: 4,
+                        fill: 'red',
+                        stroke: 'red',
+                        strokeWidth: 2
+                      }}
+                      activeDot={{
+                        r: 6,
+                        fill: 'red'
+                      }}
+                      connectNulls={true} // Ensures missing points are connected
+                    />
+                    {/* Dot Graph Above Each Bar */}
+                    <Scatter
+                      data={filterDividendData(dividendHistoryData, timeRange).map(d => ({
+                        date: d.date,
+                        dividends: d.dividends * 1.1 // Adjusted height (10% higher than bars)
+                      }))}
+                      fill="green"
+                      shape="circle"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        );
+      case 'Analyst Ratings':
+        return (
+          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+            <div className="flex flex-col gap-4 w-full">
+              <div className="flex flex-col gap-2 w-full">
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2 w-full">
+                    <UpDown symbol={stock.Symbol} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      default:
+        return null;
     }
   };
+
+  // Create mini chart data from yield data
+  const miniChartData = yieldData.slice(0, 3).map(item => ({
+    date: item.date,
+    value: item.value
+  }));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
-        <DialogHeader className="flex flex-row items-center justify-between border-b border-gray-700 pb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-lg">{symbol}</span>
-            </div>
-            <div>
-              <DialogTitle className="text-2xl font-bold text-white">{symbol}</DialogTitle>
-              <p className="text-gray-400">{companyProfile?.shortName || "Loading..."}</p>
-            </div>
-          </div>
-          <Button
-            onClick={isFavorite ? handleRemoveFromFavorites : handleSaveToFavorites}
-            variant="outline"
-            size="sm"
-            className={`${isFavorite ? 'bg-red-500 hover:bg-red-600' : 'bg-transparent hover:bg-gray-700'} border-gray-600`}
-          >
-            <Heart className={`h-4 w-4 mr-2 ${isFavorite ? 'fill-white' : ''}`} />
-            {isFavorite ? 'Saved' : 'Save'}
-          </Button>
-        </DialogHeader>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
-          </div>
-        ) : (
-          <div className="space-y-6 mt-6">
-            <Tabs defaultValue="profile" className="space-y-4">
-              <TabsList className="bg-transparent">
-                <TabsTrigger value="profile" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Company Profile</TabsTrigger>
-                <TabsTrigger value="ranking" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Ranking</TabsTrigger>
-                <TabsTrigger value="dividends" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Dividends</TabsTrigger>
-                <TabsTrigger value="pricehistory" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Price History</TabsTrigger>
-                <TabsTrigger value="financials" className="data-[state=active]:bg-gray-700 data-[state=active]:text-white">Financials</TabsTrigger>
-              </TabsList>
-              <TabsContent value="profile" className="space-y-2">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Company Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-gray-300 space-y-2">
-                    <p><strong>Sector:</strong> {companyProfile?.sector || "N/A"}</p>
-                    <p><strong>Industry:</strong> {companyProfile?.industry || "N/A"}</p>
-                    <p><strong>Employees:</strong> {companyProfile?.fullTimeEmployees || "N/A"}</p>
-                    <p><strong>Summary:</strong> {companyProfile?.longBusinessSummary || "N/A"}</p>
-                    <p><strong>Website:</strong> <a href={companyProfile?.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">{companyProfile?.website}</a></p>
-                    <p><strong>Phone:</strong> {companyProfile?.phone || "N/A"}</p>
-                    <p><strong>Address:</strong> {companyProfile?.address || "N/A"}, {companyProfile?.city || "N/A"}, {companyProfile?.state || "N/A"} {companyProfile?.zip || "N/A"}, {companyProfile?.country || "N/A"}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Key Metrics</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-gray-300 space-y-2">
-                    <p><strong>Market Cap:</strong> {companyProfile?.marketCap ? `$${companyProfile.marketCap.toLocaleString()}` : "N/A"}</p>
-                    <p><strong>Trailing P/E:</strong> {companyProfile?.trailingPE || "N/A"}</p>
-                    <p><strong>Forward P/E:</strong> {companyProfile?.forwardPE || "N/A"}</p>
-                    <p><strong>PEG Ratio:</strong> {companyProfile?.pegRatio || "N/A"}</p>
-                    <p><strong>Book Value:</strong> {companyProfile?.bookValue || "N/A"}</p>
-                    <p><strong>Price to Book:</strong> {companyProfile?.priceToBook || "N/A"}</p>
-                    <p><strong>Enterprise Value:</strong> {companyProfile?.enterpriseValue ? `$${companyProfile.enterpriseValue.toLocaleString()}` : "N/A"}</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="ranking">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Ranking Data</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-gray-300 space-y-2">
-                    {rankingData ? (
-                      <>
-                        <p><strong>Overall Rank:</strong> {rankingData?.rank || "N/A"} out of {rankingData?.totalStocks || "N/A"} stocks</p>
-                        <p><strong>Score:</strong> {rankingData?.score || "N/A"}</p>
-                        <p><strong>Sector:</strong> {rankingData?.sector || "N/A"}</p>
-                        <p><strong>Industry:</strong> {rankingData?.industry || "N/A"}</p>
-                        <p><strong>Industry Rank:</strong> {rankingData?.industryRank || "N/A"} out of {rankingData?.totalIndustryStocks || "N/A"} stocks in the industry</p>
-                      </>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent className={`max-w-6xl rounded-lg shadow-lg text-sm  space-y-1 ${theme === "dark" ? ' text-white' : ' text-white'}`}>
+      <DialogHeader className="mb-1">
+        <DialogTitle className="flex items-center justify-between gap-2 w-full">
+          {/* Left Section */}
+          <div className="flex items-center gap-3">
+            {/* Logo and Stock Info */}
+            <div className="flex items-center gap-2">
+              <div
+                className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-xl border border-gray-300 dark:border-gray-700 shadow-lg transition-all duration-300"
+                style={{
+                  backgroundImage: `url(${logoURL || 'stock.avif'})`,
+                  backgroundColor: theme === 'dark' ? '#1f2937' : '#f9fafb'
+                }}
+              />
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <div className="text-base font-semibold text-gray-800 dark:text-gray-200">
+                    {stock.Symbol}
+                  </div>
+                  <button
+                    onClick={handleSaveStock}
+                    disabled={isLoading}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-full transition-all duration-300 text-xs ${
+                      isLoading ? 'opacity-50 cursor-not-allowed' : ''
+                    } ${
+                      isSaved
+                        ? 'bg-red-100 dark:bg-red-900/30 text-red-600'
+                        : 'bg-white dark:bg-gray-900 text-gray-700 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600'
+                    }`}
+                  >
+                    {isLoading ? (
+                      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <p>No ranking data available for this stock.</p>
+                      <Heart className={`w-4 h-4 ${isSaved ? 'fill-red-500 stroke-red-500' : 'stroke-current'}`} />
                     )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                    <span className="font-medium">
+                      {isLoading ? '...' : isSaved ? 'Saved' : 'Save'}
+                    </span>
+                  </button>
+                </div>
+                <div className="text-xs text-gray-600 dark:text-gray-400">
+                  {stock?.title}
+                </div>
+              </div>
+            </div>
 
-              <TabsContent value="dividends">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Dividend Data</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-gray-300 space-y-2">
-                    {dividendData && dividendData.length > 0 ? (
-                      dividendData.map((dividend, index) => (
-                        <div key={index} className="border-b border-gray-700 pb-2 mb-2 last:border-none">
-                          <p><strong>Dividend:</strong> {dividend.dividend || "N/A"}</p>
-                          <p><strong>Ex-Dividend Date:</strong> {dividend.exdividenddate || "N/A"}</p>
-                          <p><strong>Earnings Date:</strong> {dividend.earningsdate || "N/A"}</p>
-                          <p><strong>Current Price:</strong> {dividend.currentprice || "N/A"}</p>
+            {/* Ranking Section - Made Compact */}
+            <div className="flex gap-3 px-2 py-1 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg border border-gray-200 dark:border-gray-700">
+              {[
+                { label: 'Rank', value: rankingCSVData?.rank ? `#${rankingCSVData.rank}` : 'N/A' },
+                {
+                  label: 'Score',
+                  value: rankingCSVData?.score ? `#${rankingCSVData.score}` : 'N/A',
+                  color: !rankingCSVData?.score ? 'text-gray-500' :
+                         Number(rankingCSVData.score) >= 0.7 ? 'text-green-500' :
+                         Number(rankingCSVData.score) >= 0.4 ? 'text-yellow-500' : 'text-red-500'
+                },
+                { label: 'Sector', value: rankingCSVData?.sector || 'N/A', color: 'text-blue-400' },
+                { label: 'Industry', value: rankingCSVData?.industry || 'N/A', color: 'text-purple-400' }
+              ].map((item, idx) => (
+                <div key={idx} className="flex flex-col items-center">
+                  <span className="text-[10px] text-gray-500 uppercase">{item.label}</span>
+                  <span className={`text-sm font-bold ${item.color || 'text-gray-800 dark:text-gray-200'}`}>
+                    {item.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Mini Chart - Made Compact */}
+            <div className="flex items-center px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex gap-4">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-500">Annual | Yield</span>
+                  <div className="flex gap-1 items-center">
+                    <span className="text-xs font-bold text-green-600">
+                      {latestDividends.dividendrate ? `$${Number(latestDividends.dividendrate).toFixed(2)}` : 'N/A'}
+                    </span>
+                    <span className="text-xs text-gray-400">|</span>
+                    <span className="text-xs font-semibold text-green-500">
+                      ({latestDividends.dividendyield ? `${Number(latestDividends.dividendyield).toFixed(2)}%` : 'N/A'})
+                    </span>
+                  </div>
+                </div>
+                <div className="w-px h-5 bg-gray-300 dark:bg-gray-600" />
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-gray-500">Quarterly</span>
+                  <span className="text-xs font-bold text-blue-600">
+                    {latestDividends.dividend ? `$${Number(latestDividends.dividend).toFixed(2)}` : 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          {/* Notification Box in Top Right Corner */}
+          <div className="flex items-center px-3 py-1 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-blue-500 font-medium">Track Price</span>
+                <Switch checked={isSubscribed} onCheckedChange={handleToggle} className="data-[state=checked]:bg-blue-500" />
+                {showMessage && (
+                  <span className="text-sm text-blue-500 transition-opacity duration-500">
+                    {isSubscribed ? "Saved for updates" : "Subscribe for updates"}
+                  </span>
+                )}
+              </div>
+            </div>
+
+
+
+
+          {/* Right Section */}
+          <div className="flex items-center gap-4">
+            <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
+            <div className="flex items-center gap-2">
+              <div className="text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md">Similar Companies</div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="w-5 h-5 flex items-center justify-center rounded-full border border-gray-400 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <AlertCircle className="w-3 h-3" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-96 p-4 text-sm rounded-xl shadow-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                  <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-medium">Symbol Company</th>
+                          <th className="px-3 py-2 text-left font-medium">Revenue 2025</th>
+                          <th className="px-3 py-2 text-right font-medium">Dividend Yield</th>
+                          <th className="px-3 py-2 text-right font-medium">Risks</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {similarCompanies.slice(0, 5).map((company) => (
+                          <tr
+                            key={company.similar_symbol}
+                            className="border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                            onClick={() => {
+                              // Always open the StockDetailsDialog for the similar symbol
+                              // Close current dialog
+                              setIsOpen(false);
+                              // Wait for dialog to close, then open new one
+                              setTimeout(() => {
+                                // Create a new stock object for the similar company
+                                const newStock = {
+                                  Symbol: company.similar_symbol,
+                                  title: company.similar_company || company.similar_symbol,
+                                  cik_str: '',
+                                  LogoURL: company.LogoURL
+                                };
+                                // Open a new dialog for this stock
+                                const event = new CustomEvent('openStockDetails', { detail: newStock });
+                                window.dispatchEvent(event);
+                              }, 300);
+                            }}
+                          >
+                            <td className="px-3 py-2 font-medium text-blue-600 dark:text-blue-400">
+                              <div
+                                className="flex items-center gap-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 p-1 rounded-md"
+                              >
+                                <div
+                                  className="w-5 h-5 bg-center bg-no-repeat bg-contain rounded border border-red-500 flex-shrink-0 animate-pulse-border"
+                                  style={{
+                                    backgroundImage: `url(${company.LogoURL || "/stock.avif"})`
+                                  }}
+                                />
+                                <div className="flex flex-col">
+                                  <span className="text-xs font-medium">{company.similar_symbol}</span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="px-3 py-2 text-gray-700 dark:text-gray-300">
+                              {company.revenue_2025 || 'N/A'}
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <span className={`font-medium ${parseFloat(company.dividend_yield) > 3 ? 'text-green-500' : 'text-blue-500'}`}>
+                                {company.dividend_yield || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                <span className="text-xs text-gray-500 truncate max-w-[60px] overflow-hidden">
+                                  {company.risks ? (company.risks.length > 10 ? company.risks.substring(0, 10) + '...' : company.risks) : 'N/A'}
+                                </span>
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <button
+                                      className="w-5 h-5 flex items-center justify-center rounded-full border border-red-400 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                      onClick={(e) => {
+                                        e.stopPropagation(); // Prevent row click
+                                      }}
+                                    >
+                                      <AlertTriangle className="w-3 h-3" />
+                                    </button>
+                                  </PopoverTrigger>
+                                  <PopoverContent
+                                    className="w-72 p-3 text-sm rounded-xl shadow-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700"
+                                    onPointerDownOutside={(e) => {
+                                      // Auto-close when clicking outside
+                                      e.preventDefault();
+                                    }}
+                                  >
+                                    <p className="font-semibold text-red-500 mb-1">Risk Factors</p>
+                                    <p className="text-xs text-gray-700 dark:text-gray-300">
+                                      {company.risks || 'No risk information available'}
+                                    </p>
+                                  </PopoverContent>
+                                </Popover>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                    Click on any company to open its details in a new dialog. Click the risk icon <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-red-100 text-red-500"><AlertTriangle className="w-2 h-2" /></span> to view risk information.
+                  </p>
+                </PopoverContent>
+              </Popover>
+
+            </div>
+          </div>
+        </DialogTitle>
+      </DialogHeader>
+
+        <div className="space-y-1">
+          {stock && (
+            <DividendCountdown symbol={stock.Symbol} />
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-1 mb-1">
+            {/* Dividend Information Card */}
+          </div>
+          <div >
+
+            {/* Tabs in a single row */}
+            <div className="flex gap-1 mt-1 overflow-x-auto pb-1">
+              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings"].map((tab) => (
+                <div
+                  key={tab}
+                  className={`flex items-center cursor-pointer px-2 py-1 ${
+                    selectedTab === tab ? 'border-b-2 border-blue-500' : ''
+                  }`}
+                  onClick={() => setSelectedTab(tab)}
+                >
+                  <span className={`text-sm ${selectedTab === tab ? 'text-blue-500' : ''}`}>
+                    {tab}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {renderTabContent()}
+          </div>
+        </div>
+        {/* Similar Company Details Dialog */}
+        <Dialog
+          open={!!selectedStock}
+          onOpenChange={() => setSelectedStock(null)}
+          onPointerDownOutside={(e) => {
+            // Auto-close when clicking outside
+            setSelectedStock(null);
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <div
+                  className="w-8 h-8 bg-center bg-no-repeat bg-contain rounded-lg border border-red-500 animate-pulse-border"
+                  style={{
+                    backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
+                  }}
+                />
+                <div>
+                  <div className="text-base font-bold">{selectedStock?.similar_symbol}</div>
+                  <div className="text-xs text-gray-500">{selectedStock?.similar_company || selectedStock?.similar_symbol}</div>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="p-3">
+              {/* Company Details Table */}
+              <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                <table className="w-full text-sm">
+                  <tbody>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <td className="px-4 py-2 font-medium bg-gray-50 dark:bg-gray-800">Revenue 2025</td>
+                      <td className="px-4 py-2">{selectedStock?.revenue_2025 || 'N/A'}</td>
+                    </tr>
+                    <tr className="border-b border-gray-200 dark:border-gray-700">
+                      <td className="px-4 py-2 font-medium bg-gray-50 dark:bg-gray-800">Dividend Yield</td>
+                      <td className="px-4 py-2">
+                        <span className={`font-medium ${Number(selectedStock?.dividend_yield) > 3 ? 'text-green-500' : 'text-blue-500'}`}>
+                          {selectedStock?.dividend_yield || 'N/A'}
+                        </span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-2 font-medium bg-gray-50 dark:bg-gray-800">Risks</td>
+                      <td className="px-4 py-2">
+                        <div className="text-xs text-gray-600 max-h-24 overflow-y-auto">
+                          {selectedStock?.risks || 'No risk information available'}
                         </div>
-                      ))
-                    ) : (
-                      <p>No dividend data available for this stock.</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-              <TabsContent value="pricehistory">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Price History</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-gray-300">
-                    {priceHistory && priceHistory.length > 0 ? (
-                      <ResponsiveContainer width="100%" height={300}>
-                        <RechartsLineChart data={priceHistory}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#4b5563" />
-                          <XAxis dataKey="date" stroke="#9ca3af" />
-                          <YAxis stroke="#9ca3af" />
-                          <Tooltip
-                            contentStyle={{ backgroundColor: '#374151', border: 'none', color: '#fff' }}
-                            itemStyle={{ color: '#fff' }}
-                          />
-                          <Line type="monotone" dataKey="price" stroke="#8b5cf6" strokeWidth={2} dot={false} />
-                        </RechartsLineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <p>No price history available for this stock.</p>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              {/* Action Buttons */}
+              <div className="mt-4 flex justify-between">
+                <Button
+                  className="bg-green-500 hover:bg-green-600 text-white font-bold flex items-center gap-2"
+                  onClick={() => {
+                    // Close current dialogs
+                    setSelectedStock(null);
+                    setIsOpen(false);
 
-              <TabsContent value="financials">
-                <Card className="bg-gray-800 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white">Financial Highlights</CardTitle>
-                  </CardHeader>
-                  <CardContent className="text-gray-300 space-y-2">
-                    <p><strong>Revenue:</strong> {companyProfile?.totalRevenue ? `$${companyProfile.totalRevenue.toLocaleString()}` : "N/A"}</p>
-                    <p><strong>Revenue Per Share:</strong> {companyProfile?.revenuePerShare || "N/A"}</p>
-                    <p><strong>Revenue Growth:</strong> {companyProfile?.revenueGrowth || "N/A"}</p>
-                    <p><strong>Earnings Growth:</strong> {companyProfile?.earningsGrowth || "N/A"}</p>
-                    <p><strong>Total Cash:</strong> {companyProfile?.totalCash ? `$${companyProfile.totalCash.toLocaleString()}` : "N/A"}</p>
-                    <p><strong>Total Debt:</strong> {companyProfile?.totalDebt ? `$${companyProfile.totalDebt.toLocaleString()}` : "N/A"}</p>
-                    <p><strong>Debt to Equity:</strong> {companyProfile?.debtToEquity || "N/A"}</p>
-                    <p><strong>Current Ratio:</strong> {companyProfile?.currentRatio || "N/A"}</p>
-                    <p><strong>Return on Assets:</strong> {companyProfile?.returnOnAssets || "N/A"}</p>
-                    <p><strong>Return on Equity:</strong> {companyProfile?.returnOnEquity || "N/A"}</p>
-                    <p><strong>Profit Margins:</strong> {companyProfile?.profitMargins || "N/A"}</p>
-                    <p><strong>Operating Margins:</strong> {companyProfile?.operatingMargins || "N/A"}</p>
-                    <p><strong>Dividend Rate:</strong> {companyProfile?.dividendRate || "N/A"}</p>
-                    <p><strong>Dividend Yield:</strong> {companyProfile?.dividendYield || "N/A"}</p>
-                    <p><strong>Ex-Dividend Date:</strong> {companyProfile?.exDividendDate || "N/A"}</p>
-                    <p><strong>Last Dividend Date:</strong> {companyProfile?.lastDividendDate || "N/A"}</p>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        )}
+                    // Wait for dialogs to close, then open new one
+                    setTimeout(() => {
+                      // Create a new stock object for the similar company
+                      const newStock = {
+                        Symbol: selectedStock?.similar_symbol || '',
+                        title: selectedStock?.similar_company || selectedStock?.similar_symbol || '',
+                        cik_str: '',
+                        LogoURL: selectedStock?.LogoURL || ''
+                      };
+                      // Open a new dialog for this stock
+                      const event = new CustomEvent('openStockDetails', { detail: newStock });
+                      window.dispatchEvent(event);
+                    }, 300);
+                  }}
+                >
+                  <div className="w-4 h-4 bg-center bg-no-repeat bg-contain rounded-full border border-white"
+                    style={{
+                      backgroundImage: `url(${selectedStock?.LogoURL || "/stock.avif"})`
+                    }}
+                  />
+                  Open {selectedStock?.similar_symbol} Details
+                </Button>
+
+                <Button
+                  className="bg-blue-500 hover:bg-blue-600 text-white"
+                  onClick={() => {
+                    // Handle comparison logic here
+                    toast({
+                      title: "Comparison",
+                      description: `Comparing ${stock.Symbol} with ${selectedStock?.similar_symbol}`,
+                    });
+                  }}
+                >
+                  Compare with {stock.Symbol}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

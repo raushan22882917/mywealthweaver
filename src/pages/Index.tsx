@@ -9,11 +9,9 @@ import { LineChart, TrendingUp, BookOpen, DollarSign, Target, Search, BarChart, 
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import TradingAnimation from "@/components/TradingAnimation";
-import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<string>("user1");
-  const [realStockData, setRealStockData] = useState<any>(null);
   
   const testimonials = [
     {
@@ -45,76 +43,6 @@ const Index = () => {
     { title: "Success Rate", value: "94%", icon: CheckCircle },
     { title: "Companies Tracked", value: "5,000+", icon: Target }
   ];
-
-  // Fetch real stock data from database
-  useEffect(() => {
-    const fetchRealStockData = async () => {
-      try {
-        // Get a random stock from top stocks or dividend data
-        const { data: topStock, error } = await supabase
-          .from('top_stocks')
-          .select('*')
-          .order('Score', { ascending: false })
-          .limit(1)
-          .single();
-
-        if (topStock && !error) {
-          // Get company profile for the stock
-          const { data: profile } = await supabase
-            .from('company_profiles')
-            .select('*')
-            .eq('symbol', topStock.symbol)
-            .single();
-
-          // Get company logo
-          const { data: logo } = await supabase
-            .from('company_logos')
-            .select('*')
-            .eq('Symbol', topStock.symbol)
-            .single();
-
-          // Get latest dividend data
-          const { data: dividend } = await supabase
-            .from('dividendsymbol')
-            .select('*')
-            .eq('symbol', topStock.symbol)
-            .single();
-
-          setRealStockData({
-            symbol: topStock.symbol,
-            shortName: profile?.short_name || topStock.symbol,
-            currentPrice: dividend?.currentprice || 150.00,
-            changePercent: Math.random() > 0.5 ? 1.21 : -0.85,
-            change: Math.random() > 0.5 ? 2.35 : -1.25,
-            marketCap: profile?.total_revenue ? `$${(profile.total_revenue / 1000000000).toFixed(2)}B` : "$3.05T",
-            peRatio: profile?.trailing_pe || 32.41,
-            dividendYield: profile?.dividend_yield ? `${(profile.dividend_yield * 100).toFixed(2)}%` : "0.51%",
-            fiftyTwoWeekLow: 124.17,
-            fiftyTwoWeekHigh: 199.62,
-            logoUrl: logo?.LogoURL || "/logo.png"
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching real stock data:', error);
-        // Fallback to AAPL data structure
-        setRealStockData({
-          symbol: 'AAPL',
-          shortName: 'Apple Inc.',
-          currentPrice: 193.89,
-          changePercent: 1.21,
-          change: 2.35,
-          marketCap: '$3.05T',
-          peRatio: 32.41,
-          dividendYield: '0.51%',
-          fiftyTwoWeekLow: 124.17,
-          fiftyTwoWeekHigh: 199.62,
-          logoUrl: '/logo.png'
-        });
-      }
-    };
-
-    fetchRealStockData();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-black text-white">
@@ -176,69 +104,57 @@ const Index = () => {
               </div>
             </div>
             
-            {/* Right Content - Real Stock Data */}
+            {/* Right Content - Trading/Chart Visual */}
             <div className="w-full lg:w-1/2 relative px-4 lg:px-0">
               <div className="relative backdrop-blur-md bg-black/30 p-4 md:p-6 border border-gray-700/50 rounded-2xl shadow-2xl transform hover:rotate-0 transition-all duration-300 max-w-md mx-auto lg:max-w-none">
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl pointer-events-none"></div>
-                {realStockData && (
-                  <>
-                    <div className="flex justify-between items-center mb-4">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-lg mr-3 flex items-center justify-center">
-                          <img src={realStockData.logoUrl} alt="Stock" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-white text-sm md:text-base">{realStockData.symbol}</h3>
-                          <p className="text-xs text-gray-400">{realStockData.shortName}</p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className={`font-bold text-sm md:text-base ${realStockData.changePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          ${realStockData.currentPrice.toFixed(2)}
-                        </p>
-                        <p className={`text-xs ${realStockData.changePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                          {realStockData.changePercent >= 0 ? '+' : ''}{realStockData.change.toFixed(2)} ({realStockData.changePercent.toFixed(2)}%)
-                        </p>
-                      </div>
+                <div className="flex justify-between items-center mb-4">
+                  <div className="flex items-center">
+                    <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-lg mr-3 flex items-center justify-center">
+                      <img src="/logo.png" alt="Stock" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
                     </div>
-                    
-                    <div className="h-32 md:h-48 w-full bg-gray-800/50 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                      <img 
-                        src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
-                        alt="Stock Chart" 
-                        className="w-full h-full object-cover opacity-70"
-                      />
+                    <div>
+                      <h3 className="font-bold text-white text-sm md:text-base">AAPL</h3>
+                      <p className="text-xs text-gray-400">Apple Inc.</p>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
-                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
-                        <p className="text-gray-400">Market Cap</p>
-                        <p className="font-semibold text-white">{realStockData.marketCap}</p>
-                      </div>
-                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
-                        <p className="text-gray-400">P/E Ratio</p>
-                        <p className="font-semibold text-white">{realStockData.peRatio}</p>
-                      </div>
-                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
-                        <p className="text-gray-400">Dividend Yield</p>
-                        <p className="font-semibold text-white">{realStockData.dividendYield}</p>
-                      </div>
-                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
-                        <p className="text-gray-400">52W Range</p>
-                        <p className="font-semibold text-white text-xs md:text-sm">
-                          ${realStockData.fiftyTwoWeekLow} - ${realStockData.fiftyTwoWeekHigh}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
+                  </div>
+                  <div className="text-right">
+                    <p className="text-green-400 font-bold text-sm md:text-base">$193.89</p>
+                    <p className="text-xs text-green-400">+2.35 (1.21%)</p>
+                  </div>
+                </div>
+                
+                <div className="h-32 md:h-48 w-full bg-gray-800/50 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+                    alt="Stock Chart" 
+                    className="w-full h-full object-cover opacity-70"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
+                  <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                    <p className="text-gray-400">Market Cap</p>
+                    <p className="font-semibold text-white">$3.05T</p>
+                  </div>
+                  <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                    <p className="text-gray-400">P/E Ratio</p>
+                    <p className="font-semibold text-white">32.41</p>
+                  </div>
+                  <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                    <p className="text-gray-400">Dividend Yield</p>
+                    <p className="font-semibold text-white">0.51%</p>
+                  </div>
+                  <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                    <p className="text-gray-400">52W Range</p>
+                    <p className="font-semibold text-white text-xs md:text-sm">$124.17 - $199.62</p>
+                  </div>
+                </div>
               </div>
               
               <div className="absolute -top-2 -right-2 md:-top-4 md:-right-4 bg-gradient-to-br from-purple-600 to-blue-600 p-3 md:p-4 rounded-2xl shadow-lg transform -rotate-3 hover:rotate-0 transition-all duration-300">
                 <p className="text-white font-bold text-xs md:text-sm">AI Recommendation</p>
-                <p className="text-xs text-blue-100">
-                  {realStockData?.changePercent >= 0 ? 'Strong Buy' : 'Hold'}
-                </p>
+                <p className="text-xs text-blue-100">Strong Buy</p>
               </div>
             </div>
           </div>
