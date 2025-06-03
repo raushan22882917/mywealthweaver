@@ -1,5 +1,5 @@
+
 import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
 import StockTicker from "@/components/StockTicker";
 import Features from "@/components/Features";
 import TopStocks from "@/components/TopStocks";
@@ -121,8 +121,128 @@ const Index = () => {
       <Navbar />
       
       <main>
-        {/* Enhanced Hero Section */}
-        <Hero realStockData={realStockData} />
+        {/* Hero Section with 3D Animation */}
+        <div className="relative min-h-[600px] md:min-h-[700px] overflow-hidden">
+          {/* 3D Trading Animation Background */}
+          <div className="absolute inset-0 z-0">
+            <TradingAnimation />
+          </div>
+
+          {/* Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 via-gray-900/80 to-gray-900/95 z-10"></div>
+
+          {/* Split Content */}
+          <div className="relative z-20 container mx-auto px-4 h-full flex flex-col lg:flex-row items-center justify-between pt-16 md:pt-24 lg:pt-32">
+            {/* Left Content */}
+            <div className="w-full lg:w-1/2 space-y-6 md:space-y-8 text-center lg:text-left lg:pr-10 mb-8 lg:mb-0">
+              <div className="inline-flex items-center px-4 py-2 bg-blue-500/10 backdrop-blur-sm rounded-full border border-blue-500/20 text-blue-300 text-sm">
+                <span className="w-2 h-2 bg-blue-400 rounded-full mr-2 animate-pulse"></span>
+                Next-gen investment intelligence
+              </div>
+              
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
+                <span className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                  IntelligentInvestor+
+                </span>
+                <br />
+                <span className="text-white">
+                  Shape Your Financial Future
+                </span>
+              </h1>
+              
+              <p className="text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                Harness the power of AI-driven analytics and real-time market data to make 
+                informed investment decisions that transform your portfolio performance.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Button 
+                  size="lg"
+                  className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white px-6 md:px-8 py-4 md:py-6 rounded-xl text-base md:text-lg font-semibold transition-all transform hover:scale-105 border-none shadow-lg shadow-blue-500/20"
+                >
+                  <Search className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                  Start Investing
+                </Button>
+                <Link to="/education">
+                  <Button 
+                    variant="outline"
+                    size="lg"
+                    className="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400/10 px-6 md:px-8 py-4 md:py-6 rounded-xl text-base md:text-lg font-semibold transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
+                  >
+                    <BookOpen className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                    Learn More
+                  </Button>
+                </Link>
+              </div>
+            </div>
+            
+            {/* Right Content - Real Stock Data */}
+            <div className="w-full lg:w-1/2 relative px-4 lg:px-0">
+              <div className="relative backdrop-blur-md bg-black/30 p-4 md:p-6 border border-gray-700/50 rounded-2xl shadow-2xl transform hover:rotate-0 transition-all duration-300 max-w-md mx-auto lg:max-w-none">
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl pointer-events-none"></div>
+                {realStockData && (
+                  <>
+                    <div className="flex justify-between items-center mb-4">
+                      <div className="flex items-center">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-lg mr-3 flex items-center justify-center">
+                          <img src={realStockData.logoUrl} alt="Stock" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-white text-sm md:text-base">{realStockData.symbol}</h3>
+                          <p className="text-xs text-gray-400">{realStockData.shortName}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-bold text-sm md:text-base ${realStockData.changePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          ${realStockData.currentPrice.toFixed(2)}
+                        </p>
+                        <p className={`text-xs ${realStockData.changePercent >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {realStockData.changePercent >= 0 ? '+' : ''}{realStockData.change.toFixed(2)} ({realStockData.changePercent.toFixed(2)}%)
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="h-32 md:h-48 w-full bg-gray-800/50 rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                      <img 
+                        src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80" 
+                        alt="Stock Chart" 
+                        className="w-full h-full object-cover opacity-70"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 md:gap-3 text-xs md:text-sm">
+                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                        <p className="text-gray-400">Market Cap</p>
+                        <p className="font-semibold text-white">{realStockData.marketCap}</p>
+                      </div>
+                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                        <p className="text-gray-400">P/E Ratio</p>
+                        <p className="font-semibold text-white">{realStockData.peRatio}</p>
+                      </div>
+                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                        <p className="text-gray-400">Dividend Yield</p>
+                        <p className="font-semibold text-white">{realStockData.dividendYield}</p>
+                      </div>
+                      <div className="bg-gray-800/70 p-2 md:p-3 rounded-lg">
+                        <p className="text-gray-400">52W Range</p>
+                        <p className="font-semibold text-white text-xs md:text-sm">
+                          ${realStockData.fiftyTwoWeekLow} - ${realStockData.fiftyTwoWeekHigh}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+              
+              <div className="absolute -top-2 -right-2 md:-top-4 md:-right-4 bg-gradient-to-br from-purple-600 to-blue-600 p-3 md:p-4 rounded-2xl shadow-lg transform -rotate-3 hover:rotate-0 transition-all duration-300">
+                <p className="text-white font-bold text-xs md:text-sm">AI Recommendation</p>
+                <p className="text-xs text-blue-100">
+                  {realStockData?.changePercent >= 0 ? 'Strong Buy' : 'Hold'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Features Section */}
         <div className="py-16 md:py-20 bg-gradient-to-b from-gray-800 to-gray-900">

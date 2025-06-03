@@ -433,9 +433,10 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
     try {
       const { data, error } = await supabase
-        .from('dividendsymbol')
+        .from('dividend')
         .select('*')
-        .limit(10);
+        .eq('symbol', symbol.toUpperCase())
+        .order('buy_date', { ascending: true });
 
       if (error) {
         console.error('Database error:', error);
@@ -618,7 +619,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           setSimilarCompanies(formattedData);
         }
       } catch (error) {
-        console.error('Error fetching similar companies:', error);
+        console.error('Error in fetchSimilarCompanies:', error);
         toast({
           title: "Error",
           description: "Failed to fetch similar companies",
@@ -1048,7 +1049,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     </Button>
                     <Button variant="outline" size="icon">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2h2a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                       </svg>
                     </Button>
                     <Button variant="outline" size="icon">
