@@ -224,28 +224,7 @@ const Index = () => {
         </div>
 
         {/* Stats Section */}
-        <div className="py-16 md:py-20 bg-gradient-to-b from-gray-900 to-gray-800">
-          <div className="container mx-auto px-4 md:px-6">
-            <div className="text-center mb-12 md:mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                Trusted by Investors Worldwide
-              </h2>
-              <p className="text-gray-400 text-base md:text-lg max-w-2xl mx-auto">
-                Join thousands of successful investors who rely on our platform for their financial decisions
-              </p>
-            </div>
-            
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center p-6 md:p-8 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300">
-                  <stat.icon className="h-8 w-8 md:h-12 md:w-12 text-blue-400 mx-auto mb-4" />
-                  <div className="text-2xl md:text-4xl font-bold text-white mb-2">{stat.value}</div>
-                  <div className="text-gray-400 text-sm md:text-base">{stat.title}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+       
 
         {/* Feedback/Contact Section */}
         <div className="py-16 md:py-20 bg-gradient-to-b from-gray-900 to-black">
