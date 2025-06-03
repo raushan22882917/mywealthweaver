@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Sheet,
@@ -8,7 +7,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Menu, LogIn } from "lucide-react";
+import { Menu } from "lucide-react";
+import { ModeToggle } from "@/components/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,40 +19,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useRouter } from "next/router";
+import Link from "next/link";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import { CommandDialog, CommandInput, CommandList } from "@/components/ui/command";
 import {
   Command,
   CommandEmpty,
   CommandGroup,
   CommandItem,
+  CommandSeparator,
 } from "@/components/ui/command";
 import { supabase } from "@/integrations/supabase/client";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
-import { Link, useNavigate } from "react-router-dom";
-import { Session } from '@supabase/supabase-js';
 
 const Navbar = () => {
   const [isStockDialogOpen, setIsStockDialogOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState<{ symbol: string } | null>(null);
   const [open, setOpen] = React.useState(false);
-  const [session, setSession] = useState<Session | null>(null);
-  const navigate = useNavigate();
+  const user = useUser();
+  const router = useRouter();
+  const supabaseClient = useSupabaseClient();
   const [search, setSearch] = useState("");
   const [stocks, setStocks] = useState<any[]>([]);
-
-  useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     const fetchStocks = async () => {
@@ -71,17 +62,13 @@ const Navbar = () => {
     }
   }, [search]);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSearch = (e: any) => {
     setSearch(e.target.value);
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  };
-
-  const handleLogin = () => {
-    navigate("/auth");
+    await supabaseClient.auth.signOut();
+    router.push("/login");
   };
 
   return (
@@ -101,104 +88,102 @@ const Navbar = () => {
               </SheetDescription>
             </SheetHeader>
             <div className="grid gap-4 py-4">
-              <Link to="/" className="px-4 py-2 hover:bg-gray-100 rounded-md">
+              <Link href="/" className="px-4 py-2 hover:bg-gray-100 rounded-md">
                 Dashboard
               </Link>
               <Link
-                to="/dividend"
+                href="/calendar"
                 className="px-4 py-2 hover:bg-gray-100 rounded-md"
               >
-                Dividend Calendar
+                Calendar
               </Link>
               <Link
-                to="/top-stocks"
+                href="/top-stocks"
                 className="px-4 py-2 hover:bg-gray-100 rounded-md"
               >
                 Top Stocks
               </Link>
-              {session && (
-                <Link
-                  to="/dashboard"
-                  className="px-4 py-2 hover:bg-gray-100 rounded-md"
-                >
-                  Profile
-                </Link>
-              )}
+              <Link
+                href="/profile"
+                className="px-4 py-2 hover:bg-gray-100 rounded-md"
+              >
+                Profile
+              </Link>
             </div>
           </SheetContent>
         </Sheet>
         <div className="ml-auto flex items-center space-x-4">
+          <ModeToggle />
           <CommandDialog open={open} onOpenChange={setOpen}>
-            <CommandInput
-              placeholder="Search stocks..."
-              value={search}
-              onValueChange={setSearch}
-            />
-            <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup heading="Stocks">
-                {stocks.map((stock) => (
-                  <CommandItem
-                    key={stock.symbol}
-                    onSelect={() => {
-                      setOpen(false);
-                      setSelectedStock({ symbol: stock.symbol });
-                      setIsStockDialogOpen(true);
-                    }}
-                  >
-                    <span>{stock.symbol}</span>
-                    <span className="ml-2 text-gray-500">{stock.short_name}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm">
+                Search Stocks
+              </Button>
+            </SheetTrigger>
+            <CommandContent>
+              <CommandInput
+                placeholder="Type a command or search..."
+                onChange={handleSearch}
+              />
+              <CommandList>
+                <CommandEmpty>No results found.</CommandEmpty>
+                <CommandGroup heading="Stocks">
+                  {stocks.map((stock) => (
+                    <CommandItem
+                      key={stock.symbol}
+                      onSelect={() => {
+                        setOpen(false);
+                        setSelectedStock({ symbol: stock.symbol });
+                        setIsStockDialogOpen(true);
+                      }}
+                    >
+                      <span>{stock.symbol}</span>
+                      <span>{stock.short_name}</span>
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </CommandContent>
           </CommandDialog>
-
-          <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
-            Search Stocks
-          </Button>
-
-          {session ? (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatars/01.png" alt="Avatar" />
-                    <AvatarFallback>
-                      {session.user.email?.charAt(0).toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link to="/dashboard">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Link to="/settings">Settings</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Button onClick={handleLogin} size="sm" className="bg-blue-600 hover:bg-blue-700">
-              <LogIn className="h-4 w-4 mr-2" />
-              Login
-            </Button>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src="/avatars/01.png" alt="Avatar" />
+                  <AvatarFallback>SC</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>
+                <Link href="/profile">Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut}>Sign out</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <StockDetailsDialog
-        symbol={selectedStock?.symbol || ''}
-        open={isStockDialogOpen}
-        onOpenChange={setIsStockDialogOpen}
-      />
+            <StockDetailsDialog
+              symbol={selectedStock?.symbol || ''}
+              open={isStockDialogOpen}
+              onOpenChange={setIsStockDialogOpen}
+            />
     </div>
   );
 };
 
 export default Navbar;
+
+interface CommandContentProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+const CommandContent = React.forwardRef<HTMLDivElement, CommandContentProps>(
+  ({ className, ...props }, ref) => (
+    <div className="h-full w-full max-w-[400px] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80" {...props} />
+  )
+);
+CommandContent.displayName = "CommandContent"
