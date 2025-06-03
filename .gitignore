@@ -31,3 +31,5 @@ venv/
 *.sln
 *.sw?
 public/ud/*.csv
+.next/
+.history/

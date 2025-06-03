@@ -47,7 +47,6 @@ const getInsightStatement = (diff: number): { text: string; color: string } => {
 export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) => {
   const { symbol: urlSymbol } = useParams<{ symbol: string }>();
   const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [insightData, setInsightData] = React.useState<InsightData | null>(null);
 
   const stockSymbol = symbol || urlSymbol;
@@ -57,7 +56,6 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
       if (!stockSymbol) return;
 
       setIsLoading(true);
-      setError(null);
 
       try {
         const { data, error } = await supabase
@@ -67,13 +65,7 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
           .single();
 
         if (error) {
-          if (error.code === 'PGRST116') {
-            // No rows returned
-            setInsightData(null);
-            setError(null);
-          } else {
-            throw error;
-          }
+          setInsightData(null);
         } else if (data) {
           const formattedData: InsightData = {
             yield: data.yield,
@@ -84,9 +76,9 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
           };
           setInsightData(formattedData);
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Error fetching insight data:", err);
-        setError(err.message || "Failed to load insight data");
+        setInsightData(null);
       } finally {
         setIsLoading(false);
       }
@@ -95,13 +87,11 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
     fetchInsightData();
   }, [stockSymbol]);
 
-  if (!stockSymbol) {
+  if (!stockSymbol || !insightData) {
     return null;
-  }
+  }                                                                                                                                                                                                                                                                                                                                       
 
-  const insightStatement = insightData?.diff 
-    ? getInsightStatement(insightData.diff)
-    : null;
+  const insightStatement = getInsightStatement(insightData.diff);
 
   return (
     <Card className={`${className} relative overflow-hidden transition-all duration-300 hover:shadow-lg`}>
@@ -111,22 +101,7 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
           <div className="flex justify-center py-4">
             <Loader message="Loading insight data..." />
           </div>
-        ) : error ? (
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 mt-1">
-                <div className="p-2 bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                </div>
-              </div>
-              <div className="flex-grow">
-                <p className="text-sm text-red-600 dark:text-red-400 leading-relaxed">
-                  {error}
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : insightData ? (
+        ) : (
           <div className="space-y-3">
             <div className="flex items-start gap-3">
               <div className="flex-shrink-0 mt-1">
@@ -140,21 +115,6 @@ export const InsightCard: React.FC<InsightProps> = ({ symbol, className = "" }) 
                     {insightData.statement}
                   </p>
                 )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 mt-1">
-                <div className="p-2 bg-gradient-to-br from-red-500/10 to-red-600/10 rounded-lg">
-                  <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-                </div>
-              </div>
-              <div className="flex-grow">
-                <p className="text-sm text-red-600 dark:text-red-400 leading-relaxed">
-                  Data coming soon for {stockSymbol}. Thank you for your patience.
-                </p>
               </div>
             </div>
           </div>
