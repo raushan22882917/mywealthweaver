@@ -1,120 +1,118 @@
-import React, { useState, useEffect, useRef } from "react";
+
+import React, { useState, useEffect } from 'react';
+import { Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Bell } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from 'react-router-dom';
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Notification {
-  symbol: string;
-  buy_date: string;
-  currentprice: number;
-  dividend: number;
-  dividendrate: number;
-  dividendyield: number;
-  earningsdate: string;
-  exdividenddate: string;
-  hist: string;
-  insight: string;
+  id: string;
+  title: string;
   message: string;
-  payoutdate: string;
-  payoutratio: number;
-  previousclose: number;
-  quotetype: string;
-  shortname: string;
+  created_at: string;
+  read: boolean;
 }
 
-const NotificationDropdown: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
+interface NotificationDropdownProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClose }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
-  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-    };
-
-    getSession();
-  }, []);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!session?.user?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('notifications')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .limit(10);
-
-        if (error) throw error;
-
-        setNotifications(data || []);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      }
-    };
-
-    if (session?.user?.id) {
+    if (open) {
       fetchNotifications();
     }
-  }, [session]);
+  }, [open]);
 
-  const handleNotificationClick = (notification: Notification) => {
-    console.log('Notification clicked:', notification);
-    navigate(`/stock/${notification.symbol}`);
-    setIsOpen(false);
+  const fetchNotifications = async () => {
+    setLoading(true);
+    try {
+      // For now, we'll create mock notifications since the table doesn't exist
+      const mockNotifications: Notification[] = [
+        {
+          id: '1',
+          title: 'Market Alert',
+          message: 'AAPL is up 5% today',
+          created_at: new Date().toISOString(),
+          read: false
+        },
+        {
+          id: '2',
+          title: 'Dividend Update',
+          message: 'MSFT dividend payment scheduled',
+          created_at: new Date(Date.now() - 86400000).toISOString(),
+          read: true
+        }
+      ];
+      setNotifications(mockNotifications);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const markAsRead = (id: string) => {
+    setNotifications(prev =>
+      prev.map(notif =>
+        notif.id === id ? { ...notif, read: true } : notif
+      )
+    );
+  };
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={open} onOpenChange={onClose}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative">
+        <Button variant="ghost" size="icon" className="relative">
           <Bell className="h-5 w-5" />
-          {notifications.length > 0 && (
-            <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 border border-background" />
+          {unreadCount > 0 && (
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            >
+              {unreadCount}
+            </Badge>
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-80" align="end" forceMount>
-        <DropdownMenuItem className="text-sm font-medium leading-none">
-          Notifications
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        {notifications.map((notification, index) => (
-          <div
-            key={`${notification.symbol}-${index}`}
-            className="p-4 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 cursor-pointer"
-            onClick={() => handleNotificationClick(notification)}
-          >
-            <div className="flex items-center space-x-2">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={`https://logo.clearbit.com/${notification.shortname.toLowerCase().replace(/ /g, '')}.com`} alt={notification.shortname} />
-                <AvatarFallback>{notification.shortname.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm font-semibold">{notification.shortname}</p>
-                <p className="text-xs text-gray-500">{notification.message}</p>
-              </div>
+      <DropdownMenuContent align="end" className="w-80">
+        <div className="p-4">
+          <h3 className="font-semibold text-sm mb-2">Notifications</h3>
+          {loading ? (
+            <div className="text-center py-4">Loading...</div>
+          ) : notifications.length === 0 ? (
+            <div className="text-center py-4 text-gray-500">No notifications</div>
+          ) : (
+            <div className="space-y-2">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className={`p-2 rounded-md cursor-pointer hover:bg-gray-100 ${
+                    !notification.read ? 'bg-blue-50 border-l-2 border-blue-500' : ''
+                  }`}
+                  onClick={() => markAsRead(notification.id)}
+                >
+                  <div className="font-medium text-sm">{notification.title}</div>
+                  <div className="text-xs text-gray-600">{notification.message}</div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {new Date(notification.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        ))}
-        {notifications.length === 0 && (
-          <DropdownMenuItem className="text-center text-gray-500">
-            No notifications
-          </DropdownMenuItem>
-        )}
+          )}
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );
