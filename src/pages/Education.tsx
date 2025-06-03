@@ -1,15 +1,66 @@
+
 import React, { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/components/ui/use-toast";
+import { 
+  Search, 
+  ThumbsUp, 
+  ThumbsDown, 
+  Bookmark, 
+  Share2, 
+  Eye, 
+  Clock, 
+  BookOpen, 
+  Download,
+  Copy,
+  CheckCircle,
+  Star,
+  Users,
+  TrendingUp
+} from "lucide-react";
 import educationTopics from '../../public/education/topics.json';
 
+interface SectionInteraction {
+  id: string;
+  likes: number;
+  dislikes: number;
+  views: number;
+  isLiked: boolean;
+  isDisliked: boolean;
+  isBookmarked: boolean;
+}
+
 const Education = () => {
-  // Initialize with first topic and section
+  const { toast } = useToast();
   const [selectedTopic, setSelectedTopic] = useState<string>(educationTopics[0]?.title || '');
   const [selectedSection, setSelectedSection] = useState<any>(educationTopics[0]?.sections[0] || null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [interactions, setInteractions] = useState<Record<string, SectionInteraction>>({});
+
+  // Initialize interactions for sections
+  useEffect(() => {
+    const initialInteractions: Record<string, SectionInteraction> = {};
+    educationTopics.forEach(topic => {
+      topic.sections?.forEach(section => {
+        initialInteractions[section.title] = {
+          id: section.title,
+          likes: Math.floor(Math.random() * 50) + 10,
+          dislikes: Math.floor(Math.random() * 5) + 1,
+          views: Math.floor(Math.random() * 200) + 50,
+          isLiked: false,
+          isDisliked: false,
+          isBookmarked: false
+        };
+      });
+    });
+    setInteractions(initialInteractions);
+  }, []);
 
   // Set default selection when component mounts
   useEffect(() => {
@@ -20,6 +71,80 @@ const Education = () => {
       }
     }
   }, []);
+
+  const handleLike = (sectionTitle: string) => {
+    setInteractions(prev => ({
+      ...prev,
+      [sectionTitle]: {
+        ...prev[sectionTitle],
+        isLiked: !prev[sectionTitle].isLiked,
+        isDisliked: false,
+        likes: prev[sectionTitle].isLiked 
+          ? prev[sectionTitle].likes - 1 
+          : prev[sectionTitle].likes + 1
+      }
+    }));
+    
+    toast({
+      title: interactions[sectionTitle]?.isLiked ? "Like removed" : "Liked!",
+      description: interactions[sectionTitle]?.isLiked 
+        ? "You removed your like from this section" 
+        : "Thank you for your feedback!",
+    });
+  };
+
+  const handleDislike = (sectionTitle: string) => {
+    setInteractions(prev => ({
+      ...prev,
+      [sectionTitle]: {
+        ...prev[sectionTitle],
+        isDisliked: !prev[sectionTitle].isDisliked,
+        isLiked: false,
+        dislikes: prev[sectionTitle].isDisliked 
+          ? prev[sectionTitle].dislikes - 1 
+          : prev[sectionTitle].dislikes + 1
+      }
+    }));
+
+    toast({
+      title: interactions[sectionTitle]?.isDisliked ? "Dislike removed" : "Feedback received",
+      description: interactions[sectionTitle]?.isDisliked 
+        ? "You removed your dislike from this section" 
+        : "We'll work on improving this content",
+    });
+  };
+
+  const handleBookmark = (sectionTitle: string) => {
+    setInteractions(prev => ({
+      ...prev,
+      [sectionTitle]: {
+        ...prev[sectionTitle],
+        isBookmarked: !prev[sectionTitle].isBookmarked
+      }
+    }));
+
+    toast({
+      title: interactions[sectionTitle]?.isBookmarked ? "Bookmark removed" : "Bookmarked!",
+      description: interactions[sectionTitle]?.isBookmarked 
+        ? "Removed from your bookmarks" 
+        : "Added to your bookmarks for later reading",
+    });
+  };
+
+  const handleShare = (sectionTitle: string) => {
+    navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}#${sectionTitle}`);
+    toast({
+      title: "Link copied!",
+      description: "Section link has been copied to clipboard",
+    });
+  };
+
+  const handleDownload = (sectionTitle: string) => {
+    toast({
+      title: "Download started",
+      description: "PDF version of this section is being prepared",
+    });
+  };
 
   // Function to render Python code block
   const renderPythonProgram = (pythonData: any) => {
@@ -99,26 +224,25 @@ const Education = () => {
 
   const renderContent = (content: any) => {
     if (typeof content === 'string') {
-      return <p className="text-gray-600 mb-6">{content}</p>;
+      return <p className="text-gray-600 mb-6 leading-relaxed">{content}</p>;
     }
     
     if (Array.isArray(content)) {
       return content.map((item, index) => (
-        <div key={index} className="mb-4">
-          {item.note && <h4 className="font-semibold mb-2">{item.note}</h4>}
-          {item.explanation && <p className="text-gray-600">{item.explanation}</p>}
+        <div key={index} className="mb-6">
+          {item.note && <h4 className="font-semibold mb-3 text-lg">{item.note}</h4>}
+          {item.explanation && <p className="text-gray-600 leading-relaxed">{item.explanation}</p>}
           {item.metric && (
             <div className="mb-4">
-              <h4 className="font-semibold">{item.metric}</h4>
-              <p className="text-gray-600">{item.definition}</p>
+              <h4 className="font-semibold text-lg">{item.metric}</h4>
+              <p className="text-gray-600 leading-relaxed">{item.definition}</p>
               {item.formula && (
-                <div className="bg-black p-3 rounded-lg my-2 font-mono text-white font-bold">
-                {item.formula}
-              </div>
-              
+                <div className="bg-black p-4 rounded-lg my-3 font-mono text-white font-bold border-l-4 border-blue-500">
+                  {item.formula}
+                </div>
               )}
               {item.interpretation && (
-                <p className="text-gray-600 mt-2">{item.interpretation}</p>
+                <p className="text-gray-600 mt-3 leading-relaxed">{item.interpretation}</p>
               )}
             </div>
           )}
@@ -136,103 +260,253 @@ const Education = () => {
     )
   );
 
+  const currentInteraction = selectedSection ? interactions[selectedSection.title] : null;
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-[#0f1117] via-[#1a1f2e] to-[#0f1117]">
       <Navbar />
 
       <main className="container mx-auto px-4 py-8">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-xl shadow-lg">
+              <BookOpen className="h-8 w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                Investment Education Hub
+              </h1>
+              <p className="text-gray-400 text-lg mt-2">Master the fundamentals of smart investing</p>
+            </div>
+          </div>
+        </div>
+
         {/* Search Bar */}
         <div className="relative max-w-md mx-auto mb-8">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
             type="text"
-            placeholder="Search topics..."
+            placeholder="Search topics and lessons..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-[#1a1f2e] border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
           />
         </div>
 
         <div className="grid grid-cols-12 gap-6">
           {/* Left Sidebar */}
-          <div className="col-span-4 border rounded-lg p-4">
-            {educationTopics.map((topic) => (
-              <div key={topic.title} className="mb-4">
-                <button
-                  onClick={() => {
-                    setSelectedTopic(topic.title);
-                    // When selecting a topic, automatically select its first section
-                    setSelectedSection(topic.sections?.[0] || null);
-                  }}
-                  className={`w-full text-left px-4 py-2 rounded-lg font-medium ${
-                    selectedTopic === topic.title ? "bg-blue-50 text-blue-600" : "hover:bg-gray-50"
-                  }`}
-                >
-                  {topic.title}
-                </button>
-                
-                {selectedTopic === topic.title && topic.sections && (
-                  <div className="ml-4 mt-2 border-l-2 border-gray-200">
-                    {topic.sections.map((section: any) => (
-                      <button
-                        key={section.title}
-                        onClick={() => setSelectedSection(section)}
-                        className={`w-full text-left px-4 py-2 text-sm ${
-                          selectedSection?.title === section.title 
-                            ? "text-blue-600" 
-                            : "text-gray-600 hover:text-gray-900"
-                        }`}
-                      >
-                        {section.title}
-                      </button>
-                    ))}
+          <div className="col-span-4">
+            <Card className="bg-gradient-to-br from-[#1a1f2e] to-[#242938] border-gray-700/50 sticky top-4">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Course Topics
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {educationTopics.map((topic) => (
+                  <div key={topic.title} className="mb-4">
+                    <button
+                      onClick={() => {
+                        setSelectedTopic(topic.title);
+                        setSelectedSection(topic.sections?.[0] || null);
+                      }}
+                      className={`w-full text-left px-4 py-3 rounded-lg font-medium transition-all ${
+                        selectedTopic === topic.title 
+                          ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg" 
+                          : "bg-gray-800/50 text-gray-300 hover:bg-gray-700/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>{topic.title}</span>
+                        <Badge variant="secondary" className="bg-blue-600/20 text-blue-300">
+                          {topic.sections?.length || 0}
+                        </Badge>
+                      </div>
+                    </button>
+                    
+                    {selectedTopic === topic.title && topic.sections && (
+                      <div className="ml-4 mt-3 space-y-1">
+                        {topic.sections.map((section: any) => (
+                          <button
+                            key={section.title}
+                            onClick={() => setSelectedSection(section)}
+                            className={`w-full text-left px-4 py-2 text-sm rounded-md transition-all ${
+                              selectedSection?.title === section.title 
+                                ? "bg-blue-600/20 text-blue-300 border-l-2 border-blue-500" 
+                                : "text-gray-400 hover:text-gray-200 hover:bg-gray-800/30"
+                            }`}
+                          >
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="h-3 w-3" />
+                              {section.title}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+                ))}
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Content Area */}
-          <div className="col-span-8 border rounded-lg p-6">
-            {selectedSection ? (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">{selectedSection.title}</h2>
-                
-                {renderContent(selectedSection.content)}
-                
-                {selectedSection.subtopics && (
-                  <div className="space-y-6">
-                    {selectedSection.subtopics.map((subtopic: any, index: number) => (
-                      <div key={index} className="border-b pb-6 last:border-0">
-                        <h3 className="text-xl font-semibold mb-3">{subtopic.title}</h3>
-                        {renderContent(subtopic.content)}
+          <div className="col-span-8">
+            <Card className="bg-gradient-to-br from-[#1a1f2e] to-[#242938] border-gray-700/50">
+              {selectedSection ? (
+                <div>
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-white text-2xl mb-2">{selectedSection.title}</CardTitle>
                         
-                        {subtopic.formula && (
-  <div className="bg-black p-3 rounded-lg mb-3 font-mono text-green-700 font-bold">
-    {subtopic.formula}
-  </div>
-)}
-
-                        
-                        {subtopic.example && (
-                          <div className="bg-black p-3 rounded-lg mb-3 font-mono text-yellow-600 font-bold">
-                            <span className="font-medium">Example: </span>
-                            {subtopic.example}
+                        {/* Section Stats */}
+                        {currentInteraction && (
+                          <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
+                            <div className="flex items-center gap-1">
+                              <Eye className="h-4 w-4" />
+                              {currentInteraction.views} views
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              5 min read
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              Beginner Level
+                            </div>
                           </div>
                         )}
                       </div>
-                    ))}
-                  </div>
-                )}
+                      
+                      {/* Action Buttons */}
+                      {currentInteraction && (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDownload(selectedSection.title)}
+                            className="text-gray-400 hover:text-white"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleShare(selectedSection.title)}
+                            className="text-gray-400 hover:text-white"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent>
+                    {renderContent(selectedSection.content)}
+                    
+                    {selectedSection.subtopics && (
+                      <div className="space-y-8">
+                        {selectedSection.subtopics.map((subtopic: any, index: number) => (
+                          <div key={index} className="border-b border-gray-700/50 pb-8 last:border-0">
+                            <h3 className="text-xl font-semibold mb-4 text-white">{subtopic.title}</h3>
+                            {renderContent(subtopic.content)}
+                            
+                            {subtopic.formula && (
+                              <div className="bg-black p-4 rounded-lg mb-4 font-mono text-green-400 font-bold border-l-4 border-green-500">
+                                {subtopic.formula}
+                              </div>
+                            )}
+                            
+                            {subtopic.example && (
+                              <div className="bg-gradient-to-r from-yellow-900/20 to-orange-900/20 p-4 rounded-lg mb-4 border-l-4 border-yellow-500">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Star className="h-4 w-4 text-yellow-500" />
+                                  <span className="font-medium text-white">Example:</span>
+                                </div>
+                                <p className="text-yellow-100">{subtopic.example}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                {/* Render Python program if it exists */}
-                {selectedSection.python_program && renderPythonProgram(selectedSection.python_program)}
-              </div>
-            ) : (
-              <div className="text-center text-gray-500">
-                Select a section to view its content
-              </div>
-            )}
+                    {/* Render Python program if it exists */}
+                    {selectedSection.python_program && renderPythonProgram(selectedSection.python_program)}
+                    
+                    <Separator className="my-6 bg-gray-700/50" />
+                    
+                    {/* Interaction Section */}
+                    {currentInteraction && (
+                      <div className="bg-gray-800/30 rounded-lg p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-white font-semibold">Was this helpful?</h4>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleBookmark(selectedSection.title)}
+                              className={`${
+                                currentInteraction.isBookmarked 
+                                  ? 'text-yellow-400 hover:text-yellow-300' 
+                                  : 'text-gray-400 hover:text-white'
+                              }`}
+                            >
+                              <Bookmark className={`h-4 w-4 ${currentInteraction.isBookmarked ? 'fill-current' : ''}`} />
+                              {currentInteraction.isBookmarked ? 'Bookmarked' : 'Bookmark'}
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleLike(selectedSection.title)}
+                            className={`flex items-center gap-2 ${
+                              currentInteraction.isLiked 
+                                ? 'text-green-400 hover:text-green-300' 
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            <ThumbsUp className={`h-4 w-4 ${currentInteraction.isLiked ? 'fill-current' : ''}`} />
+                            {currentInteraction.likes}
+                          </Button>
+                          
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDislike(selectedSection.title)}
+                            className={`flex items-center gap-2 ${
+                              currentInteraction.isDisliked 
+                                ? 'text-red-400 hover:text-red-300' 
+                                : 'text-gray-400 hover:text-white'
+                            }`}
+                          >
+                            <ThumbsDown className={`h-4 w-4 ${currentInteraction.isDisliked ? 'fill-current' : ''}`} />
+                            {currentInteraction.dislikes}
+                          </Button>
+                          
+                          <div className="ml-auto text-sm text-gray-400">
+                            {currentInteraction.views} people found this helpful
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </div>
+              ) : (
+                <CardContent className="text-center py-12">
+                  <BookOpen className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-400 mb-2">Select a topic to begin learning</h3>
+                  <p className="text-gray-500">Choose from our comprehensive curriculum designed for all skill levels</p>
+                </CardContent>
+              )}
+            </Card>
           </div>
         </div>
       </main>
