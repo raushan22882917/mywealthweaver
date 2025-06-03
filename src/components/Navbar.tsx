@@ -1,4 +1,4 @@
-import { Search, Sun, Moon, LogOut, Home, ChevronDown, CalendarDays, DollarSign, User, LayoutDashboard, Shield, Bell, Settings, HelpCircle } from "lucide-react";
+import { Search, Sun, Moon, LogOut, Home, ChevronDown, CalendarDays, DollarSign, User, LayoutDashboard, Shield, Bell, Settings, HelpCircle, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,7 +30,6 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [username, setUsername] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string>("");
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
 
   useEffect(() => {
     // Load and parse the CSV file
@@ -217,31 +216,36 @@ const Navbar = () => {
       <nav className="border-b border-white/10 backdrop-blur-md bg-black/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           {/* Logo & Brand */}
-          <div className="flex items-center space-x-8">
-            <a href="/" className="flex items-center space-x-2 text-xl font-bold text-primary">
-              <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-              <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">IntelligentInvestor+</span>
+          <div className="flex items-center space-x-2 md:space-x-8">
+            <a href="/" className="flex items-center space-x-2 text-lg md:text-xl font-bold text-primary">
+              <img src="/logo.png" alt="Logo" className="h-6 w-6 md:h-8 md:w-8" />
+              <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent hidden sm:inline">
+                IntelligentInvestor+
+              </span>
+              <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent sm:hidden">
+                II+
+              </span>
             </a>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex space-x-1">
-              <a href="/news" className="nav-item">
+            <div className="hidden lg:flex space-x-1">
+              <a href="/news" className="nav-item text-sm">
                 News
               </a>
               
-              <a href="/education" className="nav-item">
+              <a href="/education" className="nav-item text-sm">
                 Education
               </a>
               
               <div className="relative">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
-                  className="nav-item flex items-center"
+                  className="nav-item flex items-center text-sm"
                   aria-expanded={isOpen}
                 >
                   <span>Dividend</span>
                   <ChevronDown
-                    className={`ml-1 w-4 h-4 transition-transform duration-300 ${
+                    className={`ml-1 w-3 h-3 transition-transform duration-300 ${
                       isOpen ? "rotate-180" : ""
                     }`}
                   />
@@ -292,80 +296,79 @@ const Navbar = () => {
                 )}
               </div>
 
-              <a href="/reporting" className="nav-item">
+              <a href="/reporting" className="nav-item text-sm">
                 Reporting
               </a>
 
-              <a href="/top-stocks" className="nav-item">
+              <a href="/top-stocks" className="nav-item text-sm">
                 Top Stocks
               </a>
             </div>
           </div>
           
           {/* Right section */}
-          <div className="flex items-center space-x-4">
-            {/* Search */}
-  {/* Search */}
-  <div className="flex items-center gap-4">
-    <div ref={searchRef} className="relative">
-      <form onSubmit={handleSearch}>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <input
-            type="text"
-            placeholder="Search stocks..."
-            value={searchTerm}
-            onChange={handleSearchChange}
-            className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/50 w-[220px] md:w-[300px] placeholder-gray-500 text-sm"
-          />
-        </div>
-      </form>
-      
-      {showSuggestions && filteredStocks.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
-          {filteredStocks
-            .sort((a, b) => {
-              const termLower = searchTerm.toLowerCase();
-              const aSymbolLower = a.Symbol.toLowerCase();
-              const bSymbolLower = b.Symbol.toLowerCase();
-              
-              // Priority 1: Single character matches
-              const aHasSingleChar = aSymbolLower.split('').filter(char => char === termLower).length === 1;
-              const bHasSingleChar = bSymbolLower.split('').filter(char => char === termLower).length === 1;
-              if (aHasSingleChar && !bHasSingleChar) return -1;
-              if (!aHasSingleChar && bHasSingleChar) return 1;
+          <div className="flex items-center space-x-2 md:space-x-4">
+            {/* Search - Hidden on small screens, shown on medium+ */}
+            <div className="hidden md:block">
+              <div ref={searchRef} className="relative">
+                <form onSubmit={handleSearch}>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="Search stocks..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/50 w-[180px] lg:w-[250px] placeholder-gray-500 text-sm"
+                    />
+                  </div>
+                </form>
+                
+                {showSuggestions && filteredStocks.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
+                    {filteredStocks
+                      .sort((a, b) => {
+                        const termLower = searchTerm.toLowerCase();
+                        const aSymbolLower = a.Symbol.toLowerCase();
+                        const bSymbolLower = b.Symbol.toLowerCase();
+                        
+                        // Priority 1: Single character matches
+                        const aHasSingleChar = aSymbolLower.split('').filter(char => char === termLower).length === 1;
+                        const bHasSingleChar = bSymbolLower.split('').filter(char => char === termLower).length === 1;
+                        if (aHasSingleChar && !bHasSingleChar) return -1;
+                        if (!aHasSingleChar && bHasSingleChar) return 1;
 
-              // Priority 2: Position of first occurrence
-              const aIndex = aSymbolLower.indexOf(termLower);
-              const bIndex = bSymbolLower.indexOf(termLower);
-              if (aIndex !== bIndex) return aIndex - bIndex;
+                        // Priority 2: Position of first occurrence
+                        const aIndex = aSymbolLower.indexOf(termLower);
+                        const bIndex = bSymbolLower.indexOf(termLower);
+                        if (aIndex !== bIndex) return aIndex - bIndex;
 
-              // Priority 3: Length of symbol (shorter symbols first)
-              if (aSymbolLower.length !== bSymbolLower.length) {
-                return aSymbolLower.length - bSymbolLower.length;
-              }
+                        // Priority 3: Length of symbol (shorter symbols first)
+                        if (aSymbolLower.length !== bSymbolLower.length) {
+                          return aSymbolLower.length - bSymbolLower.length;
+                        }
 
-              // Priority 4: Alphabetical order
-              return aSymbolLower.localeCompare(bSymbolLower);
-            })
-            .map((stock) => (
-              <div
-                key={stock.Symbol}
-                className="px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
-                onClick={() => handleStockSelect(stock)}
-              >
-                <div className="font-medium text-white">
-                  {highlightMatchedText(stock.Symbol, searchTerm)}
-                </div>
-                <div className="text-sm text-gray-400 truncate">
-                  {highlightMatchedText(stock.title, searchTerm)}
-                </div>
+                        // Priority 4: Alphabetical order
+                        return aSymbolLower.localeCompare(bSymbolLower);
+                      })
+                      .map((stock) => (
+                        <div
+                          key={stock.Symbol}
+                          className="px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
+                          onClick={() => handleStockSelect(stock)}
+                        >
+                          <div className="font-medium text-white">
+                            {highlightMatchedText(stock.Symbol, searchTerm)}
+                          </div>
+                          <div className="text-sm text-gray-400 truncate">
+                            {highlightMatchedText(stock.title, searchTerm)}
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
-            ))}
-        </div>
-      )}
-    </div>
-  </div>
+            </div>
             
             {/* Theme toggle */}
             <button
@@ -373,24 +376,26 @@ const Navbar = () => {
               className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
             >
               {theme === "dark" ? (
-                <Sun className="h-5 w-5 text-yellow-400" />
+                <Sun className="h-4 w-4 md:h-5 md:w-5 text-yellow-400" />
               ) : (
-                <Moon className="h-5 w-5 text-blue-400" />
+                <Moon className="h-4 w-4 md:h-5 md:w-5 text-blue-400" />
               )}
             </button>
             
-            {/* Notifications - Replace with our new component */}
-            <NavbarNotificationSection />
+            {/* Notifications */}
+            <div className="hidden sm:block">
+              <NavbarNotificationSection />
+            </div>
             
-            {/* User Menu */}
-            <div className="relative ml-3">
+            {/* User Menu - Hidden on small screens */}
+            <div className="relative ml-3 hidden md:block">
               <div>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 transition-all"
+                  className="flex items-center space-x-2 px-2 md:px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 transition-all"
                 >
                   <div className="flex items-center">
-                    <div className="h-8 w-8 rounded-full overflow-hidden bg-gray-700 border border-gray-600">
+                    <div className="h-6 w-6 md:h-8 md:w-8 rounded-full overflow-hidden bg-gray-700 border border-gray-600">
                       {avatarUrl ? (
                         <img 
                           src={avatarUrl} 
@@ -401,10 +406,10 @@ const Navbar = () => {
                           }}
                         />
                       ) : (
-                        <User className="h-5 w-5 m-1.5 text-gray-400" />
+                        <User className="h-3 w-3 md:h-5 md:w-5 m-1.5 text-gray-400" />
                       )}
                     </div>
-                    <ChevronDown className="ml-2 h-4 w-4 text-gray-400" />
+                    <ChevronDown className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4 text-gray-400" />
                   </div>
                 </button>
               </div>
@@ -468,19 +473,11 @@ const Navbar = () => {
               className="md:hidden p-2 rounded-lg border border-gray-700 hover:bg-gray-700"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                className="h-6 w-6 text-white" 
-                fill="none" 
-                viewBox="0 0 24 24" 
-                stroke="currentColor"
-              >
-                {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {mobileMenuOpen ? (
+                <X className="h-5 w-5 text-white" />
+              ) : (
+                <Menu className="h-5 w-5 text-white" />
+              )}
             </button>
           </div>
         </div>
@@ -488,6 +485,47 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-gray-900 border-t border-gray-800 shadow-xl">
+            {/* Mobile Search */}
+            <div className="px-4 py-3 border-b border-gray-800">
+              <div ref={searchRef} className="relative">
+                <form onSubmit={handleSearch}>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="Search stocks..."
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                      className="pl-10 pr-4 py-2 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-800/50 w-full placeholder-gray-500 text-sm"
+                    />
+                  </div>
+                </form>
+                
+                {showSuggestions && filteredStocks.length > 0 && (
+                  <div className="absolute z-50 mt-1 w-full bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
+                    {filteredStocks.map((stock) => (
+                      <div
+                        key={stock.Symbol}
+                        className="px-4 py-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-0"
+                        onClick={() => {
+                          handleStockSelect(stock);
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        <div className="font-medium text-white">
+                          {highlightMatchedText(stock.Symbol, searchTerm)}
+                        </div>
+                        <div className="text-sm text-gray-400 truncate">
+                          {highlightMatchedText(stock.title, searchTerm)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Mobile Navigation Links */}
             <div className="px-4 py-2 space-y-1">
               <a href="/news" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 News
@@ -501,9 +539,33 @@ const Navbar = () => {
               <a href="/reporting" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 Reporting
               </a>
-              <a href="/market-data" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
-                Market Data
+              <a href="/top-stocks" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                Top Stocks
               </a>
+              
+              {/* Mobile User Section */}
+              {username && (
+                <>
+                  <div className="border-t border-gray-800 pt-2 mt-2">
+                    <div className="px-4 py-2">
+                      <p className="text-sm font-medium text-white">{username}</p>
+                      <p className="text-xs text-gray-400">Premium Member</p>
+                    </div>
+                    <a href="/dashboard" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                      Dashboard
+                    </a>
+                    <a href="/settings" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                      Settings
+                    </a>
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left py-3 px-4 text-red-400 hover:bg-red-900/30 rounded-lg"
+                    >
+                      Logout
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
