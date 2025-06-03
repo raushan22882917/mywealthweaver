@@ -37,6 +37,7 @@ import { format } from "date-fns";
 import DividendCalendar from "@/components/DividendCalendar";
 import DashboardDialog from "@/components/DashboardDialog";
 import AnalyticsDialog from "@/components/AnalyticsDialog";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DividendReport {
   id: string;
@@ -64,6 +65,7 @@ const Reporting: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [dashboardOpen, setDashboardOpen] = useState(false);
   const [analyticsOpen, setAnalyticsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchDividendReports();
@@ -151,54 +153,54 @@ const Reporting: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-gray-100">
       <Navbar />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 sm:py-8">
         {/* Enhanced Header */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-3 rounded-xl shadow-lg">
-              <BarChart3 className="h-8 w-8 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-2 sm:p-3 rounded-xl shadow-lg">
+              <BarChart3 className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
             </div>
             <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h1 className={`font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent ${isMobile ? 'text-2xl' : 'text-4xl'}`}>
                 Investment Analytics Dashboard
               </h1>
-              <p className="text-gray-400 text-lg mt-2">Comprehensive market analysis and reporting</p>
+              <p className={`text-gray-400 mt-1 sm:mt-2 ${isMobile ? 'text-base' : 'text-lg'}`}>Comprehensive market analysis and reporting</p>
             </div>
           </div>
         </div>
 
         {/* Key Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className={`grid gap-4 sm:gap-6 mb-6 sm:mb-8 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-4'}`}>
           <Card className="bg-gradient-to-br from-blue-900/30 to-blue-800/20 border-blue-500/20 hover:border-blue-400/40 transition-all">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-blue-300 text-sm font-medium">Total Companies</p>
-                  <p className="text-3xl font-bold text-white">{metrics.totalCompanies}</p>
+                  <p className={`text-blue-300 font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Companies</p>
+                  <p className={`font-bold text-white ${isMobile ? 'text-xl' : 'text-3xl'}`}>{metrics.totalCompanies}</p>
                 </div>
-                <Target className="h-8 w-8 text-blue-400" />
+                <Target className="h-6 w-6 sm:h-8 sm:w-8 text-blue-400" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-green-900/30 to-green-800/20 border-green-500/20 hover:border-green-400/40 transition-all">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-green-300 text-sm font-medium">Avg EPS</p>
-                  <p className="text-3xl font-bold text-white">${metrics.avgEarnings.toFixed(2)}</p>
+                  <p className={`text-green-300 font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Avg EPS</p>
+                  <p className={`font-bold text-white ${isMobile ? 'text-xl' : 'text-3xl'}`}>${metrics.avgEarnings.toFixed(2)}</p>
                 </div>
-                <TrendingUp className="h-8 w-8 text-green-400" />
+                <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-green-400" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 border-purple-500/20 hover:border-purple-400/40 transition-all">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-purple-300 text-sm font-medium">Total Revenue</p>
-                  <p className="text-3xl font-bold text-white">
+                  <p className={`text-purple-300 font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Total Revenue</p>
+                  <p className={`font-bold text-white ${isMobile ? 'text-lg' : 'text-3xl'}`}>
                     {new Intl.NumberFormat('en-US', { 
                       style: 'currency', 
                       currency: 'USD',
@@ -207,19 +209,19 @@ const Reporting: React.FC = () => {
                     }).format(metrics.totalRevenue)}
                   </p>
                 </div>
-                <DollarSign className="h-8 w-8 text-purple-400" />
+                <DollarSign className="h-6 w-6 sm:h-8 sm:w-8 text-purple-400" />
               </div>
             </CardContent>
           </Card>
 
           <Card className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 border-orange-500/20 hover:border-orange-400/40 transition-all">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-orange-300 text-sm font-medium">Upcoming Dividends</p>
-                  <p className="text-3xl font-bold text-white">{metrics.upcomingDividends}</p>
+                  <p className={`text-orange-300 font-medium ${isMobile ? 'text-xs' : 'text-sm'}`}>Upcoming Dividends</p>
+                  <p className={`font-bold text-white ${isMobile ? 'text-xl' : 'text-3xl'}`}>{metrics.upcomingDividends}</p>
                 </div>
-                <Calendar className="h-8 w-8 text-orange-400" />
+                <Calendar className="h-6 w-6 sm:h-8 sm:w-8 text-orange-400" />
               </div>
             </CardContent>
           </Card>
@@ -228,27 +230,27 @@ const Reporting: React.FC = () => {
         {/* Calendar with Header Actions */}
         <Card className="bg-gray-900/80 backdrop-blur-sm border-gray-700">
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className={`flex items-center ${isMobile ? 'flex-col space-y-3' : 'justify-between'}`}>
               <div>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-blue-400" />
+                <CardTitle className={`text-white flex items-center gap-2 ${isMobile ? 'text-lg' : ''}`}>
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
                   Dividend Calendar
                 </CardTitle>
-                <CardDescription>Upcoming dividend and earnings dates</CardDescription>
+                <CardDescription className={isMobile ? 'text-sm' : ''}>Upcoming dividend and earnings dates</CardDescription>
               </div>
-              <div className="flex gap-3">
+              <div className={`flex gap-2 sm:gap-3 ${isMobile ? 'w-full' : ''}`}>
                 <Button
                   onClick={() => setDashboardOpen(true)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  className={`bg-blue-600 hover:bg-blue-700 text-white ${isMobile ? 'flex-1 text-xs' : ''}`}
                 >
-                  <Activity className="h-4 w-4 mr-2" />
+                  <Activity className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Dashboard
                 </Button>
                 <Button
                   onClick={() => setAnalyticsOpen(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className={`bg-green-600 hover:bg-green-700 text-white ${isMobile ? 'flex-1 text-xs' : ''}`}
                 >
-                  <BarChart3 className="h-4 w-4 mr-2" />
+                  <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                   Analytics
                 </Button>
               </div>
