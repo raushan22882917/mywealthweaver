@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, X, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, X, ExternalLink, BarChart } from "lucide-react";
 import { format, isSameDay, parseISO, getDaysInMonth, getDay, setDate } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DollarSign, TrendingUp, TrendingDown, Info } from "lucide-react";
 import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
+import DashboardDialog from "@/components/DashboardDialog";
 
 interface DividendEvent {
   id: string;
@@ -28,6 +29,8 @@ interface DividendEvent {
   quantity?: number;
   price?: number;
   dividend_yield?: number;
+  current_price?: number;
+  price_status?: 'high' | 'low' | 'medium';
 }
 
 const dayNames = ["MON", "TUE", "WED", "THU", "FRI"];
@@ -52,6 +55,7 @@ const DividendCalendar = () => {
   const [filterCriteria, setFilterCriteria] = useState<StockFilterCriteria>({});
   const [filteredEvents, setFilteredEvents] = useState<DividendEvent[]>([]);
   const [stockFilterData, setStockFilterData] = useState<StockFilterData[]>([]);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
 
   const showDateEvents = (date: Date, events: DividendEvent[]) => {
     const sortedEvents = [...events].sort((a, b) =>
@@ -561,6 +565,51 @@ const DividendCalendar = () => {
     setFilterCriteria(filters);
   };
 
+  const calculateMetrics = () => {
+    const totalCompanies = dividendEvents.length;
+    const avgEarnings = dividendEvents.reduce((sum, r) => sum + r.earnings_average, 0) / totalCompanies;
+    const totalRevenue = dividendEvents.reduce((sum, r) => sum + r.revenue_average, 0);
+    const upcomingDividends = dividendEvents.filter(r => {
+      const divDate = r.dividend_date ? new Date(r.dividend_date) : null;
+      const today = new Date();
+      const thirtyDaysLater = new Date();
+      thirtyDaysLater.setDate(today.getDate() + 30);
+      return divDate && divDate > today && divDate < thirtyDaysLater;
+    }).length;
+
+    return { totalCompanies, avgEarnings, totalRevenue, upcomingDividends };
+  };
+
+  const metrics = calculateMetrics();
+
+  // Prepare data for charts
+  const earningsChartData = dividendEvents.slice(0, 10).map(report => ({
+    symbol: report.symbol,
+    "High": report.earnings_high,
+    "Average": report.earnings_average,
+    "Low": report.earnings_low,
+  }));
+
+  const revenueChartData = dividendEvents.slice(0, 10).map(report => ({
+    symbol: report.symbol,
+    "High": report.revenue_high / 1000000000,
+    "Average": report.revenue_average / 1000000000,
+    "Low": report.revenue_low / 1000000000,
+  }));
+
+  const priceDistributionData = [
+    { name: 'High Price', value: dividendEvents.filter(r => r.price_status === 'high').length, color: '#ef4444' },
+    { name: 'Medium Price', value: dividendEvents.filter(r => r.price_status === 'medium').length, color: '#f59e0b' },
+    { name: 'Low Price', value: dividendEvents.filter(r => r.price_status === 'low').length, color: '#10b981' },
+  ];
+
+  const trendAnalysisData = dividendEvents.slice(0, 7).map((report, index) => ({
+    date: format(new Date(Date.now() - (6 - index) * 24 * 60 * 60 * 1000), 'MMM dd'),
+    earnings: report.earnings_average,
+    revenue: report.revenue_average / 1000000000,
+    price: report.current_price
+  }));
+
   return (
     <div className="p-4 h-full bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950 text-white">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
@@ -575,6 +624,15 @@ const DividendCalendar = () => {
               filterableStocks={stockFilterData}
               isCalendarView={true}
             />
+
+            <Button 
+              variant="outline" 
+              className="bg-gray-800/90 border-gray-700 hover:bg-gray-700 hover:border-blue-500 text-white"
+              onClick={() => setDashboardOpen(true)}
+            >
+              <BarChart className="w-4 h-4 mr-2" />
+              Month Analysis
+            </Button>
 
             <Select value={year} onValueChange={setYear}>
               <SelectTrigger className="w-[90px] bg-gray-800/90 border-gray-700 hover:border-blue-500 focus:ring-blue-500">
@@ -883,6 +941,17 @@ const DividendCalendar = () => {
           setIsOpen={setIsStockDetailsOpen}
         />
       )}
+
+      {/* Dashboard Dialog */}
+      <DashboardDialog
+        open={dashboardOpen}
+        onOpenChange={setDashboardOpen}
+        reports={dividendEvents}
+        metrics={metrics}
+        trendAnalysisData={trendAnalysisData}
+        earningsChartData={earningsChartData}
+        priceDistributionData={priceDistributionData}
+      />
     </div>
   );
 };

@@ -8,7 +8,7 @@ const About = () => {
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-bold mb-8 text-center">About IntelligentInvestor+</h1>
+          <h1 className="text-4xl font-bold mb-8 text-center">About globalstockinsights</h1>
           
           <div className="space-y-12">
             <section className="space-y-4">

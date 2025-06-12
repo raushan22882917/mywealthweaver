@@ -8,7 +8,7 @@ const Footer = () => {
           <div>
             <div className="flex items-center space-x-2 mb-4">
               <img src="/logo.png" alt="Logo" className="h-8 w-8" />
-              <span className="text-xl font-bold">IntelligentInvestor+</span>
+              <span className="text-xl font-bold">globalstockinsights</span>
             </div>
             <p className="text-muted-foreground">
               Your trusted partner for intelligent investment decisions.
@@ -88,7 +88,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t mt-12 pt-8 text-center text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} IntelligentInvestor+. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} globalstockinsights. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -205,7 +205,7 @@ const Navbar = () => {
             <a href="/" className="flex items-center space-x-2 text-lg md:text-xl font-bold text-primary">
               <img src="/logo.png" alt="Logo" className="h-6 w-6 md:h-8 md:w-8" />
               <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent hidden sm:inline">
-                IntelligentInvestor+
+                globalstockinsights
               </span>
               <span className="bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent sm:hidden">
                 II+
@@ -355,17 +355,7 @@ const Navbar = () => {
               </div>
             </div>
             
-            {/* Theme toggle */}
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="p-2 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
-            >
-              {theme === "dark" ? (
-                <Sun className="h-4 w-4 md:h-5 md:w-5 text-yellow-400" />
-              ) : (
-                <Moon className="h-4 w-4 md:h-5 md:w-5 text-blue-400" />
-              )}
-            </button>
+           
             
             {/* Notifications - Only show when authenticated */}
             {isAuthenticated && (
