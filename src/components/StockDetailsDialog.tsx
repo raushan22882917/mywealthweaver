@@ -24,7 +24,7 @@ import {
   Scatter,
 } from "recharts";
 import { useTheme } from "next-themes";
-import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, AlertTriangle, Heart } from "lucide-react";
+import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle, AlertTriangle, Heart, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -32,6 +32,8 @@ import Papa, { ParseResult } from 'papaparse';
 import { filterDividendData, type DividendHistoryData } from '@/utils/dividend';
 import UpDown from "@/pages/UpDown";
 import DividendYield from "@/pages/DividendYield";
+import { AIAnalysisDialog } from "@/components/AIAnalysisDialog";
+import { Badge } from "@/components/ui/badge";
 
 interface Stock {
   cik_str: string;
@@ -1266,6 +1268,81 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             </div>
           </div>
         );
+
+
+      case 'Ai Analysis':
+        return (
+          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-2">Investment Rating</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-100 text-green-800">
+                      {companyProfile?.recommendationKey || 'N/A'}
+                    </Badge>
+                    {companyProfile?.targetMeanPrice && (
+                      <span>Target: ${companyProfile.targetMeanPrice.toFixed(2)}</span>
+                    )}
+                  </div>
+                </Card>
+                
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-2">Risk Assessment</h3>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-yellow-100 text-yellow-800">
+                      {companyProfile?.overallRisk ? 
+                        companyProfile.overallRisk <= 3 ? 'Low' : 
+                        companyProfile.overallRisk <= 7 ? 'Medium' : 'High' 
+                        : 'N/A'}
+                    </Badge>
+                  </div>
+                </Card>
+                
+                <Card className="p-4">
+                  <h3 className="text-lg font-semibold mb-2">Analyst Consensus</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">
+                      {companyProfile?.recommendationMean ? 
+                        companyProfile.recommendationMean.toFixed(1) + '/5' : 'N/A'}
+                    </span>
+                  </div>
+                </Card>
+              </div>
+
+              <Card className="p-4">
+                <h3 className="text-lg font-semibold mb-4">Key Metrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <span className="text-sm text-muted-foreground">P/E Ratio</span>
+                    <div className="font-medium">{companyProfile?.trailingPE?.toFixed(2) || 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Market Cap</span>
+                    <div className="font-medium">{companyProfile?.marketCap ? 
+                      `$${(companyProfile.marketCap / 1e9).toFixed(2)}B` : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Dividend Yield</span>
+                    <div className="font-medium">{companyProfile?.dividendYield ? 
+                      `${(companyProfile.dividendYield * 100).toFixed(2)}%` : 'N/A'}</div>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Beta</span>
+                    <div className="font-medium">{companyProfile?.beta?.toFixed(2) || 'N/A'}</div>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-4">
+                <h3 className="text-lg font-semibold mb-4">Investment Thesis</h3>
+                <p className="text-sm text-muted-foreground">
+                  {companyProfile?.long_business_summary || 'No detailed analysis available.'}
+                </p>
+              </Card>
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -1518,7 +1595,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
             {/* Tabs in a single row */}
             <div className="flex gap-1 mt-1 overflow-x-auto pb-1">
-              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings"].map((tab) => (
+              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings","Ai Analysis"].map((tab) => (
                 <div
                   key={tab}
                   className={`flex items-center cursor-pointer px-2 py-1 ${

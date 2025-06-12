@@ -4,7 +4,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon, Bell } from "lucide-react";
+import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon, Bell, TrendingUp } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import { supabase } from "@/lib/supabase/client";
 import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
@@ -1042,7 +1042,7 @@ const Dividend: React.FC = () => {
       )}
       {hoveredStockDetails && (
         <div
-          className="fixed z-50 bg-white dark:bg-gray-800 mb-6 rounded-lg shadow-xl p-4 border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transform transition-all duration-200 hover-card w-[320px]"
+          className="fixed z-50 bg-white dark:bg-gray-800 mb-6 rounded-lg shadow-xl p-4 border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transform transition-all duration-200 hover-card w-[320px] max-h-[500px] overflow-y-auto"
           style={{
             left: hoveredStockDetails.position.x,
             top: Math.max(hoveredStockDetails.position.y - 350, 10),
@@ -1081,6 +1081,98 @@ const Dividend: React.FC = () => {
             className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700"
           />
 
+          <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900 rounded-lg shadow-inner p-4 mb-4 overflow-hidden border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-full overflow-hidden border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-700">
+                <img
+                  src={companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || csvLogoUrls.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || 'stock.avif'}
+                  alt={hoveredStockDetails.stock?.Symbol}
+                  className="w-full h-full object-contain"
+                  loading="lazy"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = 'stock.avif';
+                  }}
+                />
+              </div>
+              <div>
+                <div className="font-bold text-lg text-blue-800 dark:text-blue-200">
+                  {hoveredStockDetails.stock?.Symbol}
+                </div>
+                <div className="text-xs text-blue-600 dark:text-blue-400">
+                  {hoveredStockDetails.stock?.title}
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-blue-800 dark:text-blue-200">
+              <div className="flex flex-col">
+                <span className="text-xs text-blue-700 dark:text-blue-300">Ex-Dividend Date:</span>
+                <span className="font-semibold">
+                  {new Date(hoveredStockDetails.exdividenddate).toISOString().split('T')[0]}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-blue-700 dark:text-blue-300">Payout Date:</span>
+                <span className="font-semibold">
+                  {new Date(hoveredStockDetails.stock?.payoutdate).toISOString().split('T')[0]}
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-blue-700 dark:text-blue-300">Dividend Rate:</span>
+                <span className="font-semibold">${hoveredStockDetails.stock?.dividendRate}</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-blue-700 dark:text-blue-300">Yield:</span>
+                <span className="font-semibold">
+                  {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
+                    ? 'N/A'
+                    : `${(Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)}%`}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-4 mt-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dividend Safety</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {hoveredStockDetails.stock?.status === 'This stock has a safe dividend.' ? 
+                  'This stock has a safe and sustainable dividend payout.' : 
+                 hoveredStockDetails.stock?.status === 'This stock may have a risky dividend.' ? 
+                  'This stock may have a risky dividend payout. Consider reviewing financial health.' : 
+                  'This stock does not currently pay dividends.'}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dividend Attractiveness</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {Number(hoveredStockDetails.stock?.dividendYield) > 4 ? 
+                  'High dividend yield above 4% indicates strong income potential.' :
+                 Number(hoveredStockDetails.stock?.dividendYield) > 2 ? 
+                  'Moderate dividend yield between 2-4% suggests balanced income and growth.' : 
+                  'Low dividend yield below 2% may indicate focus on growth over income.'}
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <FaChartLine className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Price Momentum</span>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                {Number(hoveredStockDetails.stock?.currentPrice) > Number(hoveredStockDetails.stock?.previousClose) ? 
+                  'Stock is showing upward momentum with current price higher than previous close.' : 
+                  'Stock is showing downward momentum with current price lower than previous close.'}
+              </p>
+            </div>
+          </div>
+
           {hoveredStockDetails.stock?.insight && (
             <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-b-lg border border-blue-200 dark:border-blue-800">
               <div className="flex items-center gap-2">
@@ -1090,83 +1182,42 @@ const Dividend: React.FC = () => {
               <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{hoveredStockDetails.stock?.insight}</p>
             </div>
           )}
-          <div className="flex justify-between items-end mb-2 w-[200px]">
-            <div className="flex-1">
-              <div className="flex items-center space-x-2">
-                <div
-                  className="w-8 h-8 bg-center bg-no-repeat bg-contain aspect-square border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || csvLogoUrls.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || 'stock.avif'})` }}
-                  onClick={(e) => {
-                    handleStockClick(hoveredStockDetails.stock, e);
-                    setHoveredStockDetails(null);
-                  }}
 
-                />
-                <div>
-                  <div
-                    className="font-semibold cursor-pointer hover:text-blue-500 transition-colors"
-                    onClick={(e) => {
-                      handleStockClick(hoveredStockDetails.stock, e);
-                      setHoveredStockDetails(null);
-                    }}
-
-                  >
-                    {hoveredStockDetails.stock?.Symbol}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {hoveredStockDetails.stock?.title}
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="flex gap-3 mt-3">
+            <button
+              onClick={(e) => handleSeeMoreClick(e, hoveredStockDetails.stock)}
+              className="flex-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-center py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border border-blue-200 dark:border-blue-800 flex items-center justify-center gap-2"
+            >
+              <Expand className="h-4 w-4" />
+              See More Details
+            </button>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 handleCloseHover();
               }}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 p-1"
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-center py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <X className="h-4 w-4" />
+              Close
             </button>
           </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Ex-Dividend Date:</span>
-              <span className="font-medium">
-                {new Date(hoveredStockDetails.exdividenddate)
-                .toISOString()
-                .split('T')[0]}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Payout Date:</span>
-              <span className="font-medium">
-                {new Date(hoveredStockDetails.stock?.payoutdate)
-                .toISOString()
-                .split('T')[0]}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Dividend Rate:</span>
-              <span className="font-medium">${hoveredStockDetails.stock?.dividendRate}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-gray-600 dark:text-gray-300">Yield:</span>
-              <span className="font-medium">
-                {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
-                  ? 'N/A'
-                  : (Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)
-                }
-              </span>
-            </div>
-          </div>
           <button
-            onClick={(e) => handleSeeMoreClick(e, hoveredStockDetails.stock)}
-            className="w-full mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-center py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+            onClick={(e) => {
+              e.stopPropagation();
+              const stockData: Stock = {
+                cik_str: "",
+                Symbol: hoveredStockDetails.stock.Symbol,
+                title: hoveredStockDetails.stock.title
+              };
+              setSelectedStock(stockData);
+              setDialogOpen(true);
+              handleCloseHover();
+            }}
+            className="w-full mt-3 text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium text-center py-2 px-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors border border-green-200 dark:border-green-800 flex items-center justify-center gap-2"
           >
-            See More Details
+            <TrendingUp className="h-4 w-4" />
+            Track Stock
           </button>
         </div>
       )}

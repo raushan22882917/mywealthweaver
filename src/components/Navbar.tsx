@@ -28,6 +28,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string>("");
 
@@ -50,54 +51,38 @@ const Navbar = () => {
       })
       .catch(error => console.error('Error loading stock data:', error));
 
-    // Check if user is logged in
-    const storedUsername = localStorage.getItem('username');
-    setUsername(storedUsername || "");
-  }, []);
+    // Check authentication status
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username, avatar_url")
+          .eq("id", session.user.id)
+          .single();
 
-  useEffect(() => {
-    const getProfile = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        
-        if (user) {
-          const { data: profile, error: fetchError } = await supabase
+        if (profile) {
+          setUsername(profile.username);
+          setAvatarUrl(profile.avatar_url || "");
+        } else {
+          // Create profile if it doesn't exist
+          const { error: insertError } = await supabase
             .from("profiles")
-            .select("username, avatar_url")
-            .eq("id", user.id)
-            .single();
+            .insert([{ 
+              id: session.user.id, 
+              username: session.user.email?.split('@')[0] 
+            }]);
 
-          if (fetchError && fetchError.code === "PGRST116") {
-            const { error: insertError } = await supabase
-              .from("profiles")
-              .insert([{ id: user.id, username: user.email?.split('@')[0] }]);
-
-            if (insertError) {
-              console.error("Error creating profile:", insertError);
-              toast({
-                title: "Error",
-                description: "Failed to create user profile",
-                variant: "destructive",
-              });
-              return;
-            }
-            setUsername(user.email?.split('@')[0] || "");
-          } else if (profile) {
-            setUsername(profile.username);
-            setAvatarUrl(profile.avatar_url || "");
+          if (!insertError) {
+            setUsername(session.user.email?.split('@')[0] || "");
           }
         }
-      } catch (error) {
-        console.error("Error in getProfile:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch user profile",
-          variant: "destructive",
-        });
       }
     };
 
-    getProfile();
+    checkAuth();
   }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -382,91 +367,103 @@ const Navbar = () => {
               )}
             </button>
             
-            {/* Notifications */}
-            <div className="hidden sm:block">
-              <NavbarNotificationSection />
-            </div>
-            
-            {/* User Menu - Hidden on small screens */}
-            <div className="relative ml-3 hidden md:block">
-              <div>
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-2 px-2 md:px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 transition-all"
-                >
-                  <div className="flex items-center">
-                    <div className="h-6 w-6 md:h-8 md:w-8 rounded-full overflow-hidden bg-gray-700 border border-gray-600">
-                      {avatarUrl ? (
-                        <img 
-                          src={avatarUrl} 
-                          alt={username} 
-                          className="h-full w-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${username}&background=random`;
-                          }}
-                        />
-                      ) : (
-                        <User className="h-3 w-3 md:h-5 md:w-5 m-1.5 text-gray-400" />
-                      )}
-                    </div>
-                    <ChevronDown className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4 text-gray-400" />
-                  </div>
-                </button>
+            {/* Notifications - Only show when authenticated */}
+            {isAuthenticated && (
+              <div className="hidden sm:block">
+                <NavbarNotificationSection />
               </div>
+            )}
+            
+            {/* Login/User Menu */}
+            {isAuthenticated ? (
+              <div className="relative ml-3 hidden md:block">
+                <div>
+                  <button
+                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                    className="flex items-center space-x-2 px-2 md:px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-700 transition-all"
+                  >
+                    <div className="flex items-center">
+                      <div className="h-6 w-6 md:h-8 md:w-8 rounded-full overflow-hidden bg-gray-700 border border-gray-600">
+                        {avatarUrl ? (
+                          <img 
+                            src={avatarUrl} 
+                            alt={username} 
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.src = `https://ui-avatars.com/api/?name=${username}&background=random`;
+                            }}
+                          />
+                        ) : (
+                          <User className="h-3 w-3 md:h-5 md:w-5 m-1.5 text-gray-400" />
+                        )}
+                      </div>
+                      <ChevronDown className="ml-1 md:ml-2 h-3 w-3 md:h-4 md:w-4 text-gray-400" />
+                    </div>
+                  </button>
+                </div>
 
-              {dropdownOpen && username && (
-                <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                  <div className="p-4 border-b border-gray-700">
-                    <p className="text-sm font-medium text-white">{username}</p>
-                    <p className="text-xs text-gray-400">Premium Member</p>
-                  </div>
-                  
-                  <div className="py-2">
-                    <a
-                      href="/dashboard"
-                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
-                    >
-                      <LayoutDashboard className="h-5 w-5 text-blue-400" />
-                      <span className="text-sm">Dashboard</span>
-                    </a>
+                {dropdownOpen && username && (
+                  <div className="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
+                    <div className="p-4 border-b border-gray-700">
+                      <p className="text-sm font-medium text-white">{username}</p>
+                      <p className="text-xs text-gray-400">Premium Member</p>
+                    </div>
                     
-                    <a
-                      href="/settings"
-                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
-                    >
-                      <Settings className="h-5 w-5 text-gray-400" />
-                      <span className="text-sm">Settings</span>
-                    </a>
-                    
-                    <a
-                      href="/help"
-                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
-                    >
-                      <HelpCircle className="h-5 w-5 text-gray-400" />
-                      <span className="text-sm">Help & Support</span>
-                    </a>
-                    
-                    <a
-                      href="/policy"
-                      className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
-                    >
-                      <Shield className="h-5 w-5 text-gray-400" />
-                      <span className="text-sm">Privacy Policy</span>
-                    </a>
-                    
-                    <div className="border-t border-gray-700 mt-2 pt-2">
-                      <button
-                        onClick={handleLogout}
-                        className="flex w-full items-center px-4 py-3 text-red-400 hover:bg-red-900/30 transition-all space-x-3"
+                    <div className="py-2">
+                      <a
+                        href="/dashboard"
+                        className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
                       >
-                        <LogOut className="h-5 w-5" />
-                        <span className="text-sm">Logout</span>
-                      </button>
+                        <LayoutDashboard className="h-5 w-5 text-blue-400" />
+                        <span className="text-sm">Dashboard</span>
+                      </a>
+                      
+                      <a
+                        href="/settings"
+                        className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
+                      >
+                        <Settings className="h-5 w-5 text-gray-400" />
+                        <span className="text-sm">Settings</span>
+                      </a>
+                      
+                      <a
+                        href="/help"
+                        className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
+                      >
+                        <HelpCircle className="h-5 w-5 text-gray-400" />
+                        <span className="text-sm">Help & Support</span>
+                      </a>
+                      
+                      <a
+                        href="/policy"
+                        className="flex items-center px-4 py-3 text-gray-300 hover:bg-gray-700 transition-all space-x-3"
+                      >
+                        <Shield className="h-5 w-5 text-gray-400" />
+                        <span className="text-sm">Privacy Policy</span>
+                      </a>
+                      
+                      <div className="border-t border-gray-700 mt-2 pt-2">
+                        <button
+                          onClick={handleLogout}
+                          className="flex w-full items-center px-4 py-3 text-red-400 hover:bg-red-900/30 transition-all space-x-3"
+                        >
+                          <LogOut className="h-5 w-5" />
+                          <span className="text-sm">Logout</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            ) : (
+              <Button
+                onClick={() => navigate("/auth")}
+                className="hidden md:flex items-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              >
+                <User className="h-4 w-4" />
+                <span>Login</span>
+              </Button>
+            )}
             
             {/* Mobile Menu Toggle */}
             <button 
@@ -543,8 +540,8 @@ const Navbar = () => {
                 Top Stocks
               </a>
               
-              {/* Mobile User Section */}
-              {username && (
+              {/* Mobile Login/User Section */}
+              {isAuthenticated ? (
                 <>
                   <div className="border-t border-gray-800 pt-2 mt-2">
                     <div className="px-4 py-2">
@@ -565,6 +562,17 @@ const Navbar = () => {
                     </button>
                   </div>
                 </>
+              ) : (
+                <Button
+                  onClick={() => {
+                    navigate("/auth");
+                    setMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors mt-2"
+                >
+                  <User className="h-4 w-4" />
+                  <span>Login</span>
+                </Button>
               )}
             </div>
           </div>
