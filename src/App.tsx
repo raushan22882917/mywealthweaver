@@ -13,7 +13,6 @@ import About from "./pages/About";
 import Team from "./pages/Team";
 import Contact from "./pages/Contact";
 import TickerDetail from "./pages/TickerDetail";
-import MarketData from "./pages/MarketData";
 import News from "./pages/News";
 import Dividend from "./pages/Dividend";
 import StockDetails from "./pages/StockDetails";
@@ -119,7 +118,6 @@ function App() {
               <Route path="/dividend" element={<Dividend />} />
               <Route path="/dividend/:symbol?" element={<Dividend />} />
               <Route path="/top-stocks" element={<TopStocks />}/>
-              <Route path="/market-data" element={<MarketData />} />
               <Route path="/news" element={<News />} />
               <Route path="/news/:id?" element={<News />} />
               <Route path="/insight" element={<InsightPage />} />

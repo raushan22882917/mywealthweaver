@@ -18,11 +18,7 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li>
-                <a href="/market-data" className="text-muted-foreground hover:text-primary">
-                  Market Data
-                </a>
-              </li>
+              
               <li>
                 <a href="/news" className="text-muted-foreground hover:text-primary">
                   News
