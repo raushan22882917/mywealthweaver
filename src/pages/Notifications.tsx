@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -35,17 +36,17 @@ import { format, isToday, isTomorrow, parseISO, isValid } from 'date-fns';
 interface DividendEvent {
   id: string;
   symbol: string;
-  dividend_date: string;
-  ex_dividend_date: string;
-  earnings_date: string;
-  earnings_average: number;
-  revenue_average: number;
+  dividend_date?: string;
+  ex_dividend_date?: string;
+  earnings_date?: string;
+  earnings_average?: number;
+  revenue_average?: number;
   LogoURL?: string;
   company_name?: string;
-  earnings_low: number;
-  earnings_high: number;
-  revenue_low: number;
-  revenue_high: number;
+  earnings_low?: number;
+  earnings_high?: number;
+  revenue_low?: number;
+  revenue_high?: number;
 }
 
 interface DividendSymbol {
@@ -109,15 +110,19 @@ const Notifications = () => {
   useEffect(() => {
     const loadCompanyLogos = async () => {
       try {
-        const response = await fetch('/logos.csv');
-        const csvText = await response.text();
-        const rows = csvText.split('\n').slice(1);
-        const logos: Record<string, string> = {};
+        const { data, error } = await supabase
+          .from('company_logos')
+          .select('Symbol, LogoURL');
         
-        rows.forEach(row => {
-          const [id, symbol, company_name, domain, logoUrl] = row.split(',');
-          if (symbol && logoUrl) {
-            logos[symbol] = logoUrl;
+        if (error) {
+          console.log('Company logos query error:', error);
+          return;
+        }
+        
+        const logos: Record<string, string> = {};
+        data?.forEach(item => {
+          if (item.Symbol && item.LogoURL) {
+            logos[item.Symbol] = item.LogoURL;
           }
         });
         
@@ -140,38 +145,46 @@ const Notifications = () => {
         const friday = new Date(monday);
         friday.setDate(monday.getDate() + 4);
 
-        // Fetch from dividend_dates table
-        const { data: dividendDatesData, error: dividendDatesError } = await supabase
-          .from("dividend_dates")
+        // Fetch from dividendsymbol table (this table exists and has exdividenddate)
+        const { data: dividendSymbolsData, error: dividendSymbolsError } = await supabase
+          .from("dividendsymbol")
           .select("*")
-          .gte('ex_dividend_date', monday.toISOString())
-          .lte('ex_dividend_date', friday.toISOString());
+          .gte('exdividenddate', monday.toISOString().split('T')[0])
+          .lte('exdividenddate', friday.toISOString().split('T')[0]);
 
-        if (dividendDatesError) throw dividendDatesError;
+        if (dividendSymbolsError) {
+          console.log('Dividend symbols query error:', dividendSymbolsError);
+        }
 
         // Fetch from dividend_reports table
         const { data: dividendReportsData, error: dividendReportsError } = await supabase
           .from("dividend_reports")
           .select("*")
-          .gte('ex_dividend_date', monday.toISOString())
-          .lte('ex_dividend_date', friday.toISOString());
+          .gte('ex_dividend_date', monday.toISOString().split('T')[0])
+          .lte('ex_dividend_date', friday.toISOString().split('T')[0]);
 
-        if (dividendReportsError) throw dividendReportsError;
+        if (dividendReportsError) {
+          console.log('Dividend reports query error:', dividendReportsError);
+        }
 
         // Fetch from dividend_announcements table
         const { data: dividendAnnouncementsData, error: dividendAnnouncementsError } = await supabase
           .from("dividend_announcements")
           .select("*")
-          .gte('published_at', monday.toISOString())
-          .lte('published_at', friday.toISOString());
+          .gte('created_at', monday.toISOString())
+          .lte('created_at', friday.toISOString());
 
-        if (dividendAnnouncementsError) throw dividendAnnouncementsError;
+        if (dividendAnnouncementsError) {
+          console.log('Dividend announcements query error:', dividendAnnouncementsError);
+        }
 
         // Transform and combine all notifications
         const allNotifications = [
-          ...(dividendDatesData?.map((item: any) => ({
-            id: `date-${item.id}`,
+          ...(dividendSymbolsData?.map((item: any) => ({
+            id: `symbol-${item.symbol}`,
             type: 'dividend',
+            symbol: item.symbol,
+            exdividenddate: item.exdividenddate,
             ...item
           })) || []),
           ...(dividendReportsData?.map((item: any) => ({
@@ -182,13 +195,18 @@ const Notifications = () => {
           ...(dividendAnnouncementsData?.map((item: any) => ({
             id: `announcement-${item.id}`,
             type: 'news',
+            title: item.header,
+            content: item.message,
+            published_at: item.created_at,
             ...item
           })) || [])
         ];
 
         // Group notifications by day
         const groupedNotifications = allNotifications.reduce((groups: { [key: string]: any[] }, notification) => {
-          const date = notification.ex_dividend_date || notification.published_at;
+          const date = notification.exdividenddate || notification.ex_dividend_date || notification.published_at;
+          if (!date) return groups;
+          
           const dateKey = format(new Date(date), 'yyyy-MM-dd');
           if (!groups[dateKey]) {
             groups[dateKey] = [];
@@ -218,7 +236,7 @@ const Notifications = () => {
         setDayGroups(sortedGroups);
       } catch (error) {
         console.error('Error loading notifications:', error);
-    toast({
+        toast({
           title: "Error",
           description: "Failed to load notifications. Please try again later.",
           variant: "destructive"
@@ -233,7 +251,7 @@ const Notifications = () => {
 
   const formatDate = (dateString: string) => {
     try {
-    const date = new Date(dateString);
+      const date = new Date(dateString);
       if (!isValid(date)) {
         console.warn('Invalid date:', dateString);
         return 'Invalid date';
@@ -280,10 +298,10 @@ const Notifications = () => {
                 </a>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Ex-Dividend Date: {formatDate(notification.ex_dividend_date)}
+                Ex-Dividend Date: {formatDate(notification.exdividenddate)}
               </p>
-              {notification.company_name && (
-                <p className="text-xs text-gray-400 mt-1 truncate">{notification.company_name}</p>
+              {notification.shortname && (
+                <p className="text-xs text-gray-400 mt-1 truncate">{notification.shortname}</p>
               )}
             </div>
           </div>
@@ -320,23 +338,27 @@ const Notifications = () => {
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Earnings Date: {formatDate(notification.earnings_date)}
-              </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 p-2 rounded">
-                  <p className="text-xs text-gray-500">Earnings</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    ${notification.earnings_average.toFixed(2)}
-                  </p>
+              {notification.ex_dividend_date && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Ex-Dividend Date: {formatDate(notification.ex_dividend_date)}
+                </p>
+              )}
+              {notification.earnings_average && notification.revenue_average && (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="bg-gray-50 p-2 rounded">
+                    <p className="text-xs text-gray-500">Earnings</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      ${notification.earnings_average.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 p-2 rounded">
+                    <p className="text-xs text-gray-500">Revenue</p>
+                    <p className="text-sm font-medium text-gray-900">
+                      ${(notification.revenue_average / 1000000).toFixed(2)}M
+                    </p>
+                  </div>
                 </div>
-                <div className="bg-gray-50 p-2 rounded">
-                  <p className="text-xs text-gray-500">Revenue</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    ${(notification.revenue_average / 1000000).toFixed(2)}M
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -368,17 +390,21 @@ const Notifications = () => {
                   <p className="text-sm font-medium truncate">{notification.title}</p>
                   <NotificationBadge type={notification.type} />
                 </div>
-                <a href={notification.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600">
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+                {notification.url && (
+                  <a href={notification.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {notification.source} • {formatDate(notification.published_at)}
+                Published: {formatDate(notification.published_at)}
               </p>
               {notification.symbol && (
                 <p className="text-xs text-gray-400 mt-1 truncate">Related: {notification.symbol}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.content}</p>
+              {notification.content && (
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.content}</p>
+              )}
             </div>
           </div>
         </div>
@@ -458,7 +484,7 @@ const Notifications = () => {
                 >
                   <div className="px-4 py-2 bg-gray-800/50">
                     <h4 className="text-sm font-medium text-gray-300">{group.label}</h4>
-                    </div>
+                  </div>
                   <div className="divide-y divide-gray-800">
                     {group.notifications
                       .filter(notification => filter === 'all' || notification.type === filter)

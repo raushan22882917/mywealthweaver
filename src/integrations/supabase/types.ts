@@ -429,21 +429,27 @@ export type Database = {
       div_frequency: {
         Row: {
           as_of_date: string
+          days: number | null
           frequency: number | null
+          frequency_tx: string | null
           id: number
           special_dividend: string | null
           symbol: string | null
         }
         Insert: {
           as_of_date: string
+          days?: number | null
           frequency?: number | null
+          frequency_tx?: string | null
           id?: number
           special_dividend?: string | null
           symbol?: string | null
         }
         Update: {
           as_of_date?: string
+          days?: number | null
           frequency?: number | null
+          frequency_tx?: string | null
           id?: number
           special_dividend?: string | null
           symbol?: string | null
@@ -647,6 +653,7 @@ export type Database = {
       }
       dividendsymbol: {
         Row: {
+          as_of_date: string | null
           buy_date: string | null
           currentprice: number | null
           dividend: number | null
@@ -661,10 +668,13 @@ export type Database = {
           payoutratio: number | null
           previousclose: number | null
           quotetype: string | null
+          recovery_period: string | null
           shortname: string | null
           symbol: string | null
+          yearly_change: string | null
         }
         Insert: {
+          as_of_date?: string | null
           buy_date?: string | null
           currentprice?: number | null
           dividend?: number | null
@@ -679,10 +689,13 @@ export type Database = {
           payoutratio?: number | null
           previousclose?: number | null
           quotetype?: string | null
+          recovery_period?: string | null
           shortname?: string | null
           symbol?: string | null
+          yearly_change?: string | null
         }
         Update: {
+          as_of_date?: string | null
           buy_date?: string | null
           currentprice?: number | null
           dividend?: number | null
@@ -697,8 +710,10 @@ export type Database = {
           payoutratio?: number | null
           previousclose?: number | null
           quotetype?: string | null
+          recovery_period?: string | null
           shortname?: string | null
           symbol?: string | null
+          yearly_change?: string | null
         }
         Relationships: []
       }

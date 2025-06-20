@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -69,14 +70,20 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
         .filter(n => n.created_at.startsWith(todayStr))
         .map(n => ({ ...n, table: 'News' }));
 
-      // Fetch and process dividend
-      const { data: dividendData } = await supabase
+      // Fetch and process dividend symbols
+      const { data: dividendData, error: dividendError } = await supabase
         .from('dividendsymbol')
-        .select('*');
+        .select('*')
+        .limit(10);
+        
+      if (dividendError) {
+        console.log('Dividend query error:', dividendError);
+      }
+
       const dividendNotifications: Notification[] = (dividendData || [])
-        .filter(item => isToday(new Date(item.exdividenddate)))
+        .filter(item => item.exdividenddate && isToday(new Date(item.exdividenddate)))
         .map(item => ({
-          id: item.id,
+          id: item.symbol || `div-${Math.random()}`,
           type: 'dividend',
           title: `Dividend Alert: ${item.symbol}`,
           message: `Ex-Date: ${item.exdividenddate}`,
@@ -87,13 +94,19 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
         }));
 
       // Fetch and process dividend_reports
-      const { data: reportData } = await supabase
+      const { data: reportData, error: reportError } = await supabase
         .from('dividend_reports')
-        .select('*');
+        .select('*')
+        .limit(10);
+        
+      if (reportError) {
+        console.log('Reports query error:', reportError);
+      }
+
       const reportNotifications: Notification[] = (reportData || [])
-        .filter(item => isToday(new Date(item.ex_dividend_date)))
+        .filter(item => item.ex_dividend_date && isToday(new Date(item.ex_dividend_date)))
         .map(item => ({
-          id: item.id,
+          id: item.id || `report-${Math.random()}`,
           type: 'dividend',
           title: `Dividend Report: ${item.symbol}`,
           message: `Ex-Date: ${item.ex_dividend_date}`,
@@ -209,7 +222,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
                   </p>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-indigo-400 font-semibold">
-                      {notification.table || 'General'}
+                      {(notification as any).table || 'General'}
                     </span>
                     <p className={`text-xs ${notification.type === 'system' ? 'text-red-500' : 'text-gray-500'}`}>
                       {formatNotificationDate(notification.created_at)}
@@ -228,7 +241,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
               variant="ghost"
               className="text-blue-400 hover:text-blue-300 text-sm"
               onClick={() => {
-                navigate('/announcements');
+                navigate('/notifications');
                 onClose();
               }}
             >
