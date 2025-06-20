@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import StockDetailsDialog from '@/components/StockDetailsDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,10 @@ import {
   Search,
   Filter,
   Eye,
-  Plus
+  Plus,
+  BarChart3,
+  PieChart,
+  Activity
 } from 'lucide-react';
 import StockAnalysisDialog from '@/components/StockAnalysisDialog';
 import { useTheme } from 'next-themes';
@@ -451,10 +455,16 @@ export default function Dashboard({ session }: DashboardProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-950">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500" />
-          <p className="text-purple-300 font-medium">Loading your dashboard...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500/30 border-t-purple-500" />
+            <div className="absolute inset-0 rounded-full bg-purple-500/10 animate-pulse" />
+          </div>
+          <div className="text-center">
+            <p className="text-xl font-semibold text-white mb-2">Loading Dashboard</p>
+            <p className="text-purple-300">Preparing your portfolio...</p>
+          </div>
         </div>
       </div>
     );
@@ -468,135 +478,157 @@ export default function Dashboard({ session }: DashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       <Navbar />
+      
+      {/* Main Content Container */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
-        <div className="mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 p-[2px]">
-                <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                  {userProfile?.avatar_url ? (
-                    <img
-                      src={userProfile.avatar_url}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                      {username?.[0]?.toUpperCase() || 'U'}
-                    </span>
-                  )}
+        
+        {/* Enhanced Header Section */}
+        <div className="mb-12">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+            {/* User Profile Section */}
+            <div className="flex items-center gap-6">
+              <div className="relative">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 p-[3px] shadow-2xl">
+                  <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
+                    {userProfile?.avatar_url ? (
+                      <img
+                        src={userProfile.avatar_url}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                        {username?.[0]?.toUpperCase() || 'U'}
+                      </span>
+                    )}
+                  </div>
                 </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-gray-900 animate-pulse" />
               </div>
-              <div>
-                <h1 className="text-2xl font-bold text-white">
+              
+              <div className="space-y-1">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
                   Welcome back, {username}
                 </h1>
-                <p className="text-gray-400">
+                <p className="text-gray-400 text-lg">
                   Manage your portfolio and track dividends
                 </p>
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-sm text-green-400 font-medium">Portfolio Active</span>
+                </div>
               </div>
             </div>
             
-            <div className="flex gap-3">
+            {/* Action Buttons */}
+            <div className="flex gap-4">
               <Button
                 variant="outline"
-                size="sm"
-                className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                size="lg"
+                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:border-purple-400 transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
                 onClick={() => navigate('/settings')}
               >
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="h-5 w-5 mr-2" />
                 Settings
               </Button>
               <Button
                 variant="outline"
-                size="sm"
-                className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                size="lg"
+                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
                 onClick={() => navigate('/notifications')}
               >
-                <Bell className="h-4 w-4 mr-2" />
+                <Bell className="h-5 w-5 mr-2" />
                 Notifications
               </Button>
             </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-gray-900/60 border-gray-800 hover:bg-gray-900/80 transition-colors">
-            <CardContent className="p-6">
+        {/* Enhanced Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 group">
+            <CardContent className="p-8">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Total Stocks</p>
-                  <p className="text-3xl font-bold text-white">{savedStocks.length}</p>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Total Stocks</p>
+                  <p className="text-4xl font-bold text-white group-hover:text-purple-100 transition-colors">
+                    {savedStocks.length}
+                  </p>
+                  <p className="text-xs text-gray-500">Active investments</p>
                 </div>
-                <div className="p-3 rounded-lg bg-purple-500/10">
-                  <TrendingUp className="h-8 w-8 text-purple-400" />
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 group-hover:from-purple-500/30 group-hover:to-purple-600/20 transition-all duration-300">
+                  <TrendingUp className="h-10 w-10 text-purple-400 group-hover:scale-110 transition-transform" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900/60 border-gray-800 hover:bg-gray-900/80 transition-colors">
-            <CardContent className="p-6">
+          <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 border-gray-700/50 hover:border-green-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-green-500/10 group">
+            <CardContent className="p-8">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Total Dividends</p>
-                  <p className="text-3xl font-bold text-white">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Total Dividends</p>
+                  <p className="text-4xl font-bold text-white group-hover:text-green-100 transition-colors">
                     ${savedStocks.reduce((total, stock) => total + calculateTotalDividends(stock), 0).toFixed(2)}
                   </p>
+                  <p className="text-xs text-gray-500">Expected returns</p>
                 </div>
-                <div className="p-3 rounded-lg bg-pink-500/10">
-                  <Heart className="h-8 w-8 text-pink-400" />
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/10 group-hover:from-green-500/30 group-hover:to-green-600/20 transition-all duration-300">
+                  <DollarSign className="h-10 w-10 text-green-400 group-hover:scale-110 transition-transform" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-gray-900/60 border-gray-800 hover:bg-gray-900/80 transition-colors">
-            <CardContent className="p-6">
+          <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 group">
+            <CardContent className="p-8">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-400">Avg Yield</p>
-                  <p className="text-3xl font-bold text-white">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Average Yield</p>
+                  <p className="text-4xl font-bold text-white group-hover:text-blue-100 transition-colors">
                     {(savedStocks.reduce((acc, stock) => acc + (stock.dividend_yield || 0), 0) /
                       (savedStocks.length || 1)).toFixed(2)}%
                   </p>
+                  <p className="text-xs text-gray-500">Portfolio performance</p>
                 </div>
-                <div className="p-3 rounded-lg bg-green-500/10">
-                  <DollarSign className="h-8 w-8 text-green-400" />
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 group-hover:from-blue-500/30 group-hover:to-blue-600/20 transition-all duration-300">
+                  <BarChart3 className="h-10 w-10 text-blue-400 group-hover:scale-110 transition-transform" />
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Controls Section */}
-        <Card className="bg-gray-900/60 border-gray-800 mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex flex-col md:flex-row gap-4 items-center flex-1">
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        {/* Enhanced Controls Section */}
+        <Card className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-gray-700/50 mb-8 shadow-xl">
+          <CardContent className="p-8">
+            <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+              <div className="flex flex-col md:flex-row gap-6 items-center flex-1 w-full lg:w-auto">
+                {/* Enhanced Search */}
+                <div className="relative flex-1 max-w-md w-full">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     placeholder="Search stocks by symbol or company..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white"
+                    className="pl-12 pr-4 py-3 bg-gray-800/80 border-gray-600/50 text-white placeholder-gray-400 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
                   />
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-gray-400" />
+                {/* Enhanced Filter */}
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gray-700/50">
+                    <Filter className="h-5 w-5 text-gray-400" />
+                  </div>
                   <Select value={sortOption} onValueChange={setSortOption}>
-                    <SelectTrigger className="w-[200px] bg-gray-800 border-gray-700 text-white">
+                    <SelectTrigger className="w-[220px] bg-gray-800/80 border-gray-600/50 text-white focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 rounded-xl">
                       <SelectValue placeholder="Sort by..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectContent className="bg-gray-800 border-gray-700 rounded-xl">
                       {sortOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
+                        <SelectItem key={option.value} value={option.value} className="text-white hover:bg-gray-700">
                           {option.label}
                         </SelectItem>
                       ))}
@@ -605,46 +637,52 @@ export default function Dashboard({ session }: DashboardProps) {
                 </div>
               </div>
               
+              {/* Enhanced Add Button */}
               <Button
                 onClick={() => navigate('/top-stocks')}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 group"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
                 Add Stocks
               </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Stocks Table */}
-        <Card className="bg-gray-900/60 border-gray-800">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Your Portfolio ({filteredStocks.length} stocks)
+        {/* Enhanced Stocks Table */}
+        <Card className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-gray-700/50 shadow-2xl">
+          <CardHeader className="p-8 pb-0">
+            <CardTitle className="text-2xl font-bold text-white flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20">
+                <Activity className="h-6 w-6 text-blue-400" />
+              </div>
+              Your Portfolio
+              <Badge variant="secondary" className="ml-auto bg-gray-700/50 text-gray-300 px-3 py-1">
+                {filteredStocks.length} stocks
+              </Badge>
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-8 pt-6">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-800">
-                    <TableHead className="text-gray-300">Stock</TableHead>
-                    <TableHead className="text-gray-300">Sector</TableHead>
-                    <TableHead className="text-gray-300">Quantity</TableHead>
-                    <TableHead className="text-gray-300">Dividend Rate</TableHead>
-                    <TableHead className="text-gray-300">Yield</TableHead>
-                    <TableHead className="text-gray-300">Ex-Dividend</TableHead>
-                    <TableHead className="text-gray-300">Payout Date</TableHead>
-                    <TableHead className="text-gray-300">Total Dividends</TableHead>
-                    <TableHead className="text-gray-300">Actions</TableHead>
+                  <TableRow className="border-gray-700/50 hover:bg-gray-800/30">
+                    <TableHead className="text-gray-300 font-semibold py-4">Stock</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Sector</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Quantity</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Dividend Rate</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Yield</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Ex-Dividend</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Payout Date</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Total Dividends</TableHead>
+                    <TableHead className="text-gray-300 font-semibold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sortStocks(filteredStocks).map((stock) => (
                     <TableRow
                       key={stock.symbol}
-                      className="border-gray-800 hover:bg-gray-800/50 cursor-pointer"
+                      className="border-gray-700/30 hover:bg-gray-800/50 cursor-pointer transition-all duration-200 group"
                       onClick={() => {
                         const stockForDialog = {
                           Symbol: stock.symbol,
@@ -657,8 +695,8 @@ export default function Dashboard({ session }: DashboardProps) {
                         setIsStockDetailsOpen(true);
                       }}
                     >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
+                      <TableCell className="py-4">
+                        <div className="flex items-center gap-4">
                           {(() => {
                             const logoInfo = companyLogos.find(logo =>
                               logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
@@ -666,28 +704,34 @@ export default function Dashboard({ session }: DashboardProps) {
                             const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
 
                             return logoUrl ? (
-                              <img
-                                src={logoUrl}
-                                alt={`${stock.company_name} logo`}
-                                className="w-8 h-8 object-contain rounded"
-                                onError={(e) => {
-                                  e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
-                                }}
-                              />
+                              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow">
+                                <img
+                                  src={logoUrl}
+                                  alt={`${stock.company_name} logo`}
+                                  className="w-full h-full object-contain bg-white/5 group-hover:scale-110 transition-transform duration-300"
+                                  onError={(e) => {
+                                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=48`;
+                                  }}
+                                />
+                              </div>
                             ) : (
-                              <div className="w-8 h-8 bg-gray-700 rounded flex items-center justify-center">
-                                <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
+                              <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center shadow-lg">
+                                <span className="text-sm font-bold text-white">{stock.symbol.substring(0, 2)}</span>
                               </div>
                             );
                           })()}
-                          <div>
-                            <div className="font-semibold text-white">{stock.symbol}</div>
-                            <div className="text-sm text-gray-400">{stock.company_name}</div>
+                          <div className="space-y-1">
+                            <div className="font-bold text-white text-lg group-hover:text-blue-100 transition-colors">
+                              {stock.symbol}
+                            </div>
+                            <div className="text-sm text-gray-400 max-w-[200px] truncate">
+                              {stock.company_name}
+                            </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="bg-gray-800 text-gray-300">
+                        <Badge variant="secondary" className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 text-purple-200 border-purple-500/30 px-3 py-1">
                           {stock.sector}
                         </Badge>
                       </TableCell>
@@ -697,24 +741,34 @@ export default function Dashboard({ session }: DashboardProps) {
                           min="1"
                           value={quantities[stock.symbol] || 1}
                           onChange={(e) => handleQuantityChange(stock.symbol, parseInt(e.target.value) || 1)}
-                          className="w-20 bg-gray-800 border-gray-700 text-white"
+                          className="w-20 bg-gray-800/80 border-gray-600/50 text-white focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-lg"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </TableCell>
-                      <TableCell className="text-white">${stock.dividend_rate.toFixed(2)}</TableCell>
-                      <TableCell className="text-green-400 font-semibold">
-                        {stock.dividend_yield ? stock.dividend_yield.toFixed(2) : '0.00'}%
+                      <TableCell className="text-white font-semibold">
+                        ${stock.dividend_rate.toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-gray-300">{stock.ex_dividend_date || 'N/A'}</TableCell>
-                      <TableCell className="text-gray-300">{stock.payout_date || 'N/A'}</TableCell>
-                      <TableCell className="text-blue-400 font-semibold">
-                        ${calculateTotalDividends(stock).toFixed(2)}
+                      <TableCell>
+                        <span className="text-green-400 font-bold text-lg">
+                          {stock.dividend_yield ? stock.dividend_yield.toFixed(2) : '0.00'}%
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-gray-300">
+                        {stock.ex_dividend_date || 'N/A'}
+                      </TableCell>
+                      <TableCell className="text-gray-300">
+                        {stock.payout_date || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-blue-400 font-bold text-lg">
+                          ${calculateTotalDividends(stock).toFixed(2)}
+                        </span>
                       </TableCell>
                       <TableCell>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                          className="border-gray-600/50 text-gray-300 hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-blue-200 transition-all duration-300 rounded-lg"
                           onClick={(e) => {
                             e.stopPropagation();
                             const stockForDialog = {
@@ -737,16 +791,21 @@ export default function Dashboard({ session }: DashboardProps) {
                 </TableBody>
               </Table>
               
+              {/* Enhanced Empty State */}
               {filteredStocks.length === 0 && (
-                <div className="text-center py-12">
-                  <TrendingUp className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-400 mb-2">No stocks found</h3>
-                  <p className="text-gray-500 mb-4">Start building your portfolio by adding some stocks</p>
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center shadow-2xl">
+                    <TrendingUp className="h-12 w-12 text-gray-500" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-300 mb-3">No stocks found</h3>
+                  <p className="text-gray-500 mb-8 max-w-md mx-auto">
+                    Start building your dividend portfolio by adding your first stock investment
+                  </p>
                   <Button
                     onClick={() => navigate('/top-stocks')}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-5 w-5 mr-2" />
                     Add Your First Stock
                   </Button>
                 </div>
@@ -755,6 +814,7 @@ export default function Dashboard({ session }: DashboardProps) {
           </CardContent>
         </Card>
       </div>
+      
       <Footer />
 
       {/* Dialogs */}
