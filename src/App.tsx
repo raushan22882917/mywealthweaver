@@ -31,36 +31,7 @@ import DividendDetail from "./pages/dividenddetail";
 import DividendYield from "./pages/DividendYield";
 import InsightPage from "./pages/insight";
 import HelpSupport from "./pages/HelpSupport";
-
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!session) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  return <>{children}</>;
-};
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   const [queryClient] = useState(() => new QueryClient({
@@ -103,35 +74,35 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <TooltipProvider>
             <Routes>
-              <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/policy" element={<PrivacyPolicy />} />
-              <Route path="/updown" element={<UpDown />} />
-              <Route path="/education" element={<Education />} />
-              <Route path="/ticker/:symbol" element={<TickerDetail />} />
-              <Route path="/stock/:symbol" element={<StockDetails />} />
-              <Route path="/education/topic/:id" element={<Education />} />
-              <Route path="/reporting" element={<Reporting />} />
-              <Route path="/dividend" element={<Dividend />} />
-              <Route path="/dividend/:symbol?" element={<Dividend />} />
-              <Route path="/top-stocks" element={<TopStocks />}/>
-              <Route path="/news" element={<News />} />
-              <Route path="/news/:id?" element={<News />} />
-              <Route path="/insight" element={<InsightPage />} />
-              <Route path="/insight/:symbol?" element={<InsightPage />} />
-              <Route path="/help" element={<HelpSupport />} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="/about" element={<ProtectedRoute><About /></ProtectedRoute>} />
+              <Route path="/contact" element={<ProtectedRoute><Contact /></ProtectedRoute>} />
+              <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
+              <Route path="/policy" element={<ProtectedRoute><PrivacyPolicy /></ProtectedRoute>} />
+              <Route path="/updown" element={<ProtectedRoute><UpDown /></ProtectedRoute>} />
+              <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
+              <Route path="/ticker/:symbol" element={<ProtectedRoute><TickerDetail /></ProtectedRoute>} />
+              <Route path="/stock/:symbol" element={<ProtectedRoute><StockDetails /></ProtectedRoute>} />
+              <Route path="/education/topic/:id" element={<ProtectedRoute><Education /></ProtectedRoute>} />
+              <Route path="/reporting" element={<ProtectedRoute><Reporting /></ProtectedRoute>} />
+              <Route path="/dividend" element={<ProtectedRoute><Dividend /></ProtectedRoute>} />
+              <Route path="/dividend/:symbol?" element={<ProtectedRoute><Dividend /></ProtectedRoute>} />
+              <Route path="/top-stocks" element={<ProtectedRoute><TopStocks /></ProtectedRoute>}/>
+              <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
+              <Route path="/news/:id?" element={<ProtectedRoute><News /></ProtectedRoute>} />
+              <Route path="/insight" element={<ProtectedRoute><InsightPage /></ProtectedRoute>} />
+              <Route path="/insight/:symbol?" element={<ProtectedRoute><InsightPage /></ProtectedRoute>} />
+              <Route path="/help" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard session={session} /></ProtectedRoute>} />
               <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-              <Route path="/announcements" element={<Announcements />} />
-              <Route path="/announcements/:id?" element={<Announcements />} />
+              <Route path="/announcements" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
+              <Route path="/announcements/:id?" element={<ProtectedRoute><Announcements /></ProtectedRoute>} />
+              <Route path="/dividenddetail" element={<ProtectedRoute><DividendDetail /></ProtectedRoute>} />
+              <Route path="/dividendyield" element={<ProtectedRoute><DividendYield /></ProtectedRoute>} />
+              <Route path="/dividendyield/:symbol?" element={<ProtectedRoute><DividendYield /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
-              <Route path="/dividenddetail" element={<DividendDetail />} />
-              <Route path="/dividendyield" element={<DividendYield />} />
-              <Route path="/dividendyield/:symbol?" element={<DividendYield />} />
             </Routes>
             <Toaster />
           </TooltipProvider>
