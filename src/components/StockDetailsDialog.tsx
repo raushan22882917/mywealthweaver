@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -55,9 +56,9 @@ interface CompanyProfile {
 interface SavedStock {
   id?: string;
   symbol: string;
-  name: string;
-  logoUrl?: string;
-  userId?: string;
+  company_name: string;
+  LogoURL?: string;
+  user_id: string;
 }
 
 interface RankingDisplayData {
@@ -92,29 +93,47 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({ stock, isOpen, 
     
     setLoading(true);
     try {
-      // Fetch company profile from API
-      const response = await fetch(`/api/stock/profile/${stock.Symbol}`);
-      if (response.ok) {
-        const data = await response.json();
-        setProfile(data);
-      }
-
-      // Fetch company rankings
-      const rankingsResponse = await fetch(`/api/stock/rankings/${stock.Symbol}`);
-      if (rankingsResponse.ok) {
-        const rankingsData = await rankingsResponse.json();
-        setRankings(rankingsData);
-      }
-
-      // Fetch additional company data
-      const { data: companyData, error } = await supabase
-        .from('companies')
+      // Fetch company profile from company_profiles table
+      const { data: profileData, error: profileError } = await supabase
+        .from('company_profiles')
         .select('*')
         .eq('symbol', stock.Symbol)
         .maybeSingle();
 
-      if (!error && companyData) {
-        setCompanyData(companyData);
+      if (!profileError && profileData) {
+        setProfile({
+          symbol: profileData.symbol,
+          companyName: profileData.short_name,
+          exchange: profileData.exchange,
+          industry: profileData.industry,
+          sector: profileData.sector,
+          description: profileData.long_business_summary,
+          website: profileData.website,
+          employees: profileData.full_time_employees,
+          beta: profileData.beta,
+          price: profileData.trailing_pe,
+          mktCap: 0,
+          lastDiv: profileData.dividend_rate
+        });
+      }
+
+      // Fetch rankings from stock_rankings table
+      const { data: rankingsData, error: rankingsError } = await supabase
+        .from('stock_rankings')
+        .select('*')
+        .eq('symbol', stock.Symbol)
+        .maybeSingle();
+
+      if (!rankingsError && rankingsData) {
+        setRankings({
+          rank: rankingsData.rank?.toString() || 'N/A',
+          score: rankingsData.score?.toString() || 'N/A',
+          sector: rankingsData.sector || 'N/A',
+          industry: rankingsData.industry || 'N/A',
+          industryRank: 'N/A',
+          totalStocks: 'N/A',
+          totalIndustryStocks: 'N/A'
+        });
       }
     } catch (error) {
       console.error('Error fetching stock details:', error);
@@ -174,16 +193,14 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({ stock, isOpen, 
       } else {
         const stockData: SavedStock = {
           symbol: stock.Symbol,
-          name: stock.title,
-          logoUrl: profile?.image || '',
+          company_name: stock.title,
+          LogoURL: profile?.image || '',
+          user_id: session.user.id
         };
 
         const { error } = await supabase
           .from('saved_stocks')
-          .insert([{
-            ...stockData,
-            user_id: session.user.id
-          }]);
+          .insert([stockData]);
 
         if (error) throw error;
         
@@ -307,10 +324,6 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({ stock, isOpen, 
                               <span className="text-white">{profile.sector || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between">
-                              <span className="text-gray-400">CEO:</span>
-                              <span className="text-white">{profile.ceo || 'N/A'}</span>
-                            </div>
-                            <div className="flex justify-between">
                               <span className="text-gray-400">Employees:</span>
                               <span className="text-white">{formatLargeNumber(profile.employees)}</span>
                             </div>
@@ -352,30 +365,8 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({ stock, isOpen, 
                       {profile ? (
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-400">Price:</span>
-                            <span className="text-white">${profile.price?.toFixed(2) || 'N/A'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Change:</span>
-                            <span className={profile.changes && profile.changes > 0 ? 'text-green-400' : 'text-red-400'}>
-                              {profile.changes ? `${profile.changes > 0 ? '+' : ''}${profile.changes.toFixed(2)} (${profile.changesPercentage?.toFixed(2)}%)` : 'N/A'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Market Cap:</span>
-                            <span className="text-white">{formatMarketCap(profile.mktCap)}</span>
-                          </div>
-                          <div className="flex justify-between">
                             <span className="text-gray-400">Beta:</span>
                             <span className="text-white">{profile.beta?.toFixed(2) || 'N/A'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Avg. Volume:</span>
-                            <span className="text-white">{formatLargeNumber(profile.volAvg)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">52-Week Range:</span>
-                            <span className="text-white">{profile.range || 'N/A'}</span>
                           </div>
                           <div className="flex justify-between">
                             <span className="text-gray-400">Last Dividend:</span>
@@ -403,7 +394,6 @@ const StockDetailsDialog: React.FC<StockDetailsDialogProps> = ({ stock, isOpen, 
                           <div className="text-center">
                             <div className="text-3xl font-bold text-blue-400 mb-1">{rankings.rank}</div>
                             <div className="text-sm text-gray-300">Overall Rank</div>
-                            <div className="text-xs text-gray-400 mt-1">out of {rankings.totalStocks} stocks</div>
                           </div>
                         </div>
                         <div className="bg-gray-700 rounded-lg p-4">

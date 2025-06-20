@@ -114,8 +114,8 @@ const DummyComponent: React.FC = () => {
             id: item.id,
             symbol: item.symbol,
             name: `${item.symbol} Report`,
-            dividendRate: item.dividend || 0,
-            dividendYield: item.dividend_yield ? parseFloat(item.dividend_yield) : 0,
+            dividendRate: item.earnings_average || 0,
+            dividendYield: 0,
             type: 'dividend' as const,
             exDividendDate: item.ex_dividend_date
           });
