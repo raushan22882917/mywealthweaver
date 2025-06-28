@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { isToday } from 'date-fns';
 
@@ -137,7 +138,7 @@ export const convertDividendSymbolsToNotifications = (
   return items
     .filter((item) => isToday(new Date(item.exdividenddate)))
     .map((item) => ({
-      id: `symbol-${item.id}`,
+      id: `symbol-${item.symbol}`,
       type: 'symbol',
       title: `Symbol Alert: ${item.symbol}`,
       message: `Ex-Dividend Date: ${item.exdividenddate}`,

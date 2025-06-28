@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -50,17 +51,17 @@ interface NotificationItem {
 interface DividendEvent {
   id: string;
   symbol: string;
-  dividend_date: string;
-  ex_dividend_date: string;
-  earnings_date: string;
-  earnings_average: number;
-  revenue_average: number;
+  dividend_date?: string;
+  ex_dividend_date?: string;
+  earnings_date?: string;
+  earnings_average?: number;
+  revenue_average?: number;
   LogoURL?: string;
   company_name?: string;
-  earnings_low: number;
-  earnings_high: number;
-  revenue_low: number;
-  revenue_high: number;
+  earnings_low?: number;
+  earnings_high?: number;
+  revenue_low?: number;
+  revenue_high?: number;
 }
 
 interface DividendSymbol {
@@ -120,9 +121,15 @@ const Notifications = () => {
   useEffect(() => {
     const loadCompanyLogos = async () => {
       try {
-        const response = await fetch('/logos.csv');
-        const csvText = await response.text();
-        const rows = csvText.split('\n').slice(1);
+        const { data, error } = await supabase
+          .from('company_logos')
+          .select('Symbol, LogoURL');
+        
+        if (error) {
+          console.log('Company logos query error:', error);
+          return;
+        }
+        
         const logos: Record<string, string> = {};
         
         rows.forEach(row => {
@@ -167,7 +174,9 @@ const Notifications = () => {
           .select("*")
           .eq('ex_dividend_date', dateString);
 
-        if (dividendReportsError) throw dividendReportsError;
+        if (dividendReportsError) {
+          console.log('Dividend reports query error:', dividendReportsError);
+        }
 
         // Fetch from dividend_announcements table
         const { data: dividendAnnouncementsData, error: dividendAnnouncementsError } = await supabase
@@ -176,7 +185,9 @@ const Notifications = () => {
           .gte('created_at', startDate.toISOString())
           .lte('created_at', endDate.toISOString());
 
-        if (dividendAnnouncementsError) throw dividendAnnouncementsError;
+        if (dividendAnnouncementsError) {
+          console.log('Dividend announcements query error:', dividendAnnouncementsError);
+        }
 
         // Transform and combine all notifications
         const allNotifications: NotificationItem[] = [
@@ -210,6 +221,7 @@ const Notifications = () => {
       } catch (error) {
         console.error('Error loading notifications:', error);
         toast({
+        toast({
           title: "Error",
           description: "Failed to load notifications. Please try again later.",
           variant: "destructive"
@@ -224,6 +236,7 @@ const Notifications = () => {
 
   const formatDate = (dateString: string) => {
     try {
+      const date = new Date(dateString);
       const date = new Date(dateString);
       if (!isValid(date)) {
         console.warn('Invalid date:', dateString);
@@ -283,8 +296,8 @@ const Notifications = () => {
               <p className="text-xs text-gray-500 mt-1">
                 Ex-Dividend Date: {formatDate(notification.ex_dividend_date || notification.exdividenddate || '')}
               </p>
-              {notification.company_name && (
-                <p className="text-xs text-gray-400 mt-1 truncate">{notification.company_name}</p>
+              {notification.shortname && (
+                <p className="text-xs text-gray-400 mt-1 truncate">{notification.shortname}</p>
               )}
               <p className="text-xs text-green-400 mt-1 font-medium">Announcement: Dividend payment scheduled</p>
             </div>
@@ -372,7 +385,9 @@ const Notifications = () => {
               {notification.symbol && (
                 <p className="text-xs text-gray-400 mt-1 truncate">Related: {notification.symbol}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.content}</p>
+              {notification.content && (
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{notification.content}</p>
+              )}
             </div>
           </div>
         </div>

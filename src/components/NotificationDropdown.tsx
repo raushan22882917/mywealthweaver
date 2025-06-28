@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -67,12 +68,18 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
       const filteredNews = convertNewsToNotifications(news)
         .filter(n => n.created_at.startsWith(todayStr));
 
-      // Fetch and process dividend
-      const { data: dividendData } = await supabase
+      // Fetch and process dividend symbols
+      const { data: dividendData, error: dividendError } = await supabase
         .from('dividendsymbol')
-        .select('*');
+        .select('*')
+        .limit(10);
+        
+      if (dividendError) {
+        console.log('Dividend query error:', dividendError);
+      }
+
       const dividendNotifications: Notification[] = (dividendData || [])
-        .filter(item => isToday(new Date(item.exdividenddate)))
+        .filter(item => item.exdividenddate && isToday(new Date(item.exdividenddate)))
         .map(item => ({
           id: `dividend-${item.symbol}-${item.exdividenddate}`,
           type: 'dividend',
@@ -84,11 +91,17 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
         }));
 
       // Fetch and process dividend_reports
-      const { data: reportData } = await supabase
+      const { data: reportData, error: reportError } = await supabase
         .from('dividend_reports')
-        .select('*');
+        .select('*')
+        .limit(10);
+        
+      if (reportError) {
+        console.log('Reports query error:', reportError);
+      }
+
       const reportNotifications: Notification[] = (reportData || [])
-        .filter(item => isToday(new Date(item.ex_dividend_date)))
+        .filter(item => item.ex_dividend_date && isToday(new Date(item.ex_dividend_date)))
         .map(item => ({
           id: `report-${item.symbol}-${item.ex_dividend_date}`,
           type: 'dividend',

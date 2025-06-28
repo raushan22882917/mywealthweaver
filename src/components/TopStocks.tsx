@@ -522,9 +522,6 @@ const TopStocks: React.FC = () => {
             Symbol: selectedStock.symbol,
             title: selectedStock.symbol,
             cik_str: '',
-            LogoURL: undefined,
-            marketCap: undefined,
-            dividendyield: undefined
           }}
           isOpen={!!selectedStock}
           setIsOpen={(open) => !open && setSelectedStock(null)}
