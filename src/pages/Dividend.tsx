@@ -7,8 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon, Bell, TrendingUp } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import { supabase } from "@/lib/supabase/client";
-import StockFilter, { StockFilterCriteria } from "@/components/ui/stock-filter";
-import { StockFilterData } from "@/utils/dividend";
+import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Papa from 'papaparse';
@@ -526,14 +525,14 @@ const Dividend: React.FC = () => {
 
     const transformedData = dividendData.map(stock => ({
       symbol: stock.Symbol,
-      sector: "Technology",
-      exchange: "NASDAQ",
+      Sector: "Technology",
+      Exchange: "NASDAQ",
       dividendYield: parseFloat(stock.dividendYield) || 0,
       payoutRatio: parseFloat(stock.payoutRatio) || 0,
       financialHealthScore: Math.floor(Math.random() * 10) + 1,
       debtLevels: Math.floor(Math.random() * 10) + 1,
-      revenue: Math.random() * 50000000000,
-      earningsPerShare: Math.random() * 10,
+      Revenue: Math.random() * 50000000000,
+      Earnings_per_share: Math.random() * 10,
     }));
 
     setStockFilterData(transformedData);
@@ -550,11 +549,11 @@ const Dividend: React.FC = () => {
         return false;
       }
 
-      if (filterCriteria.sector && stockData.Sector !== filterCriteria.sector) {
+      if (filterCriteria.sector && filterCriteria.sector !== '' && stockData.Sector !== filterCriteria.sector) {
         return false;
       }
 
-      if (filterCriteria.exchange && stockData.Exchange !== filterCriteria.exchange) {
+      if (filterCriteria.exchange && filterCriteria.exchange !== '' && stockData.Exchange !== filterCriteria.exchange) {
         return false;
       }
 

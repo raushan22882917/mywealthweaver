@@ -24,7 +24,7 @@ import {
 } from "recharts";
 import { fetchStockData, fetchChartData, fetchSimilarStocks } from "@/services/stockService";
 import type { StockData, ChartData, SimilarStock } from "@/services/stockService";
-import { AIAnalysisDialog } from "@/components/AIAnalysisDialog";
+import AIAnalysisDialog from "@/components/AIAnalysisDialog";
 import { BarChart, TrendingUp, DollarSign, Calendar, Users, Activity, Percent, Clock, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 

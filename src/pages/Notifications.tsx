@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -46,6 +45,7 @@ interface NotificationItem {
   LogoURL?: string;
   title?: string;
   content?: string;
+  shortname?: string;
 }
 
 interface DividendEvent {
@@ -132,16 +132,13 @@ const Notifications = () => {
         
         const logos: Record<string, string> = {};
         
-        rows.forEach(row => {
-          const columns = row.split(',');
-          if (columns.length >= 5) {
-            const symbol = columns[1]?.trim();
-            const logoUrl = columns[4]?.trim();
-            if (symbol && logoUrl && logoUrl !== 'LogoURL') {
-              logos[symbol] = logoUrl;
+        if (data) {
+          data.forEach((row: any) => {
+            if (row.Symbol && row.LogoURL) {
+              logos[row.Symbol] = row.LogoURL;
             }
-          }
-        });
+          });
+        }
         
         setCompanyLogos(logos);
       } catch (error) {
@@ -221,7 +218,6 @@ const Notifications = () => {
       } catch (error) {
         console.error('Error loading notifications:', error);
         toast({
-        toast({
           title: "Error",
           description: "Failed to load notifications. Please try again later.",
           variant: "destructive"
@@ -236,7 +232,6 @@ const Notifications = () => {
 
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
       const date = new Date(dateString);
       if (!isValid(date)) {
         console.warn('Invalid date:', dateString);
