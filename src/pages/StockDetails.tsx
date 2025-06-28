@@ -43,10 +43,10 @@ interface DividendData {
   symbol: string | null;
 }
 
-const StockDetails = () => {
+const StockDetails: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const [activeTab, setActiveTab] = useState("summary");
-  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
+  const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
   const [dividendData, setDividendData] = useState<DividendData | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState("1Y");
 
@@ -165,10 +165,10 @@ const StockDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+    <div className="min-h-screen bg-background">
       <Navbar />
       
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
+      <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
           {/* Header Section */}
           <div className="flex items-center justify-between">
@@ -183,7 +183,7 @@ const StockDetails = () => {
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-                onClick={() => setIsAnalysisOpen(true)}
+                onClick={() => setIsAIAnalysisOpen(true)}
               >
                 <BarChart className="h-4 w-4" />
                 AI Analysis
@@ -466,18 +466,17 @@ const StockDetails = () => {
             </div>
           </div>
         </div>
-      </main>
-      <Footer />
-      
-      {/* AI Analysis Dialog */}
+      </div>
+
       <AIAnalysisDialog
-        isOpen={isAnalysisOpen}
-        onClose={() => setIsAnalysisOpen(false)}
+        isOpen={isAIAnalysisOpen}
+        onClose={() => setIsAIAnalysisOpen(false)}
         symbol={symbol}
-        company_name={stockData?.shortName || 'Unknown Company'}
-        sector={stockData?.sector || 'Unknown'}
-        currentPrice={stockData?.regularMarketPrice || 0}
+        currentPrice={stockData?.currentprice || 0}
+        sector={stockData?.sector || ""}
       />
+      
+      <Footer />
     </div>
   );
 };
