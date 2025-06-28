@@ -307,11 +307,11 @@ export default function Dashboard({ session }: DashboardProps) {
       if (savedStocksData) {
         const { data: logoData } = await supabase
           .from('company_logos')
-          .select('symbol, LogoURL');
+          .select('Symbol, LogoURL');
 
         const dbLogoMap = new Map(
           logoData?.map(item => [
-            item?.symbol?.toUpperCase() || '',
+            item?.Symbol?.toUpperCase() || '',
             item?.LogoURL || ''
           ]) || []
         );
@@ -363,15 +363,15 @@ export default function Dashboard({ session }: DashboardProps) {
             ...stock,
             LogoURL: logoUrl,
             buy_date: dividendInfo.buy_date || null,
-            ex_dividend_date: dividendInfo.exdividenddate || stock.ex_dividend_date || null,
-            report_date: dividendInfo.earningsdate || stock.report_date || null,
-            payout_date: dividendInfo.payoutdate || stock.payout_date || null,
+            ex_dividend_date: dividendInfo.exdividenddate || null,
+            report_date: dividendInfo.earningsdate || null,
+            payout_date: dividendInfo.payoutdate || null,
             dividend_rate: dividendInfo.dividendrate || 0,
             dividendyield: dividendInfo.dividendyield || 0,
             sector: topStockInfo.sector,
             industry: topStockInfo.industry,
-            special_dividend: stock.special_dividend || 0,
-            total_dividend: stock.total_dividend || 0,
+            special_dividend: 0,
+            total_dividend: 0,
             quantity: quantityMap[stock.symbol] || 1
           };
         });

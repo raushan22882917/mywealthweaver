@@ -338,61 +338,55 @@ const Settings = () => {
     }
   };
 
-  const handleProfileSave = async () => {
-    if (!profile) return;
+  const handleProfileUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
     
     try {
-      setIsSaving(true);
+      setIsLoading(true);
       
-      let newAvatarUrl = avatarUrl;
-      if (avatarFile) {
-        const uploadedUrl = await uploadAvatar();
-        if (uploadedUrl) {
-          newAvatarUrl = uploadedUrl;
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "User not authenticated",
+          variant: "destructive",
+        });
+        return;
       }
-      
+
       const { error } = await supabase
         .from('profiles')
-        .update({
-          username,
-          email,
-          bio,
-          avatar_url: newAvatarUrl,
-          notifications_enabled: notificationsEnabled,
-          email_notifications_enabled: emailNotificationsEnabled,
-          email_frequency: emailFrequency,
-        })
-        .eq('id', profile.id);
-      
+        .upsert({
+          id: user.id,
+          username: profile.username,
+          bio: profile.bio,
+          updated_at: new Date().toISOString(),
+        });
+
       if (error) {
-        console.error('Update error:', error);
-        throw error;
+        console.error('Profile update error:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update profile",
+          variant: "destructive",
+        });
+        return;
       }
-      
+
       toast({
-        title: 'Profile Updated',
-        description: 'Your profile has been successfully updated',
+        title: "Success",
+        description: "Profile updated successfully",
       });
-      
-      // Update local state
-      setProfile({
-        ...profile,
-        username
-      });
-      
-      setAvatarUrl(newAvatarUrl);
-      setAvatarFile(null);
-      setAvatarPreview(null);
     } catch (error) {
-      console.error('Error updating profile:', error);
+      console.error('Profile update error:', error);
       toast({
-        title: 'Update Failed',
-        description: 'Failed to update profile: ' + (error as Error).message,
-        variant: 'destructive',
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
       });
     } finally {
-      setIsSaving(false);
+      setIsLoading(false);
     }
   };
 
@@ -654,7 +648,7 @@ const Settings = () => {
                 
                 <div className="flex justify-end">
                   <Button
-                    onClick={handleProfileSave}
+                    onClick={handleProfileUpdate}
                     className="bg-purple-700 hover:bg-purple-600 text-white"
                     disabled={isSaving}
                   >
@@ -744,7 +738,7 @@ const Settings = () => {
                 
                 <div className="flex justify-end">
                   <Button
-                    onClick={handleProfileSave}
+                    onClick={handleProfileUpdate}
                     className="bg-purple-700 hover:bg-purple-600 text-white"
                     disabled={isSaving}
                   >
@@ -831,7 +825,7 @@ const Settings = () => {
                 
                 <div className="flex justify-end">
                   <Button
-                    onClick={handleProfileSave}
+                    onClick={handleProfileUpdate}
                     className="bg-purple-700 hover:bg-purple-600 text-white"
                   >
                     <Save className="mr-2 h-4 w-4" />

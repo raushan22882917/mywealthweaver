@@ -165,8 +165,9 @@ const StockDetails = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background dark:bg-gray-950">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       <Navbar />
+      
       <main className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="space-y-6">
           {/* Header Section */}
@@ -468,13 +469,14 @@ const StockDetails = () => {
       </main>
       <Footer />
       
-      <AIAnalysisDialog 
+      {/* AI Analysis Dialog */}
+      <AIAnalysisDialog
         isOpen={isAnalysisOpen}
         onClose={() => setIsAnalysisOpen(false)}
-        symbol={stockData.symbol}
-        companyName={stockData.longName}
-        sector={stockData.sector || 'N/A'}
-        currentPrice={stockData.regularMarketPrice}
+        symbol={symbol}
+        company_name={stockData?.shortName || 'Unknown Company'}
+        sector={stockData?.sector || 'Unknown'}
+        currentPrice={stockData?.regularMarketPrice || 0}
       />
     </div>
   );

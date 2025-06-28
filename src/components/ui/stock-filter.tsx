@@ -10,8 +10,33 @@ import { Badge } from "@/components/ui/badge";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/lib/supabase";
-import { StockFilterData, mapDatabaseToFilterData } from "@/utils/dividend";
 import { toast } from "sonner";
+
+export interface StockFilterData {
+  symbol: string;
+  Sector?: string;
+  Exchange?: string;
+  "Dividend-Yield"?: number;
+  "Payout Ratio"?: number;
+  "Financial-Health-Score"?: number;
+  Revenue?: number;
+  Earnings_per_share?: number;
+  "Debt Levels"?: number;
+}
+
+export const mapDatabaseToFilterData = (item: any): StockFilterData => {
+  return {
+    symbol: item.Symbol || item.symbol,
+    Sector: item.Sector,
+    Exchange: item.Exchange,
+    "Dividend-Yield": item["Dividend-Yield"],
+    "Payout Ratio": item["Payout Ratio"],
+    "Financial-Health-Score": item["Financial-Health-Score"],
+    Revenue: item.Revenue,
+    Earnings_per_share: item.Earnings_per_share,
+    "Debt Levels": item["Debt Levels"]
+  };
+};
 
 export interface StockFilterCriteria {
   symbol?: string;
@@ -71,10 +96,10 @@ const StockFilter: React.FC<StockFilterProps> = ({
         const mappedData = data.map(item => mapDatabaseToFilterData(item));
         
         if (initialFilterableStocks && initialFilterableStocks.length > 0) {
-          const symbolMap = new Map(mappedData.map(item => [item.Symbol, item]));
+          const symbolMap = new Map(mappedData.map(item => [item.symbol, item]));
           
           for (const stock of initialFilterableStocks) {
-            if (!symbolMap.has(stock.Symbol)) {
+            if (!symbolMap.has(stock.symbol)) {
               mappedData.push(stock);
             }
           }
@@ -134,12 +159,12 @@ const StockFilter: React.FC<StockFilterProps> = ({
     
     const matches = stockData
       .filter(stock => {
-        const symbol = stock.Symbol?.toLowerCase() || '';
+        const symbol = stock.symbol?.toLowerCase() || '';
         const sector = stock.Sector?.toLowerCase() || '';
         const inputLower = input.toLowerCase();
         return symbol.includes(inputLower) || sector.includes(inputLower);
       })
-      .map(stock => stock.Symbol)
+      .map(stock => stock.symbol)
       .filter(Boolean)
       .slice(0, 7);
     
@@ -148,7 +173,7 @@ const StockFilter: React.FC<StockFilterProps> = ({
   };
   
   const handleSymbolSelect = (symbol: string) => {
-    const selectedStock = stockData.find(stock => stock.Symbol === symbol);
+    const selectedStock = stockData.find(stock => stock.symbol === symbol);
     
     setFilters(prev => ({ 
       ...prev, 
@@ -162,8 +187,8 @@ const StockFilter: React.FC<StockFilterProps> = ({
 
   const applyFilters = () => {
     const newFilteredStocks = stockData.filter(stock => {
-      if (filters.symbol && stock.Symbol && 
-          !stock.Symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
+      if (filters.symbol && stock.symbol && 
+          !stock.symbol.toLowerCase().includes(filters.symbol.toLowerCase())) {
         return false;
       }
       
@@ -445,8 +470,8 @@ const StockFilter: React.FC<StockFilterProps> = ({
                   </TableHeader>
                   <TableBody>
                     {filteredStocks.map((stock) => (
-                      <TableRow key={stock.Symbol}>
-                        <TableCell className="font-medium">{stock.Symbol}</TableCell>
+                      <TableRow key={stock.symbol}>
+                        <TableCell className="font-medium">{stock.symbol}</TableCell>
                         <TableCell>{stock.Sector || "N/A"}</TableCell>
                         <TableCell>{stock.Exchange || "N/A"}</TableCell>
                         <TableCell>{stock["Dividend-Yield"] !== undefined ? `${stock["Dividend-Yield"].toFixed(2)}%` : "N/A"}</TableCell>

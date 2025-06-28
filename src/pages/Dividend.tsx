@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon, Bell, TrendingUp } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import { supabase } from "@/lib/supabase/client";
-import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
+import StockFilter, { StockFilterCriteria } from "@/components/ui/stock-filter";
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Papa from 'papaparse';
