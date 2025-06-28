@@ -513,6 +513,21 @@ export type Database = {
         }
         Relationships: []
       }
+      dividend_metrics: {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
       dividend_payout: {
         Row: {
           created_at: string
