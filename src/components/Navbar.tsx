@@ -222,6 +222,10 @@ const Navbar = () => {
                 Education
               </a>
               
+              <a href="/announcements" className="nav-item text-sm">
+                Announcements
+              </a>
+              
               <div className="relative">
                 <button
                   onClick={() => setIsOpen(!isOpen)}
@@ -519,6 +523,9 @@ const Navbar = () => {
               </a>
               <a href="/education" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 Education
+              </a>
+              <a href="/announcements" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                Announcements
               </a>
               <a href="/dividend" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 Dividend

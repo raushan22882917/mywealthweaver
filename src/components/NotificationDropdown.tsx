@@ -60,14 +60,12 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
       // Fetch and process dividend_announcements
       const announcements = await fetchDividendAnnouncements();
       const filteredAnnouncements = convertAnnouncementsToNotifications(announcements)
-        .filter(n => n.created_at.startsWith(todayStr))
-        .map(n => ({ ...n, table: 'Announcement' }));
+        .filter(n => n.created_at.startsWith(todayStr));
 
       // Fetch and process news
       const news = await fetchNewsItems();
       const filteredNews = convertNewsToNotifications(news)
-        .filter(n => n.created_at.startsWith(todayStr))
-        .map(n => ({ ...n, table: 'News' }));
+        .filter(n => n.created_at.startsWith(todayStr));
 
       // Fetch and process dividend
       const { data: dividendData } = await supabase
@@ -76,14 +74,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
       const dividendNotifications: Notification[] = (dividendData || [])
         .filter(item => isToday(new Date(item.exdividenddate)))
         .map(item => ({
-          id: item.id,
+          id: `dividend-${item.symbol}-${item.exdividenddate}`,
           type: 'dividend',
           title: `Dividend Alert: ${item.symbol}`,
           message: `Ex-Date: ${item.exdividenddate}`,
           related_symbol: item.symbol,
           read: false,
-          created_at: item.exdividenddate,
-          table: 'Dividend'
+          created_at: item.exdividenddate
         }));
 
       // Fetch and process dividend_reports
@@ -93,14 +90,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
       const reportNotifications: Notification[] = (reportData || [])
         .filter(item => isToday(new Date(item.ex_dividend_date)))
         .map(item => ({
-          id: item.id,
+          id: `report-${item.symbol}-${item.ex_dividend_date}`,
           type: 'dividend',
           title: `Dividend Report: ${item.symbol}`,
           message: `Ex-Date: ${item.ex_dividend_date}`,
           related_symbol: item.symbol,
           read: false,
-          created_at: item.ex_dividend_date,
-          table: 'Report'
+          created_at: item.ex_dividend_date
         }));
 
       // Combine all notifications
@@ -125,13 +121,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    if (notification.type === 'dividend' && notification.related_symbol) {
-      navigate(`/stock/${notification.related_symbol}`);
-    } else if (notification.type === 'price' && notification.related_symbol) {
-      navigate(`/stock/${notification.related_symbol}`);
-    } else if (notification.type === 'earnings' && notification.related_symbol) {
-      navigate(`/stock/${notification.related_symbol}`);
-    } else if (notification.type === 'news') {
+    if (notification.type === 'news') {
       if (notification.weblink) {
         window.open(notification.weblink, '_blank');
       } else if (notification.news_id) {
@@ -140,7 +130,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
     } else if (notification.type === 'announcement') {
       navigate('/announcements');
     }
-
     onClose();
   };
 
@@ -209,7 +198,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
                   </p>
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-indigo-400 font-semibold">
-                      {notification.table || 'General'}
+                      {notification.type === 'dividend' ? 'Dividend' : 
+                       notification.type === 'news' ? 'News' : 
+                       notification.type === 'announcement' ? 'Announcement' : 'General'}
                     </span>
                     <p className={`text-xs ${notification.type === 'system' ? 'text-red-500' : 'text-gray-500'}`}>
                       {formatNotificationDate(notification.created_at)}
@@ -228,11 +219,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
               variant="ghost"
               className="text-blue-400 hover:text-blue-300 text-sm"
               onClick={() => {
-                navigate('/announcements');
+                navigate('/notifications');
                 onClose();
               }}
             >
-              View All Notifications
+              See More
             </Button>
           </div>
         </div>

@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Expand, Minimize, Plus, Search, X, Calendar, CheckCircle, AlertTriangle, XCircle, Info, CalendarIcon, Bell, TrendingUp } from "lucide-react";
 import StockDetailsDialog from "@/components/StockDetailsDialog";
 import { supabase } from "@/lib/supabase/client";
-import StockFilter, { StockFilterCriteria, StockFilterData } from "@/components/ui/stock-filter";
+import StockFilter, { StockFilterCriteria } from "@/components/ui/stock-filter";
+import { StockFilterData } from "@/utils/dividend";
 import { FaDollarSign, FaChartLine, FaCalendarAlt, FaInfoCircle, FaHistory } from "react-icons/fa";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Papa from 'papaparse';
@@ -466,38 +467,21 @@ const Dividend: React.FC = () => {
   };
 
   const handleStockClick = useCallback((stock: DividendData, event: React.MouseEvent) => {
-    if (autoCloseTimer) {
-      clearTimeout(autoCloseTimer);
-    }
-
-    // Open the stock details dialog directly on click
-    const stockData: Stock = {
-      cik_str: "",
-      Symbol: stock.Symbol,
-      title: stock.title
-    };
-    setSelectedStock(stockData);
-    setDialogOpen(true);
-    setHoveredStockDetails(null);
-  }, [autoCloseTimer, setDialogOpen, setSelectedStock]);
-
-  // Function to show stock details on hover/click without opening dialog
-  const handleStockHover = useCallback((stock: DividendData, event: React.MouseEvent) => {
-    if (autoCloseTimer) {
-      clearTimeout(autoCloseTimer);
-    }
-
+    // Show hoveredStockDetails on click only
     setHoveredStockDetails({
       stock,
       position: { x: event.clientX || 0, y: event.clientY || 0 },
       exdividenddate: stock.exdividenddate,
       dividendDate: stock.DividendDate
     });
-  }, [autoCloseTimer]);
+  }, []);
 
   const handleStockLeave = () => {
-    setHoveredStockDetails(null);
-    setExpandedStock(null);
+    // Only close if not clicking
+    if (!hoveredStockDetails) {
+      setHoveredStockDetails(null);
+      setExpandedStock(null);
+    }
   };
 
   const handleCloseHover = () => {
@@ -566,11 +550,11 @@ const Dividend: React.FC = () => {
         return false;
       }
 
-      if (filterCriteria.sector && stockData.sector !== filterCriteria.sector) {
+      if (filterCriteria.sector && stockData.Sector !== filterCriteria.sector) {
         return false;
       }
 
-      if (filterCriteria.exchange && stockData.exchange !== filterCriteria.exchange) {
+      if (filterCriteria.exchange && stockData.Exchange !== filterCriteria.exchange) {
         return false;
       }
 
@@ -617,7 +601,6 @@ const Dividend: React.FC = () => {
     <div
       className="relative group stock-element w-[50px] h-[50px] mt-2"
       onClick={(e) => handleStockClick(stock, e)}
-      onMouseEnter={(e) => handleStockHover(stock, e)}
     >
       <div
         className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
@@ -747,8 +730,6 @@ const Dividend: React.FC = () => {
               <div
                 key={index}
                 className="flex justify-center"
-                onMouseEnter={() => setHoveredStock(stock)}
-                onMouseLeave={() => setHoveredStock(null)}
               >
                 <div
                   className="cursor-pointer"
@@ -760,7 +741,7 @@ const Dividend: React.FC = () => {
                 </div>
               </div>
             ))}
-            {hasMoreStocks && !isExpanded && (
+            {hasMoreStocks  && (
               <div
                 className=" w-[300px]  rounded-lg cursor-pointer transition-colors mt-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 px-2"
                 onClick={(e) => handleMoreClick(stocksForDate, e)}
@@ -808,8 +789,6 @@ const Dividend: React.FC = () => {
                       <div
                         key={index}
                         className="flex justify-center"
-                        onMouseEnter={() => setHoveredStock(stock)}
-                        onMouseLeave={() => setHoveredStock(null)}
                       >
                         <div
                           className="cursor-pointer"
@@ -1041,336 +1020,272 @@ const Dividend: React.FC = () => {
         />
       )}
       {hoveredStockDetails && (
-        <div
-          className="fixed z-50 bg-white dark:bg-gray-800 mb-6 rounded-lg shadow-xl p-4 border border-gray-200 dark:border-gray-700 backdrop-blur-sm bg-opacity-95 dark:bg-opacity-95 transform transition-all duration-200 hover-card w-[320px] max-h-[500px] overflow-y-auto"
-          style={{
-            left: hoveredStockDetails.position.x,
-            top: Math.max(hoveredStockDetails.position.y - 350, 10),
-            transform: 'translateX(-50%)',
-          }}
-          onMouseEnter={() => {
-            if (autoCloseTimer) {
-              clearTimeout(autoCloseTimer);
-            }
-          }}
-          onMouseLeave={() => {
-            if (!isHoveringSymbol) {
-              const timer = setTimeout(() => {
-                setHoveredStockDetails(null);
-                setIsHoveringSymbol(false);
-              }, 1000);
-              setAutoCloseTimer(timer);
-            }
-          }}
-        >
-          {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2 mb-2">
-                <Bell className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="font-semibold text-green-600 dark:text-blue-400">
-                  Dividend Announcement
-                </span>
-              </div>
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}
-              </p>
-            </div>
-          )}
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
           <div
-            className="absolute bottom-[-8px] left-1/2 transform -translate-x-1/2 w-4 h-4 rotate-45 bg-white dark:bg-gray-800 border-r border-b border-gray-200 dark:border-gray-700"
-          />
-
-          <div className="relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900 rounded-lg shadow-inner p-4 mb-4 overflow-hidden border border-blue-200 dark:border-blue-800">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-full overflow-hidden border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-700">
-                <img
-                  src={companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || csvLogoUrls.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || 'stock.avif'}
-                  alt={hoveredStockDetails.stock?.Symbol}
-                  className="w-full h-full object-contain"
-                  loading="lazy"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'stock.avif';
-                  }}
-                />
-              </div>
-              <div>
-                <div className="font-bold text-lg text-blue-800 dark:text-blue-200">
-                  {hoveredStockDetails.stock?.Symbol}
-                </div>
-                <div className="text-xs text-blue-600 dark:text-blue-400">
-                  {hoveredStockDetails.stock?.title}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-blue-800 dark:text-blue-200">
-              <div className="flex flex-col">
-                <span className="text-xs text-blue-700 dark:text-blue-300">Ex-Dividend Date:</span>
-                <span className="font-semibold">
-                  {new Date(hoveredStockDetails.exdividenddate).toISOString().split('T')[0]}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs text-blue-700 dark:text-blue-300">Payout Date:</span>
-                <span className="font-semibold">
-                  {new Date(hoveredStockDetails.stock?.payoutdate).toISOString().split('T')[0]}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs text-blue-700 dark:text-blue-300">Dividend Rate:</span>
-                <span className="font-semibold">${hoveredStockDetails.stock?.dividendRate}</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs text-blue-700 dark:text-blue-300">Yield:</span>
-                <span className="font-semibold">
-                  {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
-                    ? 'N/A'
-                    : `${(Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)}%`}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-col gap-4 mt-3">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dividend Safety</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {hoveredStockDetails.stock?.status === 'This stock has a safe dividend.' ? 
-                  'This stock has a safe and sustainable dividend payout.' : 
-                 hoveredStockDetails.stock?.status === 'This stock may have a risky dividend.' ? 
-                  'This stock may have a risky dividend payout. Consider reviewing financial health.' : 
-                  'This stock does not currently pay dividends.'}
-              </p>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Dividend Attractiveness</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {Number(hoveredStockDetails.stock?.dividendYield) > 4 ? 
-                  'High dividend yield above 4% indicates strong income potential.' :
-                 Number(hoveredStockDetails.stock?.dividendYield) > 2 ? 
-                  'Moderate dividend yield between 2-4% suggests balanced income and growth.' : 
-                  'Low dividend yield below 2% may indicate focus on growth over income.'}
-              </p>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <FaChartLine className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Price Momentum</span>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                {Number(hoveredStockDetails.stock?.currentPrice) > Number(hoveredStockDetails.stock?.previousClose) ? 
-                  'Stock is showing upward momentum with current price higher than previous close.' : 
-                  'Stock is showing downward momentum with current price lower than previous close.'}
-              </p>
-            </div>
-          </div>
-
-          {hoveredStockDetails.stock?.insight && (
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-b-lg border border-blue-200 dark:border-blue-800">
+            className="bg-black dark:bg-black rounded-xl shadow-2xl border border-gray-700 backdrop-blur-sm transform transition-all duration-200 hover-card w-full max-w-[600px] max-h-[80vh] overflow-y-auto"
+          >
+            {/* Top right corner buttons */}
+            <div className="sticky top-0 z-20 flex items-center justify-between p-3 bg-black/90 backdrop-blur-sm border-b border-gray-700 rounded-t-xl">
               <div className="flex items-center gap-2">
-                <FaInfoCircle className="text-blue-800 dark:text-blue-100 text-lg" />
-                <span className="font-semibold text-blue-800 dark:text-blue-100">Important</span>
-              </div>
-              <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{hoveredStockDetails.stock?.insight}</p>
-            </div>
-          )}
-
-          <div className="flex gap-3 mt-3">
-            <button
-              onClick={(e) => handleSeeMoreClick(e, hoveredStockDetails.stock)}
-              className="flex-1 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-center py-2 px-4 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors border border-blue-200 dark:border-blue-800 flex items-center justify-center gap-2"
-            >
-              <Expand className="h-4 w-4" />
-              See More Details
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleCloseHover();
-              }}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-center py-2 px-4 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-900/20 transition-colors border border-gray-200 dark:border-gray-700 flex items-center justify-center gap-2"
-            >
-              <X className="h-4 w-4" />
-              Close
-            </button>
-          </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              const stockData: Stock = {
-                cik_str: "",
-                Symbol: hoveredStockDetails.stock.Symbol,
-                title: hoveredStockDetails.stock.title
-              };
-              setSelectedStock(stockData);
-              setDialogOpen(true);
-              handleCloseHover();
-            }}
-            className="w-full mt-3 text-sm text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-medium text-center py-2 px-4 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors border border-green-200 dark:border-green-800 flex items-center justify-center gap-2"
-          >
-            <TrendingUp className="h-4 w-4" />
-            Track Stock
-          </button>
-        </div>
-      )}
-
-      {expandedStock && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 overflow-y-auto p-4"
-          onClick={() => {
-            handleCloseExpanded();
-            setHoveredStockDetails(null);
-          }}
-        >
-          <div
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 max-w-3xl w-full max-h-[90vh] flex flex-col relative"
-            onClick={e => e.stopPropagation()}
-          >
-            {dividendAnnouncements[expandedStock.Symbol] && (
-              <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center gap-2 mb-2">
-                  <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  <h4 className="font-semibold text-blue-600 dark:text-blue-400">
-                    Dividend Announcement
-                  </h4>
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                  <TrendingUp className="w-4 h-4 text-white" />
                 </div>
-                <p className="text-sm text-blue-800 dark:text-blue-200">
-                  {dividendAnnouncements[expandedStock.Symbol]}
-                </p>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Stock Details</h3>
+                  <p className="text-xs text-gray-300">Comprehensive analysis</p>
+                </div>
               </div>
-            )}
-
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-12 h-12 bg-center bg-no-repeat bg-contain rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-500 transition-colors"
-                  style={{ backgroundImage: `url(${companyLogos.get(expandedStock.Symbol?.toUpperCase()) || expandedStock.LogoURL || csvLogoUrls.get(expandedStock.Symbol?.toUpperCase()) || 'stock.avif'})` }}
+              <div className="flex items-center gap-2">
+                <button
                   onClick={(e) => {
-                    handleStockClick(expandedStock, e);
-                    handleCloseExpanded();
+                    e.stopPropagation();
+                    const stockData: Stock = {
+                      cik_str: "",
+                      Symbol: hoveredStockDetails.stock.Symbol,
+                      title: hoveredStockDetails.stock.title
+                    };
+                    setSelectedStock(stockData);
+                    setDialogOpen(true);
+                    handleCloseHover();
                   }}
-                />
-                <h3 className="text-lg font-bold">
-                  <span
-                    className="cursor-pointer hover:text-blue-500 transition-colors"
-                    onClick={(e) => {
-                      handleStockClick(expandedStock, e);
-                      handleCloseExpanded();
-                    }}
-                  >
-                    {expandedStock.Symbol}
-                  </span>
-                  <br />
-                  <span className="text-sm">{expandedStock.title}</span>
-                </h3>
+                  className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 transition-all duration-200 border border-emerald-400 rounded-lg flex items-center gap-1 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <TrendingUp className="w-3 h-3" />
+                  Track Stock
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCloseHover();
+                  }}
+                  className="w-7 h-7 flex items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 transition-all duration-200 border border-red-400 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  <X className="w-3 h-3 text-white" />
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  handleCloseExpanded();
-                  setHoveredStockDetails(null);
-                }}
-                className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex items-center gap-2">
-                <FaInfoCircle className="text-blue-800 dark:text-blue-100 text-lg" />
-                <span className="font-semibold text-blue-800 dark:text-blue-100">Important</span>
-              </div>
-              <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.insight}</p>
-              <p className="text-sm text-blue-800 dark:text-blue-100 mt-1">{expandedStock.amount}</p>
             </div>
 
-            <div className="overflow-y-auto flex-1 space-y-4 pr-2">
-              <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md">
-                <h4 className="text-md font-semibold mb-2 flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <FaCalendarAlt /> Important Dates
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">Ex-Dividend Date:</span>
-                    <span className="ml-2">
-                      {new Date(expandedStock.exdividenddate)
-                      .toISOString()
-                      .split('T')[0]}
+            <div className="p-4 space-y-4">
+              {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
+                <div className="p-3 border border-amber-500 rounded-lg shadow-lg overflow-hidden">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex-shrink-0">
+                      <Bell className="h-4 w-4 text-amber-400 animate-pulse" />
+                    </div>
+                    <span className="font-bold text-amber-400 text-xs uppercase tracking-wide">
+                      Dividend Announcement
                     </span>
                   </div>
+                    <div className=" text-amber-300 text-xs font-medium">
+                      {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]} • {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]} • {dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}
+                    </div>
+                </div>
+              )}
 
-                  <div>
-                    <span className="font-medium">Payout Date:</span>
-                    <span className="ml-2">
-                      {new Date(expandedStock.payoutdate)
-                      .toISOString()
-                      .split('T')[0]}
-                    </span>
+              <div className="relative border border-blue-500 rounded-xl shadow-2xl p-6 overflow-hidden">
+                <div className="relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div 
+                      className="w-16 h-16 bg-gray-800 rounded-full overflow-hidden border-4 border-gray-600 shadow-2xl cursor-pointer hover:scale-105 transition-transform duration-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const stockData: Stock = {
+                          cik_str: "",
+                          Symbol: hoveredStockDetails.stock.Symbol,
+                          title: hoveredStockDetails.stock.title
+                        };
+                        setSelectedStock(stockData);
+                        setDialogOpen(true);
+                        handleCloseHover();
+                      }}
+                    >
+                      <img
+                        src={companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || csvLogoUrls.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || 'stock.avif'}
+                        alt={hoveredStockDetails.stock?.Symbol}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'stock.avif';
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div 
+                        className="font-bold text-lg text-white cursor-pointer hover:text-blue-300 transition-colors mb-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const stockData: Stock = {
+                            cik_str: "",
+                            Symbol: hoveredStockDetails.stock.Symbol,
+                            title: hoveredStockDetails.stock.title
+                          };
+                          setSelectedStock(stockData);
+                          setDialogOpen(true);
+                          handleCloseHover();
+                        }}
+                      >
+                        {hoveredStockDetails.stock?.title}
+                      </div>
+                      <div 
+                        className="text-sm text-blue-300 cursor-pointer hover:text-white transition-colors font-semibold"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const stockData: Stock = {
+                            cik_str: "",
+                            Symbol: hoveredStockDetails.stock.Symbol,
+                            title: hoveredStockDetails.stock.title
+                          };
+                          setSelectedStock(stockData);
+                          setDialogOpen(true);
+                          handleCloseHover();
+                        }}
+                      >
+                        {hoveredStockDetails.stock?.Symbol}
+                      </div>
+                    </div>
                   </div>
 
-                  <div>
-                    <span className="font-medium">Earnings Date:</span>
-                    <span className="ml-2">
-                      {new Date(expandedStock.earningsdate)
-                      .toISOString()
-                      .split('T')[0]}
-                    </span>
+                  <div className="grid grid-cols-2 gap-6 text-white">
+                    <div className="flex flex-col">
+                      <span className="text-xs text-blue-300 font-semibold uppercase tracking-wider mb-1">Ex-Dividend Date:</span>
+                      <span className="font-bold text-base text-white">
+                        {new Date(hoveredStockDetails.exdividenddate).toISOString().split('T')[0]}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-blue-300 font-semibold uppercase tracking-wider mb-1">Payout Date:</span>
+                      <span className="font-bold text-base text-white">
+                        {new Date(hoveredStockDetails.stock?.payoutdate).toISOString().split('T')[0]}
+                      </span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-blue-300 font-semibold uppercase tracking-wider mb-1">Dividend Rate:</span>
+                      <span className="font-bold text-base text-emerald-400">${hoveredStockDetails.stock?.dividendRate}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs text-blue-300 font-semibold uppercase tracking-wider mb-1">Yield:</span>
+                      <span className="font-bold text-base text-emerald-400">
+                        {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
+                          ? 'N/A'
+                          : `${(Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)}%`}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md">
-                <h4 className="text-md font-semibold mb-2 flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <FaDollarSign /> Dividend Details
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><span className="font-medium">Quater Dividend:</span> {expandedStock.dividend}</div>
-                  <div><span className="font-medium">Annual Dividend:</span> {expandedStock.dividendRate}</div>
 
-                  <div><span className="font-medium">Dividend Yield:</span> {
-                    Number.isNaN(Number(expandedStock.dividendYield))
-                      ? 'N/A'
-                      : (Number(expandedStock.dividendYield)).toFixed(2)
-                  }</div>
+              {/* Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  {/* Payout Ratio Section */}
+                  <div className="p-4 border border-gray-700 rounded-xl shadow-lg">
+                    <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-white border-b-2 border-blue-500 pb-2">
+                      <FaChartLine className="text-blue-400 w-4 h-4" /> Payout Ratio
+                    </h4>
+                    <div className="space-y-2 text-xs">
+                      <div className="flex justify-between items-center p-2 bg-gray-800 rounded-lg shadow-sm">
+                        <span className="font-semibold text-gray-300">Payout Ratio:</span>
+                        <span className="font-bold text-sm text-blue-400">{hoveredStockDetails.stock?.payoutRatio}</span>
+                      </div>
+                      <div className="p-2 bg-gray-800 rounded-lg shadow-sm">
+                        <p className="text-gray-300 leading-relaxed">
+                          {hoveredStockDetails.stock?.message}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* History Section */}
+                  <div className="p-4 border border-gray-700 rounded-xl shadow-lg">
+                    <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-white border-b-2 border-purple-500 pb-2">
+                      <FaHistory className="text-purple-400 w-4 h-4" /> History
+                    </h4>
+                    <div className="p-2 bg-gray-800 rounded-lg shadow-sm">
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        {hoveredStockDetails.stock?.hist}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  {/* Stock Prices Section */}
+                  <div className="p-4 border border-gray-700 rounded-xl shadow-lg">
+                    <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-white border-b-2 border-emerald-500 pb-2">
+                      <FaChartLine className="text-emerald-400 w-4 h-4" /> Stock Prices
+                    </h4>
+                    <div className="space-y-2">
+                      <div className="p-2 bg-gray-800 rounded-lg shadow-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-300 text-xs">Current Price:</span>
+                          <span className="font-bold text-sm text-emerald-400">${hoveredStockDetails.stock?.currentPrice}</span>
+                        </div>
+                      </div>
+                      <div className="p-2 bg-gray-800 rounded-lg shadow-sm">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-300 text-xs">Previous Close:</span>
+                          <span className="font-bold text-sm text-emerald-400">${hoveredStockDetails.stock?.previousClose}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Analysis Sections */}
+                  <div className="space-y-3">
+                    <div className="p-3 border border-green-500 rounded-xl shadow-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle className="h-4 w-4 text-green-400" />
+                        <span className="text-xs font-bold text-white">Dividend Safety</span>
+                      </div>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        {hoveredStockDetails.stock?.status === 'This stock has a safe dividend.' ? 
+                          'This stock has a safe and sustainable dividend payout.' : 
+                         hoveredStockDetails.stock?.status === 'This stock may have a risky dividend.' ? 
+                          'This stock may have a risky dividend payout. Consider reviewing financial health.' : 
+                          'This stock does not currently pay dividends.'}
+                      </p>
+                    </div>
+
+                    <div className="p-3 border border-blue-500 rounded-xl shadow-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <TrendingUp className="h-4 w-4 text-blue-400" />
+                        <span className="text-xs font-bold text-white">Dividend Attractiveness</span>
+                      </div>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        {Number(hoveredStockDetails.stock?.dividendYield) > 4 ? 
+                          'High dividend yield above 4% indicates strong income potential.' :
+                         Number(hoveredStockDetails.stock?.dividendYield) > 2 ? 
+                          'Moderate dividend yield between 2-4% suggests balanced income and growth.' : 
+                          'Low dividend yield below 2% may indicate focus on growth over income.'}
+                      </p>
+                    </div>
+
+                    <div className="p-3 border border-purple-500 rounded-xl shadow-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <FaChartLine className="h-4 w-4 text-purple-400" />
+                        <span className="text-xs font-bold text-white">Price Momentum</span>
+                      </div>
+                      <p className="text-xs text-gray-300 leading-relaxed">
+                        {Number(hoveredStockDetails.stock?.currentPrice) > Number(hoveredStockDetails.stock?.previousClose) ? 
+                          'Stock is showing upward momentum with current price higher than previous close.' : 
+                          'Stock is showing downward momentum with current price lower than previous close.'}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md">
-                <h4 className="text-md font-semibold mb-2 flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <FaChartLine /> Payout Ratio
-                </h4>
-                <div className="grid grid-cols-1 gap-2 text-sm">
-                  <div><span className="font-medium">Payout Ratio:</span> {expandedStock.payoutRatio}</div>
-                  <div><span className="font-medium"></span> {expandedStock.message}</div>
+              {hoveredStockDetails.stock?.insight && (
+                <div className="p-3 border border-amber-500 rounded-xl shadow-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FaInfoCircle className="text-amber-400 text-sm" />
+                    <span className="font-bold text-amber-400 text-xs">Important Notice</span>
+                  </div>
+                  <p className="text-xs text-amber-300 leading-relaxed">{hoveredStockDetails.stock?.insight}</p>
                 </div>
-              </div>
-
-              <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md">
-                <h4 className="text-md font-semibold mb-2 flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <FaHistory className="text-blue-500 dark:text-blue-400" /> History
-                </h4>
-                <div className="text-sm">
-                  <div>{expandedStock.hist}</div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md">
-                <h4 className="text-md font-semibold mb-2 flex items-center gap-2 text-gray-700 dark:text-gray-300">
-                  <FaChartLine /> Stock Prices
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div><span className="font-medium">Current Price:</span> {expandedStock.currentPrice}</div>
-                  <div><span className="font-medium">Previous Close:</span> {expandedStock.previousClose}</div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

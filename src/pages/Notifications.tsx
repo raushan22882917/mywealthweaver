@@ -5,10 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { 
   Bell, 
   ChevronRight, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   DollarSign, 
   TrendingUp, 
   TrendingDown, 
@@ -30,7 +32,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { format, isToday, isTomorrow, parseISO, isValid } from 'date-fns';
+import { format, isToday, isTomorrow, parseISO, isValid, startOfDay, endOfDay } from 'date-fns';
+
+interface NotificationItem {
+  id: string;
+  type: 'dividend' | 'earnings' | 'news';
+  symbol?: string;
+  ex_dividend_date?: string;
+  exdividenddate?: string;
+  published_at?: string;
+  company_name?: string;
+  LogoURL?: string;
+  title?: string;
+  content?: string;
+}
 
 interface DividendEvent {
   id: string;
@@ -66,12 +81,6 @@ interface NewsEvent {
   symbol?: string;
 }
 
-interface DayGroup {
-  date: Date;
-  label: string;
-  notifications: (DividendEvent | NewsEvent | DividendSymbol)[];
-}
-
 const NotificationIcon = ({ type }: { type: string }) => {
   switch (type) {
     case 'dividend':
@@ -102,9 +111,11 @@ const Notifications = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [dayGroups, setDayGroups] = useState<DayGroup[]>([]);
-  const [filter, setFilter] = useState<string>('all');
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [filter, setFilter] = useState<string>('news');
   const [companyLogos, setCompanyLogos] = useState<Record<string, string>>({});
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   useEffect(() => {
     const loadCompanyLogos = async () => {
@@ -115,9 +126,13 @@ const Notifications = () => {
         const logos: Record<string, string> = {};
         
         rows.forEach(row => {
-          const [id, symbol, company_name, domain, logoUrl] = row.split(',');
-          if (symbol && logoUrl) {
-            logos[symbol] = logoUrl;
+          const columns = row.split(',');
+          if (columns.length >= 5) {
+            const symbol = columns[1]?.trim();
+            const logoUrl = columns[4]?.trim();
+            if (symbol && logoUrl && logoUrl !== 'LogoURL') {
+              logos[symbol] = logoUrl;
+            }
           }
         });
         
@@ -134,27 +149,23 @@ const Notifications = () => {
     const loadNotifications = async () => {
       try {
         setIsLoading(true);
-        const today = new Date();
-        const monday = new Date(today);
-        monday.setDate(today.getDate() - today.getDay() + 1);
-        const friday = new Date(monday);
-        friday.setDate(monday.getDate() + 4);
+        const startDate = startOfDay(selectedDate);
+        const endDate = endOfDay(selectedDate);
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
 
-        // Fetch from dividend_dates table
-        const { data: dividendDatesData, error: dividendDatesError } = await supabase
-          .from("dividend_dates")
+        // Fetch from dividendsymbol table
+        const { data: dividendSymbolsData, error: dividendSymbolsError } = await supabase
+          .from("dividendsymbol")
           .select("*")
-          .gte('ex_dividend_date', monday.toISOString())
-          .lte('ex_dividend_date', friday.toISOString());
+          .eq('exdividenddate', dateString);
 
-        if (dividendDatesError) throw dividendDatesError;
+        if (dividendSymbolsError) throw dividendSymbolsError;
 
         // Fetch from dividend_reports table
         const { data: dividendReportsData, error: dividendReportsError } = await supabase
           .from("dividend_reports")
           .select("*")
-          .gte('ex_dividend_date', monday.toISOString())
-          .lte('ex_dividend_date', friday.toISOString());
+          .eq('ex_dividend_date', dateString);
 
         if (dividendReportsError) throw dividendReportsError;
 
@@ -162,63 +173,43 @@ const Notifications = () => {
         const { data: dividendAnnouncementsData, error: dividendAnnouncementsError } = await supabase
           .from("dividend_announcements")
           .select("*")
-          .gte('published_at', monday.toISOString())
-          .lte('published_at', friday.toISOString());
+          .gte('created_at', startDate.toISOString())
+          .lte('created_at', endDate.toISOString());
 
         if (dividendAnnouncementsError) throw dividendAnnouncementsError;
 
         // Transform and combine all notifications
-        const allNotifications = [
-          ...(dividendDatesData?.map((item: any) => ({
-            id: `date-${item.id}`,
-            type: 'dividend',
-            ...item
+        const allNotifications: NotificationItem[] = [
+          ...(dividendSymbolsData?.map((item: any) => ({
+            id: `symbol-${item.id}`,
+            type: 'dividend' as const,
+            symbol: item.symbol,
+            exdividenddate: item.exdividenddate,
+            company_name: item.company_name,
+            LogoURL: item.LogoURL
           })) || []),
           ...(dividendReportsData?.map((item: any) => ({
             id: `report-${item.id}`,
-            type: 'earnings',
-            ...item
+            type: 'earnings' as const,
+            symbol: item.symbol,
+            ex_dividend_date: item.ex_dividend_date,
+            company_name: item.company_name,
+            LogoURL: item.LogoURL
           })) || []),
           ...(dividendAnnouncementsData?.map((item: any) => ({
             id: `announcement-${item.id}`,
-            type: 'news',
-            ...item
+            type: 'news' as const,
+            symbol: item.symbol,
+            published_at: item.created_at,
+            title: item.header,
+            content: item.message
           })) || [])
         ];
 
-        // Group notifications by day
-        const groupedNotifications = allNotifications.reduce((groups: { [key: string]: any[] }, notification) => {
-          const date = notification.ex_dividend_date || notification.published_at;
-          const dateKey = format(new Date(date), 'yyyy-MM-dd');
-          if (!groups[dateKey]) {
-            groups[dateKey] = [];
-          }
-          groups[dateKey].push(notification);
-          return groups;
-        }, {});
-
-        // Convert to array and sort by date
-        const sortedGroups = Object.entries(groupedNotifications)
-          .map(([dateKey, notifications]) => {
-            const date = parseISO(dateKey);
-            let label = format(date, 'EEEE, MMMM d');
-            if (isToday(date)) {
-              label = 'Today';
-            } else if (isTomorrow(date)) {
-              label = 'Tomorrow';
-            }
-            return {
-              date,
-              label,
-              notifications
-            };
-          })
-          .sort((a, b) => a.date.getTime() - b.date.getTime());
-
-        setDayGroups(sortedGroups);
+        setNotifications(allNotifications);
       } catch (error) {
         console.error('Error loading notifications:', error);
-    toast({
+        toast({
           title: "Error",
           description: "Failed to load notifications. Please try again later.",
           variant: "destructive"
@@ -229,11 +220,11 @@ const Notifications = () => {
     };
 
     loadNotifications();
-  }, [toast]);
+  }, [selectedDate, toast]);
 
   const formatDate = (dateString: string) => {
     try {
-    const date = new Date(dateString);
+      const date = new Date(dateString);
       if (!isValid(date)) {
         console.warn('Invalid date:', dateString);
         return 'Invalid date';
@@ -245,12 +236,22 @@ const Notifications = () => {
     }
   };
 
-  const renderNotification = (notification: any) => {
+  const getDateLabel = (date: Date) => {
+    if (isToday(date)) {
+      return 'Today';
+    } else if (isTomorrow(date)) {
+      return 'Tomorrow';
+    } else {
+      return format(date, 'EEEE, MMMM d, yyyy');
+    }
+  };
+
+  const renderNotification = (notification: NotificationItem) => {
     const logoUrl = notification.symbol ? companyLogos[notification.symbol] : null;
 
     if (notification.type === 'dividend') {
       return (
-        <div key={notification.id} className="p-4 hover:bg-gray-100 rounded-md transition-colors">
+        <div key={notification.id} className="p-4 rounded-md transition-colors">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               {logoUrl ? (
@@ -260,38 +261,39 @@ const Notifications = () => {
                   className="w-10 h-10 rounded-full object-cover border border-gray-200"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/40';
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
                   }}
                 />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
-                  <DollarSign className="h-5 w-5 text-green-600" />
-                </div>
-              )}
+              ) : null}
+              <div className={`w-10 h-10 rounded-full bg-green-100 flex items-center justify-center ${logoUrl ? 'hidden' : ''}`}>
+                <DollarSign className="h-5 w-5 text-green-600" />
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <p className="text-sm font-medium truncate">{notification.symbol}</p>
-                  <NotificationBadge type={notification.type} />
+                  {/* <NotificationBadge type={notification.type} /> */}
                 </div>
-                <a href={`/stock/${notification.symbol}`} className="text-gray-400 hover:text-gray-600">
+                <a href={`/dividend?type=buy`} className="text-gray-400 hover:text-gray-600">
                   <ExternalLink className="h-4 w-4" />
                 </a>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Ex-Dividend Date: {formatDate(notification.ex_dividend_date)}
+                Ex-Dividend Date: {formatDate(notification.ex_dividend_date || notification.exdividenddate || '')}
               </p>
               {notification.company_name && (
                 <p className="text-xs text-gray-400 mt-1 truncate">{notification.company_name}</p>
               )}
+              <p className="text-xs text-green-400 mt-1 font-medium">Announcement: Dividend payment scheduled</p>
             </div>
           </div>
         </div>
       );
     } else if (notification.type === 'earnings') {
       return (
-        <div key={notification.id} className="p-4 hover:bg-gray-100 rounded-md transition-colors">
+        <div key={notification.id} className="p-4 rounded-md transition-colors">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               {logoUrl ? (
@@ -301,14 +303,14 @@ const Notifications = () => {
                   className="w-10 h-10 rounded-full object-cover border border-gray-200"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/40';
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
                   }}
                 />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                </div>
-              )}
+              ) : null}
+              <div className={`w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center ${logoUrl ? 'hidden' : ''}`}>
+                <TrendingUp className="h-5 w-5 text-blue-600" />
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
@@ -321,29 +323,19 @@ const Notifications = () => {
                 </a>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Earnings Date: {formatDate(notification.earnings_date)}
+                Ex-Dividend Date: {formatDate(notification.ex_dividend_date || notification.exdividenddate || '')}
               </p>
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <div className="bg-gray-50 p-2 rounded">
-                  <p className="text-xs text-gray-500">Earnings</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    ${notification.earnings_average.toFixed(2)}
-                  </p>
-                </div>
-                <div className="bg-gray-50 p-2 rounded">
-                  <p className="text-xs text-gray-500">Revenue</p>
-                  <p className="text-sm font-medium text-gray-900">
-                    ${(notification.revenue_average / 1000000).toFixed(2)}M
-                  </p>
-                </div>
-              </div>
+              {notification.company_name && (
+                <p className="text-xs text-gray-400 mt-1 truncate">{notification.company_name}</p>
+              )}
+              <p className="text-xs text-blue-400 mt-1 font-medium">Announcement: Earnings report expected</p>
             </div>
           </div>
         </div>
       );
     } else {
       return (
-        <div key={notification.id} className="p-4 hover:bg-gray-100 rounded-md transition-colors">
+        <div key={notification.id} className="p-4 rounded-md transition-colors">
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               {logoUrl ? (
@@ -353,27 +345,29 @@ const Notifications = () => {
                   className="w-10 h-10 rounded-full object-cover border border-gray-200"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = 'https://via.placeholder.com/40';
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
                   }}
                 />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center">
-                  <AlertCircle className="h-5 w-5 text-yellow-600" />
-                </div>
-              )}
+              ) : null}
+              <div className={`w-10 h-10 rounded-full bg-yellow-100 flex items-center justify-center ${logoUrl ? 'hidden' : ''}`}>
+                <AlertCircle className="h-5 w-5 text-yellow-600" />
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium truncate">{notification.title}</p>
+                  <p className="text-sm font-medium truncate">{notification.title || 'Announcement'}</p>
                   <NotificationBadge type={notification.type} />
                 </div>
-                <a href={notification.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-600">
-                  <ExternalLink className="h-4 w-4" />
-                </a>
+                {notification.symbol && (
+                  <a href={`/stock/${notification.symbol}`} className="text-gray-400 hover:text-gray-600">
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                )}
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                {notification.source} • {formatDate(notification.published_at)}
+                {formatDate(notification.published_at || '')}
               </p>
               {notification.symbol && (
                 <p className="text-xs text-gray-400 mt-1 truncate">Related: {notification.symbol}</p>
@@ -385,6 +379,10 @@ const Notifications = () => {
       );
     }
   };
+
+  const filteredNotifications = notifications.filter(notification => 
+    filter === 'all' || notification.type === filter
+  );
 
   if (isLoading) {
     return (
@@ -409,6 +407,38 @@ const Notifications = () => {
             </div>
             
             <div className="flex space-x-3">
+              {/* Date Picker */}
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800">
+                    <CalendarIcon className="h-4 w-4 mr-2" />
+                    {getDateLabel(selectedDate)}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-gray-900 border-gray-700" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(date);
+                        setCalendarOpen(false);
+                      }
+                    }}
+                    className="bg-gray-900 text-white"
+                    classNames={{
+                      day_selected: "bg-purple-600 text-white hover:bg-purple-700",
+                      day_today: "bg-gray-700 text-white",
+                      day: "hover:bg-gray-800",
+                      head_cell: "text-gray-400",
+                      caption: "text-white",
+                      nav_button: "text-gray-400 hover:text-white",
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* Filter Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" className="bg-gray-900 border-gray-700 text-white hover:bg-gray-800">
@@ -449,32 +479,23 @@ const Notifications = () => {
             </div>
           </div>
           
-          {dayGroups.length > 0 ? (
-            <div className="space-y-4">
-              {dayGroups.map((group) => (
-                <Card 
-                  key={group.label} 
-                  className="bg-gray-900/60 backdrop-blur-sm border border-gray-800"
-                >
-                  <div className="px-4 py-2 bg-gray-800/50">
-                    <h4 className="text-sm font-medium text-gray-300">{group.label}</h4>
-                    </div>
-                  <div className="divide-y divide-gray-800">
-                    {group.notifications
-                      .filter(notification => filter === 'all' || notification.type === filter)
-                      .map(renderNotification)}
-                  </div>
-                </Card>
-              ))}
-            </div>
+          {filteredNotifications.length > 0 ? (
+            <Card className="bg-gray-900/60 backdrop-blur-sm border border-gray-800">
+              <div className="px-4 py-2 bg-gray-800/50">
+                <h4 className="text-sm font-medium text-gray-300">{getDateLabel(selectedDate)}</h4>
+              </div>
+              <div className="divide-y divide-gray-800">
+                {filteredNotifications.map(renderNotification)}
+              </div>
+            </Card>
           ) : (
             <Card className="p-12 bg-gray-900/60 backdrop-blur-sm border border-gray-800 text-center">
               <Bell className="h-16 w-16 mx-auto text-gray-600 mb-4" />
               <h3 className="text-xl font-semibold text-white mb-2">No Notifications</h3>
               <p className="text-gray-400 max-w-md mx-auto">
                 {filter === 'all' 
-                  ? "You don't have any notifications yet. They'll appear here when we have updates for you." 
-                  : `No ${filter} notifications found.`}
+                  ? `No notifications found for ${getDateLabel(selectedDate)}. Try selecting a different date or check back later.` 
+                  : `No ${filter} notifications found for ${getDateLabel(selectedDate)}.`}
               </p>
             </Card>
           )}
