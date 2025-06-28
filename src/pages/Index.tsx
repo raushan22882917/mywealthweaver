@@ -1,4 +1,3 @@
-
 import Navbar from "@/components/Navbar";
 import StockTicker from "@/components/StockTicker";
 import Features from "@/components/Features";
@@ -348,7 +347,7 @@ const Index = () => {
         </div>
 
         {/* Factor Benchmarking Analysis Section */}
-        <div className="py-16 md:py-20 bg-gradient-to-b from-gray-800 to-gray-900">
+        <div className="py-16 md:py-20">
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-6xl mx-auto">
               <h2 className="text-3xl md:text-4xl font-extrabold text-white text-center mb-12">
@@ -408,7 +407,7 @@ const Index = () => {
         </div>
 
         {/* Features Section */}
-        <div className="py-16 md:py-20 bg-gradient-to-b from-gray-800 to-gray-900">
+        <div className="py-16 md:py-20">
           <div className="container mx-auto px-4 md:px-6">
             <h2 className="text-3xl md:text-4xl font-extrabold text-white text-center mb-8 md:mb-12">
               Explore Our Features
@@ -474,7 +473,7 @@ const Index = () => {
        
 
         {/* Feedback/Contact Section */}
-        <div className="py-16 md:py-20 bg-gradient-to-b from-gray-900 to-black">
+        <div className="py-16 md:py-20">
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-4xl mx-auto bg-gradient-to-br from-blue-900/30 to-purple-900/30 rounded-2xl p-6 md:p-8 border border-white/10">
               <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
