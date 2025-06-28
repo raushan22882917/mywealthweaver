@@ -1,3 +1,4 @@
+
 import Navbar from "@/components/Navbar";
 import StockTicker from "@/components/StockTicker";
 import Features from "@/components/Features";
@@ -52,6 +53,115 @@ const Index = () => {
     "/hero/Screenshot 2025-06-12 223750.png",
     "/hero/Screenshot 2025-06-12 223657.png"
   ];
+
+  // Factor benchmarking data
+  const factorData = {
+    generalEvaluation: {
+      score: 100,
+      performance: "Excellent",
+      categories: [
+        { name: "Performance", value: 95 },
+        { name: "Risk", value: 88 },
+        { name: "Average", value: 92 },
+        { name: "Score", value: 100 }
+      ]
+    },
+    factors: [
+      { name: "Content Factors", score: 85, color: "from-red-500 to-red-600" },
+      { name: "Marketing Factors", score: 72, color: "from-blue-500 to-blue-600" },
+      { name: "Service Factors", score: 68, color: "from-green-500 to-green-600" }
+    ]
+  };
+
+  // Circular progress component
+  const CircularProgress = ({ value, maxValue = 100, size = 120, strokeWidth = 8, color = "from-red-500 to-red-600" }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const progress = (value / maxValue) * circumference;
+
+    return (
+      <div className="relative inline-flex items-center justify-center">
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            className="text-gray-700"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="url(#gradient)"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - progress}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" className="stop-color-red-500" />
+              <stop offset="100%" className="stop-color-red-600" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-white">{value}</span>
+          <span className="text-xs text-gray-400">/{maxValue}</span>
+        </div>
+      </div>
+    );
+  };
+
+  // Small circular progress for factors
+  const SmallCircularProgress = ({ value, maxValue = 100, size = 80, color = "from-red-500 to-red-600" }) => {
+    const radius = (size - 6) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const progress = (value / maxValue) * circumference;
+
+    return (
+      <div className="relative inline-flex items-center justify-center">
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            className="text-gray-700"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="url(#smallGradient)"
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - progress}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+          <defs>
+            <linearGradient id="smallGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" className="stop-color-current" />
+              <stop offset="100%" className="stop-color-current" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-xl font-bold text-white">{value}</span>
+          <span className="text-xs text-gray-400">%</span>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -229,6 +339,66 @@ const Index = () => {
                         whileHover={{ scale: 1.2 }}
                         whileTap={{ scale: 0.9 }}
                       />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Factor Benchmarking Analysis Section */}
+        <div className="py-16 md:py-20 bg-gradient-to-b from-gray-800 to-gray-900">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white text-center mb-12">
+                Factor Benchmarking Analysis
+              </h2>
+              
+              <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                  {/* Left Side - General Evaluation */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2">General Evaluation</h3>
+                      <h4 className="text-lg font-semibold text-gray-300 mb-6">Total</h4>
+                    </div>
+                    
+                    {/* Main Circular Progress */}
+                    <div className="flex justify-center mb-6">
+                      <div className="relative">
+                        <CircularProgress value={factorData.generalEvaluation.score} />
+                        <div className="text-center mt-4">
+                          <span className="text-sm text-gray-400">Performance</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Category List */}
+                    <div className="space-y-3">
+                      {factorData.generalEvaluation.categories.map((category, index) => (
+                        <div key={index} className="flex items-center justify-between py-2 border-b border-gray-700/30">
+                          <span className="text-gray-300 text-sm">{category.name}</span>
+                          <span className="text-white font-semibold">{category.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Right Side - Factor Scores */}
+                  <div className="space-y-8">
+                    {factorData.factors.map((factor, index) => (
+                      <div key={index} className="text-center">
+                        <h4 className="text-gray-300 text-sm mb-4">{factor.name}</h4>
+                        <div className="flex justify-center">
+                          <div className={`text-red-500`}>
+                            <SmallCircularProgress 
+                              value={factor.score} 
+                              color={factor.color}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
