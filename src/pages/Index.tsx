@@ -1,22 +1,47 @@
-
 import Navbar from "@/components/Navbar";
 import StockTicker from "@/components/StockTicker";
 import Features from "@/components/Features";
 import TopStocks from "@/components/TopStocks";
-import FactorBenchmarkingAnalysis from "@/components/FactorBenchmarkingAnalysis";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import Footer from "@/components/Footer";
 import { LineChart, TrendingUp, BookOpen, DollarSign, Target, Search, BarChart, PieChart, Star, Users, CheckCircle, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import TradingAnimation from "@/components/TradingAnimation";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<string>("user1");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  
+  // Factor benchmarking states
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("");
+  const [stockOptions, setStockOptions] = useState<Array<{symbol: string, shortname: string}>>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [factorData, setFactorData] = useState({
+    generalEvaluation: {
+      score: 0,
+      performance: "Loading...",
+      categories: [
+        { name: "Performance", value: 0 },
+        { name: "Risk", value: 0 },
+        { name: "Average", value: 0 },
+        { name: "Score", value: 0 }
+      ]
+    },
+    factors: [
+      { name: "Content Factors", score: 0, color: "from-red-500 to-red-600" },
+      { name: "Marketing Factors", score: 0, color: "from-blue-500 to-blue-600" },
+      { name: "Service Factors", score: 0, color: "from-green-500 to-green-600" }
+    ]
+  });
   
   const testimonials = [
     {
@@ -54,6 +79,189 @@ const Index = () => {
     "/hero/Screenshot 2025-06-12 223750.png",
     "/hero/Screenshot 2025-06-12 223657.png"
   ];
+
+  // Fetch stock options from dividendsymbol table
+  const fetchStockOptions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('dividendsymbol')
+        .select('symbol, shortname')
+        .not('symbol', 'is', null)
+        .not('shortname', 'is', null)
+        .order('symbol')
+        .limit(100);
+
+      if (error) throw error;
+      
+      const uniqueStocks = data?.filter((stock, index, self) => 
+        index === self.findIndex(s => s.symbol === stock.symbol)
+      ) || [];
+      
+      setStockOptions(uniqueStocks);
+      
+      // Set first stock as default if none selected
+      if (uniqueStocks.length > 0 && !selectedSymbol) {
+        setSelectedSymbol(uniqueStocks[0].symbol);
+      }
+    } catch (error) {
+      console.error('Error fetching stock options:', error);
+    }
+  };
+
+  // Fetch factor data for selected symbol
+  const fetchFactorData = async (symbol: string) => {
+    if (!symbol) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('dividendsymbol')
+        .select('*')
+        .eq('symbol', symbol)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        // Calculate scores based on real data
+        const dividendYield = data.dividendyield || 0;
+        const payoutRatio = data.payoutratio || 0;
+        const currentPrice = data.currentprice || 0;
+        const previousClose = data.previousclose || 0;
+        
+        // Calculate performance score (0-100)
+        const performanceScore = Math.min(Math.max(dividendYield * 20, 0), 100);
+        const riskScore = Math.min(Math.max(100 - (payoutRatio || 0), 0), 100);
+        const priceChange = currentPrice && previousClose ? 
+          ((currentPrice - previousClose) / previousClose) * 100 : 0;
+        const averageScore = (performanceScore + riskScore) / 2;
+        const totalScore = Math.round(averageScore);
+        
+        setFactorData({
+          generalEvaluation: {
+            score: totalScore,
+            performance: totalScore >= 80 ? "Excellent" : totalScore >= 60 ? "Good" : totalScore >= 40 ? "Average" : "Poor",
+            categories: [
+              { name: "Performance", value: Math.round(performanceScore) },
+              { name: "Risk", value: Math.round(riskScore) },
+              { name: "Average", value: Math.round(averageScore) },
+              { name: "Score", value: totalScore }
+            ]
+          },
+          factors: [
+            { name: "Dividend Factors", score: Math.round(performanceScore), color: "from-red-500 to-red-600" },
+            { name: "Risk Factors", score: Math.round(riskScore), color: "from-blue-500 to-blue-600" },
+            { name: "Price Factors", score: Math.min(Math.max(50 + priceChange * 2, 0), 100), color: "from-green-500 to-green-600" }
+          ]
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching factor data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchStockOptions();
+  }, []);
+
+  useEffect(() => {
+    if (selectedSymbol) {
+      fetchFactorData(selectedSymbol);
+    }
+  }, [selectedSymbol]);
+
+  // Filter stocks based on search term
+  const filteredStocks = stockOptions.filter(stock => 
+    stock.symbol.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    stock.shortname?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const CircularProgress = ({ value, maxValue = 100, size = 120, strokeWidth = 8, color = "from-red-500 to-red-600" }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const progress = (value / maxValue) * circumference;
+
+    return (
+      <div className="relative inline-flex items-center justify-center">
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            className="text-gray-700"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="url(#gradient)"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - progress}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" className="stop-color-red-500" />
+              <stop offset="100%" className="stop-color-red-600" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-2xl font-bold text-white">{value}</span>
+          <span className="text-xs text-gray-400">/{maxValue}</span>
+        </div>
+      </div>
+    );
+  };
+
+  const SmallCircularProgress = ({ value, maxValue = 100, size = 80, color = "from-red-500 to-red-600" }) => {
+    const radius = (size - 6) / 2;
+    const circumference = radius * 2 * Math.PI;
+    const progress = (value / maxValue) * circumference;
+
+    return (
+      <div className="relative inline-flex items-center justify-center">
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth="6"
+            fill="transparent"
+            className="text-gray-700"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="url(#smallGradient)"
+            strokeWidth="6"
+            fill="transparent"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference - progress}
+            strokeLinecap="round"
+            className="transition-all duration-1000 ease-out"
+          />
+          <defs>
+            <linearGradient id="smallGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" className="stop-color-current" />
+              <stop offset="100%" className="stop-color-current" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-xl font-bold text-white">{value}</span>
+          <span className="text-xs text-gray-400">%</span>
+        </div>
+      </div>
+    );
+  };
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -240,7 +448,125 @@ const Index = () => {
         </div>
 
         {/* Factor Benchmarking Analysis Section */}
-        <FactorBenchmarkingAnalysis />
+        <div className="py-16 md:py-20">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-3xl md:text-4xl font-extrabold text-white text-center mb-8">
+                Factor Benchmarking Analysis
+              </h2>
+              
+              {/* Search Bar and Stock Selector */}
+              <div className="mb-8">
+                <div className="max-w-md mx-auto relative">
+                  <div className="flex items-center space-x-2">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Input
+                        type="text"
+                        placeholder="Search stocks..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setIsDropdownOpen(true);
+                        }}
+                        onFocus={() => setIsDropdownOpen(true)}
+                        className="pl-10 bg-white/10 border-gray-600 text-white placeholder-gray-400 focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="text-sm text-gray-400">
+                      {new Date().toLocaleDateString()}
+                    </div>
+                  </div>
+                  
+                  {/* Dropdown */}
+                  {isDropdownOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+                      {filteredStocks.length > 0 ? (
+                        filteredStocks.map((stock) => (
+                          <button
+                            key={stock.symbol}
+                            onClick={() => {
+                              setSelectedSymbol(stock.symbol);
+                              setSearchTerm(stock.symbol);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full px-4 py-2 text-left hover:bg-gray-700 text-white border-b border-gray-700 last:border-b-0 transition-colors"
+                          >
+                            <div className="font-medium">{stock.symbol}</div>
+                            <div className="text-sm text-gray-400">{stock.shortname}</div>
+                          </button>
+                        ))
+                      ) : (
+                        <div className="px-4 py-2 text-gray-400">No stocks found</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {selectedSymbol && (
+                  <div className="text-center mt-4">
+                    <span className="text-lg font-semibold text-blue-400">
+                      Selected: {selectedSymbol}
+                    </span>
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 rounded-2xl p-8 border border-gray-700/50 shadow-2xl">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                  {/* Left Side - General Evaluation */}
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-2">General Evaluation</h3>
+                      <h4 className="text-lg font-semibold text-gray-300 mb-6">
+                        {selectedSymbol || "Select a stock"}
+                      </h4>
+                    </div>
+                    
+                    {/* Main Circular Progress */}
+                    <div className="flex justify-center mb-6">
+                      <div className="relative">
+                        <CircularProgress value={factorData.generalEvaluation.score} />
+                        <div className="text-center mt-4">
+                          <span className="text-sm text-gray-400">
+                            {factorData.generalEvaluation.performance}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Category List */}
+                    <div className="space-y-3">
+                      {factorData.generalEvaluation.categories.map((category, index) => (
+                        <div key={index} className="flex items-center justify-between py-2 border-b border-gray-700/30">
+                          <span className="text-gray-300 text-sm">{category.name}</span>
+                          <span className="text-white font-semibold">{category.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Right Side - Factor Scores */}
+                  <div className="space-y-8">
+                    {factorData.factors.map((factor, index) => (
+                      <div key={index} className="text-center">
+                        <h4 className="text-gray-300 text-sm mb-4">{factor.name}</h4>
+                        <div className="flex justify-center">
+                          <div className={`text-red-500`}>
+                            <SmallCircularProgress 
+                              value={factor.score} 
+                              color={factor.color}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Features Section */}
         <div className="py-16 md:py-20">

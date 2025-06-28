@@ -43,10 +43,10 @@ interface DividendData {
   symbol: string | null;
 }
 
-const StockDetails: React.FC = () => {
+const StockDetails = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const [activeTab, setActiveTab] = useState("summary");
-  const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
+  const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
   const [dividendData, setDividendData] = useState<DividendData | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState("1Y");
 
@@ -165,10 +165,10 @@ const StockDetails: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
       <Navbar />
       
-      <div className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="space-y-6">
           {/* Header Section */}
           <div className="flex items-center justify-between">
@@ -183,7 +183,7 @@ const StockDetails: React.FC = () => {
               <Button 
                 variant="outline" 
                 className="flex items-center gap-2 hover:bg-gray-50 dark:hover:bg-gray-800"
-                onClick={() => setIsAIAnalysisOpen(true)}
+                onClick={() => setIsAnalysisOpen(true)}
               >
                 <BarChart className="h-4 w-4" />
                 AI Analysis
@@ -466,17 +466,18 @@ const StockDetails: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
-
-      <AIAnalysisDialog
-        isOpen={isAIAnalysisOpen}
-        onClose={() => setIsAIAnalysisOpen(false)}
-        symbol={symbol}
-        currentPrice={stockData?.currentprice || 0}
-        sector={stockData?.sector || ""}
-      />
-      
+      </main>
       <Footer />
+      
+      {/* AI Analysis Dialog */}
+      <AIAnalysisDialog
+        isOpen={isAnalysisOpen}
+        onClose={() => setIsAnalysisOpen(false)}
+        symbol={symbol}
+        company_name={stockData?.shortName || 'Unknown Company'}
+        sector={stockData?.sector || 'Unknown'}
+        currentPrice={stockData?.regularMarketPrice || 0}
+      />
     </div>
   );
 };
