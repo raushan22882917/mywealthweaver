@@ -5,22 +5,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
 import { Button } from '../components/ui/button';
-import { DateRangePicker } from '../components/DateRangePicker';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '../components/ui/pagination';
 import { Loader2, Calendar, DollarSign } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { DateRange } from 'react-day-picker';
-import { addDays } from 'date-fns';
+import { Calendar as ReactCalendar } from '../components/ui/calendar';
+import { Popover, PopoverTrigger, PopoverContent } from '../components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface DividendAnnouncement {
-  id: string;
   symbol: string;
-  header: string;
+  shortname: string;
   message: string;
-  date: string;
-  amount: number;
-  created_at: string | null;
+  dividend: number;
+  exdividenddate: string;
+  insight: string;
 }
 
 interface LogoData {
@@ -36,32 +36,26 @@ const Announcements: React.FC = () => {
   const [logos, setLogos] = useState<LogoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: new Date(),
-    to: new Date()
-  });
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
-        // Fetch announcements from database
+        // Fetch announcements from dividendsymbol table
         const { data: announcementsData, error: announcementsError } = await supabase
-          .from('dividend_announcements')
-          .select('*')
-          .order('date', { ascending: false });
+          .from('dividendsymbol')
+          .select('symbol, shortname, message, dividend, exdividenddate, insight')
+          .order('exdividenddate', { ascending: false });
 
         if (announcementsError) {
           throw new Error(`Error fetching announcements: ${announcementsError.message}`);
         }
-
         // Fetch logos from CSV
         const logosResponse = await fetch('/logos.csv');
         const logosText = await logosResponse.text();
         const logosData = parseCSV(logosText);
-
         setAnnouncements(announcementsData || []);
         setLogos(logosData);
       } catch (err) {
@@ -70,7 +64,6 @@ const Announcements: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
@@ -98,6 +91,7 @@ const Announcements: React.FC = () => {
   };
 
   const formatDate = (dateString: string): string => {
+    if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -106,18 +100,16 @@ const Announcements: React.FC = () => {
   };
 
   const formatAmount = (amount: number): string => {
+    if (amount == null) return '-';
     return `$${amount.toFixed(2)}`;
   };
 
   const getFilteredAnnouncements = () => {
-    if (!dateRange.from) return announcements;
-    
+    if (!selectedDate) return announcements;
+    const formatted = selectedDate.toISOString().split('T')[0];
     return announcements.filter(announcement => {
-      const announcementDate = new Date(announcement.date);
-      const fromDate = dateRange.from;
-      const toDate = dateRange.to || dateRange.from;
-      
-      return announcementDate >= fromDate && announcementDate <= toDate;
+      // exdividenddate may be in 'YYYY-MM-DD' or similar format
+      return announcement.exdividenddate && announcement.exdividenddate.startsWith(formatted);
     });
   };
 
@@ -267,35 +259,34 @@ const Announcements: React.FC = () => {
         {/* Date Filter */}
         <Card className="mb-6">
           <CardHeader>
-            
-          </CardHeader>
-          <CardContent>
             <div className="flex items-center space-x-4">
-              <DateRangePicker
-                date={dateRange}
-                onDateChange={setDateRange}
-                className="flex-1"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 flex items-center"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, 'LLL dd, yyyy') : 'Pick a date'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-gray-900 border-gray-800" align="start">
+                  <ReactCalendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    className="rounded-lg border border-gray-700 bg-gray-900 text-white"
+                  />
+                </PopoverContent>
+              </Popover>
               <Button
                 variant="outline"
-                onClick={() => setDateRange({ from: new Date(), to: new Date() })}
+                onClick={() => setSelectedDate(new Date())}
               >
                 Today
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => setDateRange({ from: addDays(new Date(), -7), to: new Date() })}
-              >
-                Last 7 Days
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setDateRange({ from: addDays(new Date(), -30), to: new Date() })}
-              >
-                Last 30 Days
-              </Button>
             </div>
-          </CardContent>
+          </CardHeader>
         </Card>
 
         <Card>
@@ -313,7 +304,7 @@ const Announcements: React.FC = () => {
           <CardContent>
             {filteredAnnouncements.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                <p>No announcements found for the selected date range.</p>
+                <p>No announcements found for the selected date.</p>
               </div>
             ) : (
               <>
@@ -325,14 +316,14 @@ const Announcements: React.FC = () => {
                       <TableHead>Message</TableHead>
                       <TableHead>Amount</TableHead>
                       <TableHead>Date</TableHead>
+                      <TableHead>Insight</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentData.map((announcement) => {
+                    {currentData.map((announcement, idx) => {
                       const logoData = getLogoForSymbol(announcement.symbol);
-                      
                       return (
-                        <TableRow key={announcement.id}>
+                        <TableRow key={announcement.symbol + idx}>
                           <TableCell>
                             <div className="flex items-center space-x-3">
                               <Avatar className="h-8 w-8">
@@ -346,7 +337,7 @@ const Announcements: React.FC = () => {
                               </Avatar>
                               <div>
                                 <div className="font-medium">
-                                  {logoData?.company_name || 'Unknown Company'}
+                                  {announcement.shortname || 'Unknown Company'}
                                 </div>
                               </div>
                             </div>
@@ -356,7 +347,6 @@ const Announcements: React.FC = () => {
                               {announcement.symbol}
                             </Badge>
                           </TableCell>
-                          
                           <TableCell className="max-w-md">
                             <div className="truncate" title={announcement.message}>
                               {announcement.message}
@@ -364,12 +354,17 @@ const Announcements: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             <span className="font-semibold text-green-600">
-                              {formatAmount(announcement.amount)}
+                              {formatAmount(announcement.dividend)}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span className="text-sm text-gray-500">
-                              {formatDate(announcement.date)}
+                              {formatDate(announcement.exdividenddate)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs text-blue-400">
+                              {announcement.insight || '-'}
                             </span>
                           </TableCell>
                         </TableRow>

@@ -102,3 +102,11 @@ body {
   border-radius: 20px;
   border: transparent;
 }
+
+.ring-label {
+  font-size: 14px;
+  font-weight: 600;
+  fill: #444;
+  letter-spacing: 0.02em;
+  dominant-baseline: middle;
+}

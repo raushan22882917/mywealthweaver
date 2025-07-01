@@ -1,0 +1,60 @@
+.cardOverall {
+  background: linear-gradient(135deg, #f8fafc 60%, #e3fcec 100%);
+  box-shadow: 0 4px 24px 0 rgba(60, 180, 120, 0.08);
+  border-radius: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cardSafety {
+  background: linear-gradient(135deg, #fff8f8 60%, #ffeaea 100%);
+  box-shadow: 0 4px 24px 0 rgba(230, 80, 80, 0.08);
+  border-radius: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cardAttractiveness {
+  background: linear-gradient(135deg, #fffbe7 60%, #fff3c4 100%);
+  box-shadow: 0 4px 24px 0 rgba(255, 215, 64, 0.08);
+  border-radius: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cardMomentum {
+  background: linear-gradient(135deg, #eaf6ff 60%, #d0eaff 100%);
+  box-shadow: 0 4px 24px 0 rgba(100, 181, 246, 0.08);
+  border-radius: 1.5rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.cardOverall:hover, .cardSafety:hover, .cardAttractiveness:hover, .cardMomentum:hover {
+  transform: scale(1.04);
+  box-shadow: 0 8px 32px 0 rgba(60, 180, 120, 0.16);
+}
+.arrowWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 0.25rem;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px 0 rgba(0,0,0,0.07);
+  padding: 2px;
+}
+.arrowUp {
+  color: #43a047;
+  animation: arrowBounce 0.7s infinite alternate;
+}
+.arrowDown {
+  color: #e53935;
+  animation: arrowBounce 0.7s infinite alternate;
+}
+.arrowNeutral {
+  color: #bdbdbd;
+}
+@keyframes arrowBounce {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+@media (max-width: 768px) {
+  .cardOverall, .cardSafety, .cardAttractiveness, .cardMomentum {
+    min-width: 90px;
+    max-width: 120px;
+    padding: 1rem;
+  }
+} 

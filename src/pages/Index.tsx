@@ -242,7 +242,6 @@ const Index = () => {
         </div>
 
         {/* Factor Benchmarking Analysis Section */}
-        <FactorBenchmarkingAnalysis />
 
         {/* Features Section */}
         <div className="py-16 md:py-20">
