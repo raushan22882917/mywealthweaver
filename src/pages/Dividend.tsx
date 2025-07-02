@@ -1011,9 +1011,10 @@ const Dividend: React.FC = () => {
         />
       )}
       {hoveredStockDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center ">
           <div
-            className="bg-black dark:bg-black rounded-xl shadow-2xl border border-gray-700 backdrop-blur-sm transform transition-all duration-200 hover-card w-full max-w-[900px] max-h-[80vh] overflow-hidden p-8"
+            className="bg-black dark:bg-black rounded-xl shadow-2xl border border-gray-700 backdrop-blur-sm transform transition-all duration-200 hover-card w-full max-w-[900px] overflow-auto p-8 max-h-[90vh]"
+            style={{ maxHeight: '90vh' }}
           >
             {/* Sticky Header */}
             <div className="sticky top-0 z-20 flex items-center justify-between p-3 bg-black/90 backdrop-blur-sm border-b border-gray-700 rounded-t-xl">
@@ -1102,7 +1103,7 @@ const Dividend: React.FC = () => {
               </div>
             )}
             {/* Main Content Area with fixed height, no scrollable content wrapper */}
-            <div className="min-h-[600px] h-[700px]">
+            <div>
               {/* Tabs for Dividend Info and Benchmark */}
               <Tabs defaultValue="dividend-info" className="w-full">
                 <TabsList className="mb-4">
@@ -1110,40 +1111,40 @@ const Dividend: React.FC = () => {
                   <TabsTrigger value="benchmark">Benchmark</TabsTrigger>
                 </TabsList>
                 <TabsContent value="dividend-info">
-                  <div className="relative border border-blue-900 rounded-xl shadow-2xl p-3 overflow-hidden mb-3 bg-[#1a2236]">
+                  <div className="relative border border-blue-900 rounded-xl shadow-2xl p-6 pt-8 overflow-hidden mb-3 bg-[#1a2236]">
                     <div className="relative z-10">
-                      <div className="flex items-center gap-2 mb-2"></div>
                       {/* First row: Ex-Dividend, Payout, Report */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-white mb-1">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
                         <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-0.5">Ex-Dividend Date:</span>
+                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Ex-Dividend Date:</span>
                           <span className="font-bold text-base text-blue-100">
                             {hoveredStockDetails.stock?.exdividenddate ? new Date(hoveredStockDetails.stock.exdividenddate).toISOString().split('T')[0] : 'N/A'}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-0.5">Payout Date:</span>
+                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Payout Date:</span>
                           <span className="font-bold text-base text-blue-100">
                             {hoveredStockDetails.stock?.payoutdate ? new Date(hoveredStockDetails.stock.payoutdate).toISOString().split('T')[0] : 'N/A'}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-0.5">Report Date:</span>
+                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Report Date:</span>
                           <span className="font-bold text-base text-blue-100">
                             {hoveredStockDetails.stock?.earningsdate ? new Date(hoveredStockDetails.stock.earningsdate).toISOString().split('T')[0] : 'N/A'}
                           </span>
                         </div>
                       </div>
+                      <hr className="my-4 border-blue-800/40" />
                       {/* Second row: Quarter Dividend, Annual Dividend, Yield */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-white mb-2">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
                         <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-0.5">Quarter Dividend:</span>
+                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Quarter Dividend:</span>
                           <span className="font-bold text-base text-emerald-300">
                             ${hoveredStockDetails.stock?.dividend || 'N/A'}
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-0.5">Annual Dividend:</span>
+                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Annual Dividend:</span>
                           <span className="font-bold text-base text-emerald-300">
                             {Number(hoveredStockDetails.stock?.dividend) && !isNaN(Number(hoveredStockDetails.stock?.dividend))
                               ? `$${(Number(hoveredStockDetails.stock.dividend) * 4).toFixed(2)}`
@@ -1151,7 +1152,7 @@ const Dividend: React.FC = () => {
                           </span>
                         </div>
                         <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-0.5">Yield:</span>
+                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Yield:</span>
                           <span className="font-bold text-base text-emerald-300">
                             {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
                               ? 'N/A'
@@ -1159,21 +1160,20 @@ const Dividend: React.FC = () => {
                           </span>
                         </div>
                       </div>
-
-                      
+                      <hr className="my-4 border-blue-800/40" />
                       {/* Payout Ratio and History in one row */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Payout Ratio Section */}
-                        <div className="p-2 border border-blue-800 rounded-xl shadow bg-[#232e47]">
-                          <h4 className="text-base font-bold mb-2 flex items-center gap-2 text-blue-100 border-b border-blue-700 pb-1">
+                        <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47]">
+                          <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-blue-700 pb-2">
                             <FaChartLine className="text-blue-400 w-4 h-4" /> Payout Ratio
                           </h4>
-                          <div className="space-y-1 text-xs">
-                            <div className="flex justify-between items-center p-1 bg-[#1a2236] rounded shadow-sm">
+                          <div className="space-y-2 text-xs">
+                            <div className="flex justify-between items-center p-2 bg-[#1a2236] rounded shadow-sm">
                               <span className="font-semibold text-blue-200">Payout Ratio:</span>
                               <span className="font-bold text-sm text-blue-300">{hoveredStockDetails.stock?.payoutRatio}%</span>
                             </div>
-                            <div className="p-1 bg-[#1a2236] rounded shadow-sm">
+                            <div className="p-2 bg-[#1a2236] rounded shadow-sm">
                               <p className="text-blue-200 leading-relaxed">
                                 {hoveredStockDetails.stock?.message}
                               </p>
@@ -1181,11 +1181,11 @@ const Dividend: React.FC = () => {
                           </div>
                         </div>
                         {/* History Section */}
-                        <div className="p-2 border border-blue-800 rounded-xl shadow bg-[#232e47]">
-                          <h4 className="text-base font-bold mb-2 flex items-center gap-2 text-blue-100 border-b border-purple-700 pb-1">
+                        <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47]">
+                          <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-purple-700 pb-2">
                             <FaHistory className="text-purple-400 w-4 h-4" /> History
                           </h4>
-                          <div className="p-1 bg-[#1a2236] rounded shadow-sm">
+                          <div className="p-2 bg-[#1a2236] rounded shadow-sm">
                             <p className="text-xs text-blue-200 leading-relaxed">
                               {hoveredStockDetails.stock?.hist}
                             </p>
@@ -1194,8 +1194,6 @@ const Dividend: React.FC = () => {
                       </div>
                     </div>
                   </div>
-                
-                  
                 </TabsContent>
                 <TabsContent value="benchmark">
                   {hoveredStockDetails?.stock?.Symbol ? (

@@ -1,152 +1,245 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from "recharts";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader } from "@/components/ui/loader";
 
 interface YieldData {
+  id: string;
   date: string;
-  symbol: string;
-  yield: number;
   close: number;
+  dividends: number;
+  yield: number;
+  symbol: string;
+}
+
+interface ChartData {
+  date: string;
+  yield: number;
   dividends: number;
 }
 
-const DividendYield = () => {
-  const [chartData, setChartData] = useState<any[]>([]);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('AAPL');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [allSymbols, setAllSymbols] = useState<string[]>([]);
-  const [data, setData] = useState<YieldData[]>([]);
+interface DividendYieldProps {
+  symbol?: string;
+}
+
+const timeRangeOptions = [
+  { label: "1Y", value: "1Y", months: 12 },
+  { label: "3Y", value: "3Y", months: 36 },
+  { label: "5Y", value: "5Y", months: 60 },
+  { label: "10Y", value: "10Y", months: 120 },
+  { label: "MAX", value: "MAX", months: null },
+];
+
+const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => {
+  const { symbol: urlSymbol } = useParams<{ symbol: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [yieldData, setYieldData] = useState<YieldData[]>([]);
+  const [chartData, setChartData] = useState<ChartData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState(searchParams.get("range") || "1Y");
+  const [error, setError] = useState<string | null>(null);
+
+  // Get the stock symbol from props, URL params, or search params
+  const stockSymbol = propSymbol || urlSymbol || searchParams.get("symbol") || "HEQ";
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/dividends');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const rawData = await response.json();
-        setData(rawData);
-        processData(rawData);
+    fetchYieldData();
+  }, [stockSymbol, timeRange]);
 
-        const uniqueSymbols = [...new Set(rawData.map((item: YieldData) => item.symbol))];
-        setAllSymbols(uniqueSymbols);
-      } catch (error) {
-        console.error("Could not fetch dividend data", error);
+  const fetchYieldData = async () => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      // Calculate date range based on selected time range
+      const endDate = new Date();
+      let startDate: Date | null = new Date();
+      
+      const selectedRange = timeRangeOptions.find(option => option.value === timeRange);
+      if (selectedRange && selectedRange.months) {
+        startDate.setMonth(endDate.getMonth() - selectedRange.months);
+      } else {
+        // For MAX range, set to null and we'll get all data
+        startDate = null;
       }
-    };
 
-    fetchData();
-  }, []);
+      console.log("Fetching data for symbol:", stockSymbol); // Debug log
 
-  useEffect(() => {
-    if (data.length > 0) {
-      processData(data);
+      // Build query
+      let query = supabase
+        .from("yield_data")
+        .select("*")
+        .eq('symbol', stockSymbol.toUpperCase()) // Ensure symbol is uppercase
+        .order("date", { ascending: true });
+
+      // Add date filter if not MAX
+      if (startDate) {
+        query = query.gte("date", startDate.toISOString().split("T")[0]);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        throw error;
+      }
+
+      console.log("Received data:", data); // Debug log
+
+      if (data && data.length > 0) {
+        setYieldData(data);
+        
+        // Format data for the chart
+        const formattedData = data.map((item) => ({
+          date: new Date(item.date).toLocaleDateString("en-US", {
+            month: timeRange === "1Y" ? "short" : undefined,
+            year: "numeric",
+          }),
+          yield: parseFloat((item.yield || 0).toFixed(2)),
+          dividends: parseFloat((item.dividends || 0).toFixed(2)),
+        }));
+        
+        setChartData(formattedData);
+      } else {
+        setYieldData([]);
+        setChartData([]);
+        setError(`No yield data found for symbol: ${stockSymbol}`);
+      }
+    } catch (err: any) {
+      console.error("Error fetching yield data:", err);
+      setError(err.message || "Failed to load yield data");
+    } finally {
+      setIsLoading(false);
     }
-  }, [data]);
-
-  const processData = (data: YieldData[]) => {
-    const groupedData = data.reduce((acc: { [key: string]: YieldData[] }, item) => {
-      if (!acc[item.symbol]) {
-        acc[item.symbol] = [];
-      }
-      acc[item.symbol].push(item);
-      return acc;
-    }, {});
-
-    const chartData = Object.entries(groupedData).map(([symbol, items]) => {
-      const sortedItems = items.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      return {
-        symbol,
-        data: sortedItems.map(item => ({
-          date: new Date(item.date).toLocaleDateString(),
-          yield: item.yield,
-          close: item.close,
-          dividends: item.dividends
-        }))
-      };
-    });
-
-    setChartData(chartData);
   };
 
-  const filteredSymbols = allSymbols.filter(symbol =>
-    symbol.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleTimeRangeChange = (range: string) => {
+    setTimeRange(range);
+    
+    // Update URL search params
+    searchParams.set("range", range);
+    setSearchParams(searchParams);
+  };
 
-  const selectedChartData = chartData.find(item => item.symbol === selectedSymbol);
+  const getYAxisDomain = () => {
+    if (chartData.length === 0) return [0, 1];
+    
+    const minYield = Math.min(...chartData.map(item => item.yield));
+    const maxYield = Math.max(...chartData.map(item => item.yield));
+    
+    // Add some padding
+    const padding = (maxYield - minYield) * 0.1;
+    return [Math.max(0, minYield - padding), maxYield + padding];
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold text-gray-900">Dividend Yield Analysis</h1>
-          <p className="mt-2 text-gray-500">Explore historical dividend yields for various stocks.</p>
-        </div>
+    <div className="min-h-screen flex flex-col bg-background">
+      <main className="flex-1 container mx-auto px-4 py-8">
+       
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Symbol Selection and Search */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Select a Stock</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search for a symbol..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a stock symbol" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredSymbols.map(symbol => (
-                    <SelectItem key={symbol} value={symbol}>
-                      {symbol}
-                    </SelectItem>
+        <div className="mb-6">
+          <Card className="rounded-2xl shadow-lg border border-gray-100 bg-white/90 dark:bg-gray-900/80">
+            <CardHeader className="pb-2 pt-4 px-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                  <CardTitle className="text-xl font-bold mb-1">Dividend Yield Over Time</CardTitle>
+                  <CardDescription className="text-sm text-muted-foreground mb-1">The relationship between stock price, dividends, and yield over time</CardDescription>
+                </div>
+                <div className="flex space-x-2 mt-2 sm:mt-0">
+                  {timeRangeOptions.map((option) => (
+                    <Button
+                      key={option.value}
+                      variant={timeRange === option.value ? "default" : "outline"}
+                      size="sm"
+                      className={`rounded-full px-4 py-1.5 font-medium transition-colors duration-150 ${timeRange === option.value ? 'bg-blue-600 text-white' : 'bg-white dark:bg-gray-800 text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-gray-700'}`}
+                      onClick={() => handleTimeRangeChange(option.value)}
+                    >
+                      {option.label}
+                    </Button>
                   ))}
-                </SelectContent>
-              </Select>
-            </CardContent>
-          </Card>
-
-          {/* Dividend Yield Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Historical Dividend Yield for {selectedSymbol}</CardTitle>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
-              {selectedChartData ? (
-                <ResponsiveContainer width="100%" height={400}>
-                  <AreaChart data={selectedChartData.data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="yield" stroke="#8884d8" fill="#8884d8" />
-                  </AreaChart>
-                </ResponsiveContainer>
+            <CardContent className="pt-2 pb-4 px-6">
+              {isLoading ? (
+                <div className="flex justify-center my-12">
+                  <Loader message="Loading dividend yield data..." />
+                </div>
+              ) : error ? (
+                <div className="text-center my-12 text-red-500">
+                  <p>{error}</p>
+                </div>
+              ) : chartData.length > 0 ? (
+                <Tabs defaultValue="yield">
+                  <TabsList className="mb-2 bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
+                    <TabsTrigger value="yield">Yield %</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="yield">
+                    <div className="h-[260px] bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-800 p-2">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart
+                          data={chartData}
+                          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                        >
+                          <XAxis 
+                            dataKey="date" 
+                            tick={{ fontSize: 12 }}
+                            tickMargin={10}
+                            tickFormatter={(value) => value}
+                          />
+                          <YAxis 
+                            domain={getYAxisDomain()}
+                            tickFormatter={(value) => `${value}%`}
+                            width={60}
+                          />
+                          <Tooltip 
+                            formatter={(value: number) => [`${value}%`, 'Yield']}
+                            labelFormatter={(label) => `Date: ${label}`}
+                          />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="yield"
+                            stroke="#4CAF50"
+                            strokeWidth={2}
+                            name="Yield (%)"
+                            dot={false}
+                            activeDot={false}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </TabsContent>
+                </Tabs>
               ) : (
-                <p>No data available for the selected symbol.</p>
+                <div className="text-center my-12 text-muted-foreground">
+                  <p>No data available for the selected time range.</p>
+                </div>
               )}
             </CardContent>
           </Card>
         </div>
-      </div>
+
+       
+      </main>
     </div>
   );
 };
