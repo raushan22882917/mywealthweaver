@@ -2,29 +2,35 @@
   background: linear-gradient(135deg, #1e293b 60%, #0f172a 100%);
   box-shadow: 0 4px 24px 0 rgba(30, 41, 59, 0.18);
   border-radius: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+  filter: drop-shadow(0 2px 8px #33415588);
 }
 .cardSafety {
   background: linear-gradient(135deg, #991b1b 60%, #7f1d1d 100%);
   box-shadow: 0 4px 24px 0 rgba(153, 27, 27, 0.18);
   border-radius: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+  filter: drop-shadow(0 2px 8px #991b1b55);
 }
 .cardAttractiveness {
   background: linear-gradient(135deg, #f59e42 60%, #b45309 100%);
   box-shadow: 0 4px 24px 0 rgba(245, 158, 66, 0.18);
   border-radius: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+  filter: drop-shadow(0 2px 8px #f59e4255);
 }
 .cardMomentum {
   background: linear-gradient(135deg, #2563eb 60%, #1e40af 100%);
   box-shadow: 0 4px 24px 0 rgba(37, 99, 235, 0.18);
   border-radius: 1.5rem;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, filter 0.2s;
+  filter: drop-shadow(0 2px 8px #2563eb55);
 }
 .cardOverall:hover, .cardSafety:hover, .cardAttractiveness:hover, .cardMomentum:hover {
-  transform: scale(1.04);
-  box-shadow: 0 8px 32px 0 rgba(30, 41, 59, 0.28);
+  transform: scale(1.045);
+  box-shadow: 0 12px 36px 0 rgba(30, 41, 59, 0.38);
+  filter: drop-shadow(0 4px 16px #38bdf855);
+  z-index: 2;
 }
 .cardTextWhite {
   color: #fff !important;
@@ -56,10 +62,15 @@
 }
 .cardOverall, .cardSafety, .cardAttractiveness, .cardMomentum {
   margin-top: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 1.25rem 1.5rem;
   border: 1px solid #334155;
   box-shadow: 0 2px 12px 0 rgba(30, 41, 59, 0.12);
   gap: 0.5rem;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 @media (max-width: 768px) {
   .cardOverall, .cardSafety, .cardAttractiveness, .cardMomentum {
@@ -67,5 +78,25 @@
     max-width: 120px;
     padding: 0.5rem 0.75rem;
     margin-top: 0.25rem;
+    min-height: 140px;
   }
+}
+
+/* Tooltip improvements */
+:global(.tooltip-content) {
+  background: #222831 !important;
+  color: #fff !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 2px 12px 0 rgba(30, 41, 59, 0.22) !important;
+  font-size: 0.95rem !important;
+  padding: 0.75rem 1rem !important;
+}
+
+/* SVG ring shadow and animation */
+.ring-shadow {
+  filter: drop-shadow(0 2px 8px #0004);
+}
+@keyframes ringGrow {
+  from { stroke-dasharray: 0 999; }
+  to { stroke-dasharray: var(--progress) var(--rest); }
 } 

@@ -213,32 +213,39 @@ const DividendCountdown: React.FC<DividendCountdownProps> = ({ symbol }) => {
 
   const [exDividendDate, setExDividendDate] = useState<string | null>(null);
 
-  // Fetch buy_date from Supabase
+  // Fetch exdividenddate from Supabase
   useEffect(() => {
     const fetchDates = async () => {
       try {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth(); // 0-based
+
+        // First and last day of current month
+        const firstDayOfMonth = new Date(year, month, 1).toISOString().split('T')[0];
+        const lastDayOfMonth = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
         const { data, error } = await supabase
-          .from('dividendsymbol') // Updated to use correct table name from schema
+          .from('dividendsymbol')
           .select<'*', DividendSymbol>('*')
           .eq('symbol', symbol)
-          .order('buy_date', { ascending: true })
-          .limit(1);  // Get the earliest buy_date
+          .gte('exdividenddate', firstDayOfMonth)
+          .lte('exdividenddate', lastDayOfMonth)
+          .order('exdividenddate', { ascending: true });
 
         if (error) {
           console.error("Database error:", error);
           return;
         }
 
-        if (!data || data.length === 0 || !data[0]?.buy_date || isNaN(Date.parse(data[0].buy_date))) {
-          console.log("No valid buy_date found for", symbol);
+        if (!data || data.length === 0 || !data[0]?.exdividenddate) {
+          console.log("No valid exdividenddate found for", symbol, "in current month");
           setExDividendDate(null);
           return;
         }
 
-        // Format the date to YYYY-MM-DD
-        const formattedDate = new Date(data[0].buy_date).toISOString().split('T')[0];
-        setExDividendDate(formattedDate);
-        console.log("Ex-Dividend Date set for", symbol, formattedDate);
+        setExDividendDate(data[0].exdividenddate);
+        console.log("Ex-Dividend Date set for", symbol, data[0].exdividenddate);
       } catch (error) {
         console.error("Error fetching dates:", error);
       }
@@ -255,28 +262,29 @@ const DividendCountdown: React.FC<DividendCountdownProps> = ({ symbol }) => {
 
     const calculateTimeLeft = () => {
       const now = new Date();
+      // Only compare date part (ignore time)
       const currentDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const targetDate = new Date(exDividendDate);
+      // Parse exDividendDate (ISO yyyy-mm-dd)
+      const [year, month, day] = exDividendDate.split('-').map(Number);
+      const targetDate = new Date(year, month - 1, day);
+
+      // Debug logs
+      console.log('Current Date:', currentDate.toISOString().split('T')[0]);
+      console.log('Ex-Dividend Date:', targetDate.toISOString().split('T')[0]);
 
       const timeDiff = targetDate.getTime() - currentDate.getTime();
       const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-
-      // Calculate remaining hours in the current day
       const hoursDiff = 24 - now.getHours() - 1;
 
-      console.log('Buy Date:', exDividendDate);
-      console.log('Current Date:', currentDate.toISOString().split('T')[0]);
-      console.log('Days Difference:', daysDiff);
-      console.log('Time Difference:', timeDiff);
-
+      // Show countdown if today is before or on ex-dividend date
+      // Show 'passed' only if today is after ex-dividend date
       return {
         exDividendDays: Math.max(0, daysDiff),
         exDividendHours: Math.max(0, hoursDiff),
-        isExDividendPassed: timeDiff < 0
+        isExDividendPassed: currentDate.getTime() > targetDate.getTime()
       };
     };
 
-    // Initial calculation
     setTimeLeft(calculateTimeLeft());
 
     // Update every hour

@@ -1022,7 +1022,7 @@ const Dividend: React.FC = () => {
                 {/* Logo, Title, Symbol */}
                 <div className="flex items-center gap-2 min-w-0">
                   <div
-                    className="w-14 h-14 rounded-full flex items-center justify-center shadow-lg bg-white dark:bg-gray-900 overflow-hidden cursor-pointer border-2 border-blue-400"
+                    className="w-12 h-12a  flex items-center justify-center shadow-lg bg-white dark:bg-gray-900 overflow-hidden cursor-pointer"
                     onClick={(e) => {
                       e.stopPropagation();
                       const stockData: Stock = {
@@ -1164,15 +1164,15 @@ const Dividend: React.FC = () => {
                       {/* Payout Ratio and History in one row */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Payout Ratio Section */}
-                        <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47]">
+                        <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47] relative">
                           <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-blue-700 pb-2">
                             <FaChartLine className="text-blue-400 w-4 h-4" /> Payout Ratio
                           </h4>
+                          {/* Payout Ratio in top right */}
+                          <span className="absolute top-4 right-4 font-bold text-sm text-blue-300">
+                            {hoveredStockDetails.stock?.payoutRatio}%
+                          </span>
                           <div className="space-y-2 text-xs">
-                            <div className="flex justify-between items-center p-2 bg-[#1a2236] rounded shadow-sm">
-                              <span className="font-semibold text-blue-200">Payout Ratio:</span>
-                              <span className="font-bold text-sm text-blue-300">{hoveredStockDetails.stock?.payoutRatio}%</span>
-                            </div>
                             <div className="p-2 bg-[#1a2236] rounded shadow-sm">
                               <p className="text-blue-200 leading-relaxed">
                                 {hoveredStockDetails.stock?.message}

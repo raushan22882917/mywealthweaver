@@ -48,7 +48,7 @@ const RingChart = ({ value, max, color, label, sublabel, boldLabel }: { value: n
   const circumference = 2 * Math.PI * radius * (angle / 360);
   const progress = (normalizedValue / max) * circumference;
   return (
-    <svg width={120} height={80} viewBox="0 0 120 80">
+    <svg width={120} height={80} viewBox="0 0 120 80" className="ring-shadow">
       <g transform="translate(60,60)">
         <path
           d="M 0 0 m -48 0 a 48 48 0 1 1 96 0"
@@ -63,6 +63,10 @@ const RingChart = ({ value, max, color, label, sublabel, boldLabel }: { value: n
           strokeWidth={stroke}
           strokeDasharray={`${progress},${circumference - progress}`}
           strokeLinecap="round"
+          style={{
+            transition: 'stroke-dasharray 1s cubic-bezier(0.4,0,0.2,1)',
+            filter: 'drop-shadow(0 2px 8px #0004)'
+          }}
         />
       </g>
       <text x="60" y="50" textAnchor="middle" fontSize="18" fontWeight="bold" fill={color}>{`${value}/${max}`}</text>
@@ -125,7 +129,7 @@ const SegmentedRingChart = ({ value, max, label, sublabel, boldLabel }: { value:
   }
 
   return (
-    <svg width={120} height={120} viewBox="0 0 120 120">
+    <svg width={120} height={120} viewBox="0 0 120 120" className="ring-shadow">
       {/* Segments */}
       {Array.from({ length: segmentCount }).map((_, i) => {
         const segStart = startAngle + i * segmentAngle;
@@ -139,6 +143,7 @@ const SegmentedRingChart = ({ value, max, label, sublabel, boldLabel }: { value:
             strokeWidth={stroke}
             strokeLinecap="round"
             opacity={0.95}
+            style={{ filter: 'drop-shadow(0 2px 8px #0004)' }}
           />
         );
       })}
@@ -176,6 +181,16 @@ const SegmentedRingChart = ({ value, max, label, sublabel, boldLabel }: { value:
   );
 };
 
+const fadeInStyle = `
+@keyframes fadein { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+.animate-fadein { animation: fadein 0.8s cubic-bezier(0.4,0,0.2,1) both; }
+`;
+if (typeof window !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = fadeInStyle;
+  document.head.appendChild(style);
+}
+
 const Benchmark: React.FC<BenchmarkProps> = ({ ticker }) => {
   const [metrics, setMetrics] = useState<DividendMetrics | null>(null);
   const [loading, setLoading] = useState(false);
@@ -195,12 +210,12 @@ const Benchmark: React.FC<BenchmarkProps> = ({ ticker }) => {
   }, [ticker]);
 
   if (loading) return (
-    <div className="flex flex-col items-center justify-center py-16">
+    <div className="flex flex-col items-center justify-center py-16 animate-fadein">
       <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-400 mb-4" />
       <div className="text-center text-lg font-medium text-gray-500">Loading benchmark...</div>
     </div>
   );
-  if (!metrics) return <div className="text-center py-8 text-gray-400">No benchmark data found.</div>;
+  if (!metrics) return <div className="text-center py-8 text-gray-400 animate-fadein">No benchmark data found.</div>;
 
   // Use exact values for total and color/label
   const totalRaw = Number(metrics.safety_score || 0) + Number(metrics.attractiveness_score || 0) + Number(metrics.momentum_12m || 0);
@@ -209,20 +224,20 @@ const Benchmark: React.FC<BenchmarkProps> = ({ ticker }) => {
   const label = getPerformanceLabel(total);
 
   return (
-    <section className="w-full max-w-3xl mx-auto mt-2 mb-4">
-      <h2 className="text-2xl md:text-3xl font-bold text-center mb-1 tracking-tight text-white">Stock Benchmark Overview</h2>
-      <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center justify-center w-full">
+    <section className=" mx-auto mt-2 mb-4 px-2 md:px-0" >
+      <h2 className="text-3xl md:text-4xl font-extrabold text-center mb-2 tracking-tight text-white drop-shadow-lg animate-fadein">Stock Benchmark Overview</h2>
+      <div className="flex flex-col md:flex-row gap-6 items-center justify-center w-full animate-fadein">
         {/* 3 Factor Rings */}
-        <div className="flex flex-row gap-2 md:gap-4">
+        <div className="flex flex-row gap-4 md:gap-6 flex-wrap justify-center">
           {/* Content Factors */}
-          <Card className={`group flex flex-col items-center justify-center p-4 w-[240px] h-[200px] max-w-[240px] min-w-[160px] ${styles.cardOverall} ${styles.cardTextWhite} bg-transparent`}>
+          <Card className={`group flex flex-col items-center justify-center p-4 w-[240px] h-[220px] max-w-[240px] min-w-[160px] ${styles.cardOverall} ${styles.cardTextWhite} bg-transparent animate-fadein`} style={{ animationDelay: '0.1s' }}>
             <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1">
               Overall Factors
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Info className="w-3.5 h-3.5 text-white group-hover:text-white cursor-pointer" />
                 </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs text-xs text-center text-white bg-gray-900">
+                <TooltipContent side="top" className="max-w-xs text-xs text-center tooltip-content">
                   {FACTOR_INFO['Overall Factors']}
                 </TooltipContent>
               </Tooltip>
@@ -235,43 +250,71 @@ const Benchmark: React.FC<BenchmarkProps> = ({ ticker }) => {
               boldLabel={true}
             />
           </Card>
-          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardSafety} ${styles.cardTextWhite} bg-transparent`}>
+          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardSafety} ${styles.cardTextWhite} bg-transparent animate-fadein`} style={{ animationDelay: '0.2s' }}>
             <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-3">
               Safety Factors
               <Tooltip>
-               
-                <TooltipContent side="top" className="max-w-xs text-xs text-center text-white bg-gray-900">
+                <TooltipContent side="top" className="max-w-xs text-xs text-center tooltip-content">
                   {FACTOR_INFO['Content Factors']}
                 </TooltipContent>
               </Tooltip>
             </div>
-            <RingChart value={metrics.safety_score} max={100} color={RING_COLORS[0]} label={metrics.tag ?? '-'} sublabel={undefined} />
+            <RingChart 
+              value={metrics.safety_score} 
+              max={100} 
+              color={RING_COLORS[0]} 
+              label={''}
+              sublabel={undefined}
+            />
+            <span className="block text-xs text-white mt-2 font-semibold tracking-wide">Safety</span>
+            {metrics.tag && (
+              <div className={
+                metrics.tag.toLowerCase().includes('low') ? 'text-green-400 font-bold mt-2' :
+                metrics.tag.toLowerCase().includes('medium') ? 'text-yellow-400 font-bold mt-2' :
+                metrics.tag.toLowerCase().includes('high') ? 'text-red-400 font-bold mt-2' :
+                'text-white mt-2'
+              }>
+                {metrics.tag}
+              </div>
+            )}
           </Card>
           {/* Marketing Factors */}
-          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardAttractiveness} ${styles.cardTextWhite} bg-transparent`}>
+          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardAttractiveness} ${styles.cardTextWhite} bg-transparent animate-fadein`} style={{ animationDelay: '0.3s' }}>
             <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-3">
               Attractiveness Factors
               <Tooltip>
-               
-                <TooltipContent side="top" className="max-w-xs text-xs text-center text-white bg-gray-900">
+                <TooltipContent side="top" className="max-w-xs text-xs text-center tooltip-content">
                   {FACTOR_INFO['Marketing Factors']}
                 </TooltipContent>
               </Tooltip>
             </div>
-            <RingChart value={metrics.attractiveness_score} max={100} color={RING_COLORS[1]} label={metrics.attractiveness ?? '-'} sublabel={undefined} />
+            <RingChart 
+              value={metrics.attractiveness_score} 
+              max={100} 
+              color={RING_COLORS[1]} 
+              label={''}
+              sublabel={undefined}
+            />
+            <span className="block text-xs text-white mt-2 font-semibold tracking-wide">Attractiveness</span>
           </Card>
           {/* Service Factors */}
-          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardMomentum} ${styles.cardTextWhite} bg-transparent`}>
+          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardMomentum} ${styles.cardTextWhite} bg-transparent animate-fadein`} style={{ animationDelay: '0.4s' }}>
             <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-3">
               Momentum Factors
               <Tooltip>
-                
-                <TooltipContent side="top" className="max-w-xs text-xs text-center text-white bg-gray-900">
+                <TooltipContent side="top" className="max-w-xs text-xs text-center tooltip-content">
                   {FACTOR_INFO['Service Factors']}
                 </TooltipContent>
               </Tooltip>
             </div>
-            <RingChart value={metrics.momentum_12m} max={100} color={RING_COLORS[2]} label={metrics.trend_12m ?? '-'} sublabel={undefined} />
+            <RingChart 
+              value={metrics.momentum_12m} 
+              max={100} 
+              color={RING_COLORS[2]} 
+              label={''}
+              sublabel={undefined}
+            />
+            <span className="block text-xs text-white mt-2 font-semibold tracking-wide">Momentum</span>
           </Card>
         </div>
       </div>

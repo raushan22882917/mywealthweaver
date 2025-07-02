@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from 'react';
 import StockDetailsDialog from '@/components/StockDetailsDialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -9,14 +8,7 @@ import {
   DollarSign,
   TrendingUp,
   Bell,
-  Settings,
-  Search,
-  Filter,
-  Eye,
-  Plus,
-  BarChart3,
-  PieChart,
-  Activity
+  Settings
 } from 'lucide-react';
 import StockAnalysisDialog from '@/components/StockAnalysisDialog';
 import { useTheme } from 'next-themes';
@@ -42,7 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
+
 
 interface CompanyLogo {
   Symbol: string;
@@ -93,12 +85,14 @@ export default function Dashboard({ session }: DashboardProps) {
   const [savedStocks, setSavedStocks] = useState<SavedStock[]>([]);
   const [companyLogos, setCompanyLogos] = useState<CompanyLogo[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+
   const [isLoading, setIsLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [isAnalysisOpen, setIsAnalysisOpen] = useState(false);
   const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
   const [selectedStockForDetails, setSelectedStockForDetails] = useState<any>(null);
-  const { theme: _ } = useTheme();
+
+  const { theme: _ } = useTheme(); // Unused but kept for future use
   const { toast } = useToast();
   const navigate = useNavigate();
   const [username, setUsername] = useState<string>("");
@@ -125,9 +119,9 @@ export default function Dashboard({ session }: DashboardProps) {
       case 'price-desc':
         return [...stocks].sort((a, b) => b.price - a.price);
       case 'dividend-asc':
-        return [...stocks].sort((a, b) => a.dividend_yield - b.dividend_yield);
+        return [...stocks].sort((a, b) => a.dividendyield - b.dividendyield);
       case 'dividend-desc':
-        return [...stocks].sort((a, b) => b.dividend_yield - a.dividend_yield);
+        return [...stocks].sort((a, b) => b.dividendyield - a.dividendyield);
       case 'sector':
         return [...stocks].sort((a, b) => a.sector.localeCompare(b.sector));
       case 'industry':
@@ -140,11 +134,13 @@ export default function Dashboard({ session }: DashboardProps) {
   // Handle quantity change
   const handleQuantityChange = async (symbol: string, value: number) => {
     try {
+      // Update local state
       setQuantities(prev => ({
         ...prev,
         [symbol]: value
       }));
 
+      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
@@ -156,28 +152,32 @@ export default function Dashboard({ session }: DashboardProps) {
         return;
       }
 
+      // Check if quantity record exists
       const { data: existingData, error: checkError } = await supabase
-        .from('quantity')
+        .from('quantity') // Use the correct table name
         .select('*')
         .eq('user_id', user.id)
         .eq('symbol', symbol)
         .single();
 
       if (checkError && checkError.code !== 'PGRST116') {
+        // Error other than 'not found'
         throw checkError;
       }
 
       if (existingData) {
+        // Update existing record
         const { error: updateError } = await supabase
-          .from('quantity')
+          .from('quantity') // Use the correct table name
           .update({ quantity: value })
           .eq('user_id', user.id)
           .eq('symbol', symbol);
 
         if (updateError) throw updateError;
       } else {
+        // Insert new record
         const { error: insertError } = await supabase
-          .from('quantity')
+          .from('quantity') // Use the correct table name
           .insert([
             {
               user_id: user.id,
@@ -189,6 +189,7 @@ export default function Dashboard({ session }: DashboardProps) {
         if (insertError) throw insertError;
       }
 
+      // Show success toast
       toast({
         title: "Quantity Updated",
         description: `Quantity for ${symbol} updated to ${value}`,
@@ -203,33 +204,42 @@ export default function Dashboard({ session }: DashboardProps) {
     }
   };
 
+
+
   // Calculate total dividends
   const calculateTotalDividends = (stock: SavedStock) => {
     const quantity = quantities[stock.symbol] || 1;
+    // Use dividend_rate directly (annual dividend per share) multiplied by quantity
     return (stock.dividend_rate * quantity) + (stock.special_dividend || 0);
   };
 
   useEffect(() => {
     if (session) {
+      // If session is passed from parent, use it directly
       fetchUserStocks(session.user.id);
       getProfile();
     } else {
+      // Fallback to checking session manually
       checkUser();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   const checkUser = async () => {
     try {
       setIsLoading(true);
+      // Get current session
       const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession();
 
       if (sessionError) throw sessionError;
 
       if (!currentSession) {
+        // No session found, redirect to auth
         navigate('/auth');
         return;
       }
 
+      // If we have a session, fetch the stocks and profile
       await fetchUserStocks(currentSession.user.id);
       await getProfile();
 
@@ -274,6 +284,7 @@ export default function Dashboard({ session }: DashboardProps) {
     try {
       setIsLoading(true);
 
+      // First get saved stocks
       const { data: savedStocksData, error: savedStocksError } = await supabase
         .from('saved_stocks')
         .select('*')
@@ -281,13 +292,15 @@ export default function Dashboard({ session }: DashboardProps) {
 
       if (savedStocksError) throw savedStocksError;
 
+      // Fetch quantities from the quantity table
       let quantityMap: { [key: string]: number } = {};
       try {
         const { data: quantityData } = await supabase
-          .from('quantity')
+          .from('quantity') // Use the correct table name
           .select('symbol, quantity')
           .eq('user_id', userId);
 
+        // Create a map of symbol to quantity
         if (quantityData && quantityData.length > 0) {
           quantityData.forEach(item => {
             if (item && item.symbol && item.quantity) {
@@ -300,22 +313,27 @@ export default function Dashboard({ session }: DashboardProps) {
         }
       } catch (error) {
         console.error('Error fetching quantities:', error);
+        // Continue with the rest of the function even if quantities fetch fails
       }
 
+      // Store the quantities in state
       setQuantities(quantityMap);
 
       if (savedStocksData) {
+        // Get logos from database
         const { data: logoData } = await supabase
           .from('company_logos')
-          .select('Symbol, LogoURL');
+          .select('symbol, LogoURL');
 
+        // Create map of symbols to logos from database
         const dbLogoMap = new Map(
           logoData?.map(item => [
-            item?.Symbol?.toUpperCase() || '',
+            item?.symbol?.toUpperCase() || '',
             item?.LogoURL || ''
           ]) || []
         );
 
+        // Create map of symbols to logos from CSV
         const csvLogoMap = new Map(
           companyLogos?.filter(logo => logo?.Symbol && logo?.LogoURL)
             .map(logo => [
@@ -324,6 +342,7 @@ export default function Dashboard({ session }: DashboardProps) {
             ]) || []
         );
 
+        // Get additional data from dividendsymbol table
         const symbols = savedStocksData.map(stock => stock.symbol);
         const { data: dividendData, error: dividendError } = await supabase
           .from('dividendsymbol')
@@ -332,6 +351,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
         if (dividendError) throw dividendError;
 
+        // Get sector and industry from top_stocks table
         const { data: topStocksData, error: topStocksError } = await supabase
           .from('company_profiles')
           .select('symbol,sector,industry')
@@ -339,6 +359,7 @@ export default function Dashboard({ session }: DashboardProps) {
 
         if (topStocksError) throw topStocksError;
 
+        // Merge all the data
         const mergedStocks = savedStocksData.map(stock => {
           const upperSymbol = stock.symbol.toUpperCase();
           const dividendInfo = dividendData?.find(d => d?.symbol?.toUpperCase() === upperSymbol) || {
@@ -355,6 +376,7 @@ export default function Dashboard({ session }: DashboardProps) {
             industry: 'N/A'
           };
 
+          // Get logo from database first, then CSV, then fallback
           const logoUrl = dbLogoMap.get(upperSymbol) ||
                          csvLogoMap.get(upperSymbol) ||
                          stock.LogoURL;
@@ -363,21 +385,22 @@ export default function Dashboard({ session }: DashboardProps) {
             ...stock,
             LogoURL: logoUrl,
             buy_date: dividendInfo.buy_date || null,
-            ex_dividend_date: dividendInfo.exdividenddate || null,
-            report_date: dividendInfo.earningsdate || null,
-            payout_date: dividendInfo.payoutdate || null,
+            ex_dividend_date: dividendInfo.exdividenddate || stock.ex_dividend_date || null,
+            report_date: dividendInfo.earningsdate || stock.report_date || null,
+            payout_date: dividendInfo.payoutdate || stock.payout_date || null,
             dividend_rate: dividendInfo.dividendrate || 0,
             dividendyield: dividendInfo.dividendyield || 0,
             sector: topStockInfo.sector,
             industry: topStockInfo.industry,
-            special_dividend: 0,
-            total_dividend: 0,
-            quantity: quantityMap[stock.symbol] || 1
+            special_dividend: stock.special_dividend || 0,
+            total_dividend: stock.total_dividend || 0,
+            quantity: quantityMap[stock.symbol] || 1 // Use quantity from database or default to 1
           };
         });
 
         setSavedStocks(mergedStocks);
 
+        // Initialize quantities
         const initialQuantities: { [key: string]: number } = {};
         mergedStocks.forEach(stock => {
           initialQuantities[stock.symbol] = stock.quantity || 1;
@@ -451,20 +474,15 @@ export default function Dashboard({ session }: DashboardProps) {
 
   useEffect(() => {
     getProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
-        <div className="flex flex-col items-center space-y-6">
-          <div className="relative">
-            <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-500/30 border-t-purple-500" />
-            <div className="absolute inset-0 rounded-full bg-purple-500/10 animate-pulse" />
-          </div>
-          <div className="text-center">
-            <p className="text-xl font-semibold text-white mb-2">Loading Dashboard</p>
-            <p className="text-purple-300">Preparing your portfolio...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mb-4" />
+          <p className="text-purple-300 font-medium">Loading your dashboard...</p>
         </div>
       </div>
     );
@@ -478,365 +496,267 @@ export default function Dashboard({ session }: DashboardProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-gray-950">
+    <div className="min-h-screen bg-gray-950 text-white">
       <Navbar />
-      
-      {/* Main Content Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        {/* Enhanced Header Section */}
-        <div className="mb-12">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
-            {/* User Profile Section */}
-            <div className="flex items-center gap-6">
-              <div className="relative">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 p-[3px] shadow-2xl">
-                  <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
-                    {userProfile?.avatar_url ? (
-                      <img
-                        src={userProfile.avatar_url}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
-                        {username?.[0]?.toUpperCase() || 'U'}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-3 border-gray-900 animate-pulse" />
-              </div>
-              
-              <div className="space-y-1">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent">
-                  Welcome back, {username}
-                </h1>
-                <p className="text-gray-400 text-lg">
-                  Manage your portfolio and track dividends
-                </p>
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span className="text-sm text-green-400 font-medium">Portfolio Active</span>
-                </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* User Profile Section */}
+        <div className="mb-10 bg-gray-900/60 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-purple-900/20">
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 p-[2px]">
+              <div className="w-full h-full rounded-full bg-gray-900 flex items-center justify-center overflow-hidden">
+                {userProfile?.avatar_url ? (
+                  <img
+                    src={userProfile.avatar_url}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+                    {username?.[0]?.toUpperCase() || 'U'}
+                  </span>
+                )}
               </div>
             </div>
-            
-            {/* Action Buttons */}
-            <div className="flex gap-4">
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 hover:border-purple-400 transition-all duration-300 shadow-lg hover:shadow-purple-500/25"
-                onClick={() => navigate('/settings')}
-              >
-                <Settings className="h-5 w-5 mr-2" />
-                Settings
-              </Button>
-              <Button
-                variant="outline"
-                size="lg"
-                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:border-blue-400 transition-all duration-300 shadow-lg hover:shadow-blue-500/25"
-                onClick={() => navigate('/notifications')}
-              >
-                <Bell className="h-5 w-5 mr-2" />
-                Notifications
-              </Button>
+            <div className="text-center md:text-left">
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Welcome back, {username}
+              </h1>
+              <p className="text-purple-300 max-w-xl">
+                Manage your stock portfolio and track dividends. Stay updated with your investments and financial goals.
+              </p>
+              <div className="flex flex-wrap gap-3 mt-4 justify-center md:justify-start">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                  onClick={() => navigate('/settings')}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-500 text-blue-400 hover:bg-blue-500/10"
+                  onClick={() => navigate('/notifications')}
+                >
+                  <Bell className="h-4 w-4 mr-2" />
+                  Notifications
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 border-gray-700/50 hover:border-purple-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-purple-500/10 group">
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Total Stocks</p>
-                  <p className="text-4xl font-bold text-white group-hover:text-purple-100 transition-colors">
-                    {savedStocks.length}
-                  </p>
-                  <p className="text-xs text-gray-500">Active investments</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/10 group-hover:from-purple-500/30 group-hover:to-purple-600/20 transition-all duration-300">
-                  <TrendingUp className="h-10 w-10 text-purple-400 group-hover:scale-110 transition-transform" />
-                </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <Card className="p-6 bg-gradient-to-br from-gray-900 to-purple-900/40 hover:shadow-lg transition-shadow duration-200 border border-purple-900/30 shadow-xl">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-xl bg-purple-500/10 dark:bg-purple-500/20">
+                <TrendingUp className="h-6 w-6 text-purple-400" />
               </div>
-            </CardContent>
+              <div>
+                <p className="text-sm font-medium text-gray-400">Total Stocks</p>
+                <p className="text-2xl font-bold text-white">{savedStocks.length}</p>
+              </div>
+            </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 border-gray-700/50 hover:border-green-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-green-500/10 group">
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Total Dividends</p>
-                  <p className="text-4xl font-bold text-white group-hover:text-green-100 transition-colors">
-                    ${savedStocks.reduce((total, stock) => total + calculateTotalDividends(stock), 0).toFixed(2)}
-                  </p>
-                  <p className="text-xs text-gray-500">Expected returns</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/10 group-hover:from-green-500/30 group-hover:to-green-600/20 transition-all duration-300">
-                  <DollarSign className="h-10 w-10 text-green-400 group-hover:scale-110 transition-transform" />
-                </div>
+          <Card className="p-6 bg-gradient-to-br from-gray-900 to-pink-900/40 hover:shadow-lg transition-shadow duration-200 border border-pink-900/30 shadow-xl">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-xl bg-pink-500/10 dark:bg-pink-500/20">
+                <Heart className="h-6 w-6 text-pink-400" />
               </div>
-            </CardContent>
+              <div>
+                <p className="text-sm font-medium text-gray-400">Total Dividends</p>
+                <p className="text-2xl font-bold text-white">
+                  ${savedStocks.reduce((total, stock) => total + calculateTotalDividends(stock), 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
           </Card>
 
-          <Card className="bg-gradient-to-br from-gray-900/80 to-gray-800/60 border-gray-700/50 hover:border-blue-500/50 transition-all duration-300 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10 group">
-            <CardContent className="p-8">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-gray-400 uppercase tracking-wider">Average Yield</p>
-                  <p className="text-4xl font-bold text-white group-hover:text-blue-100 transition-colors">
-                    {(savedStocks.reduce((acc, stock) => acc + (stock.dividend_yield || 0), 0) /
-                      (savedStocks.length || 1)).toFixed(2)}%
-                  </p>
-                  <p className="text-xs text-gray-500">Portfolio performance</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/10 group-hover:from-blue-500/30 group-hover:to-blue-600/20 transition-all duration-300">
-                  <BarChart3 className="h-10 w-10 text-blue-400 group-hover:scale-110 transition-transform" />
-                </div>
+          <Card className="p-6 bg-gradient-to-br from-gray-900 to-green-900/40 hover:shadow-lg transition-shadow duration-200 border border-green-900/30 shadow-xl">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-xl bg-green-500/10 dark:bg-green-500/20">
+                <DollarSign className="h-6 w-6 text-green-400" />
               </div>
-            </CardContent>
+              <div>
+                <p className="text-sm font-medium text-gray-400">Avg Yield</p>
+                <p className="text-2xl font-bold text-white">
+                  {(savedStocks.reduce((acc, stock) => acc + (stock.dividend_yield || 0), 0) /
+                    (savedStocks.length || 1)).toFixed(2)}%
+                </p>
+              </div>
+            </div>
           </Card>
         </div>
 
-        {/* Enhanced Controls Section */}
-        <Card className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-gray-700/50 mb-8 shadow-xl">
-          <CardContent className="p-8">
-            <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-              <div className="flex flex-col md:flex-row gap-6 items-center flex-1 w-full lg:w-auto">
-                {/* Enhanced Search */}
-                <div className="relative flex-1 max-w-md w-full">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input
-                    placeholder="Search stocks by symbol or company..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-12 pr-4 py-3 bg-gray-800/80 border-gray-600/50 text-white placeholder-gray-400 focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 rounded-xl"
-                  />
-                </div>
-                
-                {/* Enhanced Filter */}
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-gray-700/50">
-                    <Filter className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <Select value={sortOption} onValueChange={setSortOption}>
-                    <SelectTrigger className="w-[220px] bg-gray-800/80 border-gray-600/50 text-white focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 rounded-xl">
-                      <SelectValue placeholder="Sort by..." />
-                    </SelectTrigger>
-                    <SelectContent className="bg-gray-800 border-gray-700 rounded-xl">
-                      {sortOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value} className="text-white hover:bg-gray-700">
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              {/* Enhanced Add Button */}
-              <Button
-                onClick={() => navigate('/top-stocks')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl hover:shadow-blue-500/25 transition-all duration-300 group"
+        {/* Controls Section */}
+        <div className="flex gap-4 mb-6">
+          <Input
+            placeholder="Search stocks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-xs"
+          />
+          <Select value={sortOption} onValueChange={setSortOption}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              {sortOptions.map(option => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Stocks Table */}
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Symbol</TableHead>
+              <TableHead>Company</TableHead>
+              <TableHead>Sector</TableHead>
+              <TableHead>Industry</TableHead>
+              <TableHead>Quantity</TableHead>
+              <TableHead>Dividend Rate</TableHead>
+              <TableHead>Dividend Yield</TableHead>
+              <TableHead>Ex-Dividend Date</TableHead>
+              <TableHead>Payout Date</TableHead>
+              <TableHead>Report Date</TableHead>
+              <TableHead>Special Dividend</TableHead>
+              <TableHead>Total Dividends</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortStocks(filteredStocks).map((stock) => (
+              <TableRow
+                key={stock.symbol}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => {
+                  // Create a stock object in the format expected by StockDetailsDialog
+                  const stockForDialog = {
+                    Symbol: stock.symbol,
+                    title: stock.company_name,
+                    LogoURL: stock.LogoURL,
+                    marketCap: stock.price,
+                    dividendyield: stock.dividendyield
+                  };
+                  setSelectedStockForDetails(stockForDialog);
+                  setIsStockDetailsOpen(true);
+                }}
               >
-                <Plus className="h-5 w-5 mr-2 group-hover:rotate-90 transition-transform duration-300" />
-                Add Stocks
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      // Find logo from CSV file by matching symbol
+                      const logoInfo = companyLogos.find(logo =>
+                        logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
+                      );
 
-        {/* Enhanced Stocks Table */}
-        <Card className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 border-gray-700/50 shadow-2xl">
-          <CardHeader className="p-8 pb-0">
-            <CardTitle className="text-2xl font-bold text-white flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20">
-                <Activity className="h-6 w-6 text-blue-400" />
-              </div>
-              Your Portfolio
-              <Badge variant="secondary" className="ml-auto bg-gray-700/50 text-gray-300 px-3 py-1">
-                {filteredStocks.length} stocks
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8 pt-6">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-gray-700/50 hover:bg-gray-800/30">
-                    <TableHead className="text-gray-300 font-semibold py-4">Stock</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Sector</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Quantity</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Dividend Rate</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Yield</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Ex-Dividend</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Payout Date</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Total Dividends</TableHead>
-                    <TableHead className="text-gray-300 font-semibold">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortStocks(filteredStocks).map((stock) => (
-                    <TableRow
-                      key={stock.symbol}
-                      className="border-gray-700/30 hover:bg-gray-800/50 cursor-pointer transition-all duration-200 group"
-                      onClick={() => {
-                        const stockForDialog = {
-                          Symbol: stock.symbol,
-                          title: stock.company_name,
-                          LogoURL: stock.LogoURL,
-                          marketCap: stock.price,
-                          dividendyield: stock.dividend_yield
-                        };
-                        setSelectedStockForDetails(stockForDialog);
-                        setIsStockDetailsOpen(true);
-                      }}
-                    >
-                      <TableCell className="py-4">
-                        <div className="flex items-center gap-4">
-                          {(() => {
-                            const logoInfo = companyLogos.find(logo =>
-                              logo.Symbol?.toUpperCase() === stock.symbol?.toUpperCase()
-                            );
-                            const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
+                      const logoUrl = logoInfo?.LogoURL || stock.LogoURL;
 
-                            return logoUrl ? (
-                              <div className="w-12 h-12 rounded-xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow">
-                                <img
-                                  src={logoUrl}
-                                  alt={`${stock.company_name} logo`}
-                                  className="w-full h-full object-contain bg-white/5 group-hover:scale-110 transition-transform duration-300"
-                                  onError={(e) => {
-                                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=48`;
-                                  }}
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl flex items-center justify-center shadow-lg">
-                                <span className="text-sm font-bold text-white">{stock.symbol.substring(0, 2)}</span>
-                              </div>
-                            );
-                          })()}
-                          <div className="space-y-1">
-                            <div className="font-bold text-white text-lg group-hover:text-blue-100 transition-colors">
-                              {stock.symbol}
-                            </div>
-                            <div className="text-sm text-gray-400 max-w-[200px] truncate">
-                              {stock.company_name}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 text-purple-200 border-purple-500/30 px-3 py-1">
-                          {stock.sector}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={quantities[stock.symbol] || 1}
-                          onChange={(e) => handleQuantityChange(stock.symbol, parseInt(e.target.value) || 1)}
-                          className="w-20 bg-gray-800/80 border-gray-600/50 text-white focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 rounded-lg"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </TableCell>
-                      <TableCell className="text-white font-semibold">
-                        ${stock.dividend_rate.toFixed(2)}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-green-400 font-bold text-lg">
-                          {stock.dividend_yield ? stock.dividend_yield.toFixed(2) : '0.00'}%
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-gray-300">
-                        {stock.ex_dividend_date || 'N/A'}
-                      </TableCell>
-                      <TableCell className="text-gray-300">
-                        {stock.payout_date || 'N/A'}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-blue-400 font-bold text-lg">
-                          ${calculateTotalDividends(stock).toFixed(2)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-gray-600/50 text-gray-300 hover:bg-blue-500/10 hover:border-blue-500/50 hover:text-blue-200 transition-all duration-300 rounded-lg"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const stockForDialog = {
-                              Symbol: stock.symbol,
-                              title: stock.company_name,
-                              LogoURL: stock.LogoURL,
-                              marketCap: stock.price,
-                              dividendyield: stock.dividend_yield
-                            };
-                            setSelectedStockForDetails(stockForDialog);
-                            setIsStockDetailsOpen(true);
+                      return logoUrl ? (
+                        <img
+                          src={logoUrl}
+                          alt={`${stock.company_name} logo`}
+                          className="w-6 h-6 object-contain"
+                          onError={(e) => {
+                            // Fallback if image fails to load
+                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${stock.symbol}&background=random&size=32`;
                           }}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              
-              {/* Enhanced Empty State */}
-              {filteredStocks.length === 0 && (
-                <div className="text-center py-16">
-                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center shadow-2xl">
-                    <TrendingUp className="h-12 w-12 text-gray-500" />
+                        />
+                      ) : (
+                        <div className="w-6 h-6 bg-gray-700 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-bold">{stock.symbol.substring(0, 2)}</span>
+                        </div>
+                      );
+                    })()}
+                    <span>{stock.symbol}</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-300 mb-3">No stocks found</h3>
-                  <p className="text-gray-500 mb-8 max-w-md mx-auto">
-                    Start building your dividend portfolio by adding your first stock investment
-                  </p>
+                </TableCell>
+                <TableCell>{stock.company_name}</TableCell>
+                <TableCell>{stock.sector}</TableCell>
+                <TableCell>{stock.industry}</TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={quantities[stock.symbol] || 1}
+                    onChange={(e) => handleQuantityChange(stock.symbol, parseInt(e.target.value) || 1)}
+                    className="w-20"
+                  />
+                </TableCell>
+                <TableCell>${stock.dividend_rate.toFixed(2)}</TableCell>
+                <TableCell>{stock.dividendyield ? stock.dividendyield.toFixed(2) : '0.00'}%</TableCell>
+                <TableCell>{stock.ex_dividend_date || 'N/A'}</TableCell>
+                <TableCell>{stock.payout_date || 'N/A'}</TableCell>
+                <TableCell>{stock.report_date || 'N/A'}</TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    value={stock.special_dividend || 0}
+                    onChange={(e) => {
+                      // Update special dividend logic here
+                    }}
+                    className="w-20"
+                  />
+                </TableCell>
+                <TableCell>${calculateTotalDividends(stock).toFixed(2)}</TableCell>
+                <TableCell>
                   <Button
-                    onClick={() => navigate('/top-stocks')}
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                    variant="outline"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row click event
+                      // Create a stock object in the format expected by StockDetailsDialog
+                      const stockForDialog = {
+                        Symbol: stock.symbol,
+                        title: stock.company_name,
+                        LogoURL: stock.LogoURL,
+                        marketCap: stock.price,
+                        dividendyield: stock.dividendyield
+                      };
+                      setSelectedStockForDetails(stockForDialog);
+                      setIsStockDetailsOpen(true);
+                    }}
                   >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Add Your First Stock
+                    View Details
                   </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
-      
       <Footer />
 
-      {/* Dialogs */}
+      {/* Stock Analysis Dialog */}
       {selectedStockForDetails && (
         <StockAnalysisDialog
           stock={{
-            symbol: selectedStockForDetails.Symbol,
-            longName: selectedStockForDetails.title,
-            regularMarketPrice: selectedStockForDetails.marketCap || 0,
+            symbol: selectedStockForDetails.symbol,
+            longName: selectedStockForDetails.company_name,
+            regularMarketPrice: selectedStockForDetails.price || 0,
             regularMarketChange: 0,
             regularMarketChangePercent: 0,
             marketCap: 0,
             regularMarketVolume: 0,
-            dividendYield: selectedStockForDetails.dividendyield,
-            sector: 'N/A',
-            industry: 'N/A'
+            dividendYield: selectedStockForDetails.dividend_yield,
+            sector: selectedStockForDetails.sector || 'N/A',
+            industry: selectedStockForDetails.industry || 'N/A'
           }}
           isOpen={isAnalysisOpen}
           setIsOpen={setIsAnalysisOpen}
         />
       )}
 
+      {/* Stock Details Dialog */}
       {selectedStockForDetails && (
         <StockDetailsDialog
           stock={selectedStockForDetails}

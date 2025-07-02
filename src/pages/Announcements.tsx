@@ -13,6 +13,8 @@ import { Calendar as ReactCalendar } from '../components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '../components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { DateRangePicker } from '../components/DateRangePicker';
+import { DateRange } from 'react-day-picker';
 
 interface DividendAnnouncement {
   symbol: string;
@@ -37,9 +39,10 @@ const Announcements: React.FC = () => {
   const [logos, setLogos] = useState<LogoData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedRange, setSelectedRange] = useState<DateRange | undefined>({ from: new Date(), to: new Date() });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,12 +110,25 @@ const Announcements: React.FC = () => {
   };
 
   const getFilteredAnnouncements = () => {
-    if (!selectedDate) return announcements;
-    const formatted = selectedDate.toISOString().split('T')[0];
-    return announcements.filter(announcement => {
-      // exdividenddate may be in 'YYYY-MM-DD' or similar format
-      return announcement.exdividenddate && announcement.exdividenddate.startsWith(formatted);
-    });
+    let filtered = announcements;
+    if (selectedRange && selectedRange.from && selectedRange.to) {
+      const fromDate = selectedRange.from;
+      const toDate = selectedRange.to;
+      filtered = filtered.filter(announcement => {
+        if (!announcement.exdividenddate) return false;
+        const exDate = new Date(announcement.exdividenddate);
+        return exDate >= fromDate && exDate <= toDate;
+      });
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter(announcement =>
+        announcement.symbol.toLowerCase().includes(q) ||
+        (announcement.shortname && announcement.shortname.toLowerCase().includes(q)) ||
+        (announcement.message && announcement.message.toLowerCase().includes(q))
+      );
+    }
+    return filtered;
   };
 
   const filteredAnnouncements = getFilteredAnnouncements();
@@ -259,52 +275,35 @@ const Announcements: React.FC = () => {
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <h1 className="text-3xl font-bold text-white mb-2">Dividend Announcements</h1>
+          {/* Search Bar */}
+          <div className="flex items-center">
+            <input
+              type="text"
+              placeholder="Search..."
+              value={searchQuery}
+              onChange={e => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ minWidth: 220 }}
+            />
+          </div>
         </div>
 
         {/* Date Filter */}
         <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center space-x-4">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700 flex items-center"
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {selectedDate ? format(selectedDate, 'LLL dd, yyyy') : 'Pick a date'}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-gray-900 border-gray-800" align="start">
-                  <ReactCalendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    className="rounded-lg border border-gray-700 bg-gray-900 text-white"
-                  />
-                </PopoverContent>
-              </Popover>
-              <Button
-                variant="outline"
-                onClick={() => setSelectedDate(new Date())}
-              >
-                Today
-              </Button>
+              <DateRangePicker
+                date={selectedRange as DateRange}
+                onDateChange={setSelectedRange}
+              />
             </div>
           </CardHeader>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <DollarSign className="h-5 w-5" />
-                <span>Recent Announcements</span>
-              </div>
-            </CardTitle>
-          </CardHeader>
+          
           <CardContent>
             {filteredAnnouncements.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
@@ -361,14 +360,15 @@ const Announcements: React.FC = () => {
                   </TableBody>
                 </Table>
                 
-                {/* Pagination */}
+                {/* Pagination and summary UI */}
                 {totalPages > 1 && (
                   <div className="mt-6 flex flex-col space-y-2">
                     <div className="flex w-full items-center justify-between">
+                      {/* Left: summary and rows per page */}
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm">Rows per page:</span>
+                        <span className="text-sm text-gray-400">{filteredAnnouncements.length} rows x 3 cols</span>
                         <select
-                          className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-2 py-1"
+                          className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-2 py-1 ml-2"
                           value={itemsPerPage}
                           onChange={handleItemsPerPageChange}
                         >
@@ -376,17 +376,50 @@ const Announcements: React.FC = () => {
                             <option key={option} value={option}>{option}</option>
                           ))}
                         </select>
+                        <span className="text-sm text-gray-400 ml-2">per page</span>
                       </div>
-                      <div className="text-xs text-gray-400 text-center w-full">
-                        Page {currentPage} of {totalPages}
+                      {/* Right: pagination controls */}
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs text-gray-400">Page</span>
+                        <input
+                          type="number"
+                          min={1}
+                          max={totalPages}
+                          value={currentPage}
+                          onChange={e => handlePageChange(Number(e.target.value))}
+                          className="w-10 bg-gray-800 border border-gray-700 text-gray-300 rounded px-1 py-0.5 text-center mx-1"
+                          style={{ width: 40 }}
+                        />
+                        <span className="text-xs text-gray-400">of {totalPages}</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="px-1"
+                          onClick={() => handlePageChange(1)}
+                          disabled={currentPage === 1}
+                        >{'<<'}</Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="px-1"
+                          onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                        >{'<'}</Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="px-1"
+                          onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                        >{'>'}</Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="px-1"
+                          onClick={() => handlePageChange(totalPages)}
+                          disabled={currentPage === totalPages}
+                        >{'>>'}</Button>
                       </div>
-                    </div>
-                    <div className="flex justify-center">
-                      <Pagination>
-                        <PaginationContent>
-                          {renderPagination()}
-                        </PaginationContent>
-                      </Pagination>
                     </div>
                   </div>
                 )}

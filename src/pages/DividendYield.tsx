@@ -151,17 +151,13 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <main className="flex-1 container mx-auto px-4 py-8">
-       
-
+    <div className="flex flex-col bg-background">
         <div className="mb-6">
           <Card className="rounded-2xl shadow-lg border border-gray-100 bg-white/90 dark:bg-gray-900/80">
             <CardHeader className="pb-2 pt-4 px-6">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div>
                   <CardTitle className="text-xl font-bold mb-1">Dividend Yield Over Time</CardTitle>
-                  <CardDescription className="text-sm text-muted-foreground mb-1">The relationship between stock price, dividends, and yield over time</CardDescription>
                 </div>
                 <div className="flex space-x-2 mt-2 sm:mt-0">
                   {timeRangeOptions.map((option) => (
@@ -207,7 +203,7 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
                           />
                           <YAxis 
                             domain={getYAxisDomain()}
-                            tickFormatter={(value) => `${value}%`}
+                            tickFormatter={(value) => `${value.toFixed(2)}%`}
                             width={60}
                           />
                           <Tooltip 
@@ -237,9 +233,6 @@ const DividendYield: React.FC<DividendYieldProps> = ({ symbol: propSymbol }) => 
             </CardContent>
           </Card>
         </div>
-
-       
-      </main>
     </div>
   );
 };
