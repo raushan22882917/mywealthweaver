@@ -66,7 +66,7 @@ const RingChart = ({ value, max, color, label, sublabel, boldLabel }: { value: n
         />
       </g>
       <text x="60" y="50" textAnchor="middle" fontSize="18" fontWeight="bold" fill={color}>{`${value}/${max}`}</text>
-      <text x="60" y="66" textAnchor="middle" fontSize="12" fill="#666" fontWeight={boldLabel ? "bold" : "500"} style={{ marginTop: 20 }}>{label}</text>
+      <text x="60" y="66" textAnchor="middle" fontSize="12" fill="#fff" fontWeight={boldLabel ? "bold" : "500"} style={{ marginTop: 8 }}>{label}</text>
       {sublabel && <text x="60" y="76" textAnchor="middle" fontSize="10" fill="#aaa" style={{ marginTop: 20 }}>{sublabel}</text>}
     </svg>
   );
@@ -149,7 +149,6 @@ const SegmentedRingChart = ({ value, max, label, sublabel, boldLabel }: { value:
           y1={center}
           x2={arrowX}
           y2={arrowY}
-          stroke="#222"
           strokeWidth={3}
           markerEnd="url(#arrowhead)"
         />
@@ -167,6 +166,8 @@ const SegmentedRingChart = ({ value, max, label, sublabel, boldLabel }: { value:
         textAnchor="middle"
         className="ring-label"
         fontWeight={boldLabel ? "bold" : "500"}
+        fill="#fff"
+        style={{ marginTop: 8 }}
       >
         {label}
       </text>
@@ -208,14 +209,13 @@ const Benchmark: React.FC<BenchmarkProps> = ({ ticker }) => {
   const label = getPerformanceLabel(total);
 
   return (
-    <section className="w-full max-w-3xl mx-auto px-4 py-8">
-      <h2 className="text-2xl md:text-3xl font-bold text-center mb-2 tracking-tight text-white">Stock Benchmark Overview</h2>
-      <p className="text-center text-white mb-8 max-w-xl mx-auto">Compare key factors for <span className="font-semibold text-white">{ticker}</span> to understand its dividend safety, attractiveness, and momentum at a glance.</p>
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-center justify-center w-full">
+    <section className="w-full max-w-3xl mx-auto mt-2 mb-4">
+      <h2 className="text-2xl md:text-3xl font-bold text-center mb-1 tracking-tight text-white">Stock Benchmark Overview</h2>
+      <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center justify-center w-full">
         {/* 3 Factor Rings */}
         <div className="flex flex-row gap-2 md:gap-4">
           {/* Content Factors */}
-          <Card className={`group flex flex-col items-center justify-center p-6 w-[240px] h-[240px] max-w-[200px] ${styles.cardOverall} bg-transparent`}>
+          <Card className={`group flex flex-col items-center justify-center p-4 w-[240px] h-[200px] max-w-[240px] min-w-[160px] ${styles.cardOverall} ${styles.cardTextWhite} bg-transparent`}>
             <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1">
               Overall Factors
               <Tooltip>
@@ -235,55 +235,44 @@ const Benchmark: React.FC<BenchmarkProps> = ({ ticker }) => {
               boldLabel={true}
             />
           </Card>
-          <Card className={`group flex flex-col items-center justify-center p-4 min-w-[110px] max-w-[140px] ${styles.cardSafety} bg-transparent`}>
-            <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-5">
+          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardSafety} ${styles.cardTextWhite} bg-transparent`}>
+            <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-3">
               Safety Factors
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3.5 h-3.5 text-white group-hover:text-white cursor-pointer" />
-                </TooltipTrigger>
+               
                 <TooltipContent side="top" className="max-w-xs text-xs text-center text-white bg-gray-900">
                   {FACTOR_INFO['Content Factors']}
                 </TooltipContent>
               </Tooltip>
-              <IndicatorArrow trend={metrics.trend_12m === 'up' ? 'up' : metrics.trend_12m === 'down' ? 'down' : undefined} />
             </div>
-            <RingChart value={metrics.safety_score} max={40} color={RING_COLORS[0]} label={metrics.tag ?? '-'} sublabel={undefined} />
+            <RingChart value={metrics.safety_score} max={100} color={RING_COLORS[0]} label={metrics.tag ?? '-'} sublabel={undefined} />
           </Card>
           {/* Marketing Factors */}
-          <Card className={`group flex flex-col items-center justify-center p-4 min-w-[110px] max-w-[140px] ${styles.cardAttractiveness} bg-transparent`}>
-            <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-5">
+          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardAttractiveness} ${styles.cardTextWhite} bg-transparent`}>
+            <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-3">
               Attractiveness Factors
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3.5 h-3.5 text-white group-hover:text-white cursor-pointer" />
-                </TooltipTrigger>
+               
                 <TooltipContent side="top" className="max-w-xs text-xs text-center text-white bg-gray-900">
                   {FACTOR_INFO['Marketing Factors']}
                 </TooltipContent>
               </Tooltip>
-              <IndicatorArrow trend={metrics.attractiveness === 'up' ? 'up' : metrics.attractiveness === 'down' ? 'down' : undefined} />
             </div>
-            <RingChart value={metrics.attractiveness_score} max={26} color={RING_COLORS[1]} label={metrics.attractiveness ?? '-'} sublabel={undefined} />
+            <RingChart value={metrics.attractiveness_score} max={100} color={RING_COLORS[1]} label={metrics.attractiveness ?? '-'} sublabel={undefined} />
           </Card>
           {/* Service Factors */}
-          <Card className={`group flex flex-col items-center justify-center p-4 min-w-[110px] max-w-[140px] ${styles.cardMomentum} bg-transparent`}>
-            <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-5">
+          <Card className={`group flex flex-col items-center justify-center p-3 min-w-[160px] max-w-[240px] ${styles.cardMomentum} ${styles.cardTextWhite} bg-transparent`}>
+            <div className="mb-1 text-xs font-semibold text-white flex items-center gap-1 mt-3">
               Momentum Factors
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3.5 h-3.5 text-white group-hover:text-white cursor-pointer" />
-                </TooltipTrigger>
+                
                 <TooltipContent side="top" className="max-w-xs text-xs text-center text-white bg-gray-900">
                   {FACTOR_INFO['Service Factors']}
                 </TooltipContent>
               </Tooltip>
-              <IndicatorArrow trend={metrics.trend_12m === 'up' ? 'up' : metrics.trend_12m === 'down' ? 'down' : undefined} />
             </div>
-            <RingChart value={metrics.momentum_12m} max={32} color={RING_COLORS[2]} label={metrics.trend_12m ?? '-'} sublabel={undefined} />
+            <RingChart value={metrics.momentum_12m} max={100} color={RING_COLORS[2]} label={metrics.trend_12m ?? '-'} sublabel={undefined} />
           </Card>
-          {/* Overall Factors Ring */}
-          
         </div>
       </div>
     </section>

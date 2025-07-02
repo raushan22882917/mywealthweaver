@@ -29,7 +29,8 @@ interface LogoData {
   LogoURL: string;
 }
 
-const ITEMS_PER_PAGE = 25;
+const ROW_OPTIONS = [10, 25, 50];
+const DEFAULT_ITEMS_PER_PAGE = 10;
 
 const Announcements: React.FC = () => {
   const [announcements, setAnnouncements] = useState<DividendAnnouncement[]>([]);
@@ -38,6 +39,7 @@ const Announcements: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(DEFAULT_ITEMS_PER_PAGE);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -117,13 +119,13 @@ const Announcements: React.FC = () => {
 
   // Pagination logic
   const getCurrentData = () => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
     return filteredAnnouncements.slice(startIndex, endIndex);
   };
 
   const getTotalPages = () => {
-    return Math.ceil(filteredAnnouncements.length / ITEMS_PER_PAGE);
+    return Math.ceil(filteredAnnouncements.length / itemsPerPage);
   };
 
   const totalPages = getTotalPages();
@@ -131,6 +133,11 @@ const Announcements: React.FC = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handleItemsPerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1); // Reset to first page when changing rows per page
   };
 
   const renderPagination = () => {
@@ -296,9 +303,6 @@ const Announcements: React.FC = () => {
                 <DollarSign className="h-5 w-5" />
                 <span>Recent Announcements</span>
               </div>
-              <div className="text-sm text-gray-500">
-                Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredAnnouncements.length)} of {filteredAnnouncements.length} results
-              </div>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -312,11 +316,8 @@ const Announcements: React.FC = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Company</TableHead>
-                      <TableHead>Symbol</TableHead>
-                      <TableHead>Message</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead>Insight & Message</TableHead>
                       <TableHead>Date</TableHead>
-                      <TableHead>Insight</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -337,34 +338,21 @@ const Announcements: React.FC = () => {
                               </Avatar>
                               <div>
                                 <div className="font-medium">
-                                  {announcement.shortname || 'Unknown Company'}
+                                  {logoData?.company_name || announcement.shortname || 'Unknown Company'}
                                 </div>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <Badge variant="outline" className="font-mono">
-                              {announcement.symbol}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="max-w-md">
-                            <div className="truncate" title={announcement.message}>
-                              {announcement.message}
+                          <TableCell className="max-w-md whitespace-pre-line break-words">
+                            <div>
+                              <span className="text-xs text-blue-400">{announcement.insight || '-'}</span>
+                              {announcement.insight && announcement.message ? <span className="mx-1">|</span> : null}
+                              <span>{announcement.message}</span>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <span className="font-semibold text-green-600">
-                              {formatAmount(announcement.dividend)}
-                            </span>
                           </TableCell>
                           <TableCell>
                             <span className="text-sm text-gray-500">
                               {formatDate(announcement.exdividenddate)}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-xs text-blue-400">
-                              {announcement.insight || '-'}
                             </span>
                           </TableCell>
                         </TableRow>
@@ -375,12 +363,31 @@ const Announcements: React.FC = () => {
                 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-6 flex justify-center">
-                    <Pagination>
-                      <PaginationContent>
-                        {renderPagination()}
-                      </PaginationContent>
-                    </Pagination>
+                  <div className="mt-6 flex flex-col space-y-2">
+                    <div className="flex w-full items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm">Rows per page:</span>
+                        <select
+                          className="bg-gray-800 border border-gray-700 text-gray-300 rounded px-2 py-1"
+                          value={itemsPerPage}
+                          onChange={handleItemsPerPageChange}
+                        >
+                          {ROW_OPTIONS.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="text-xs text-gray-400 text-center w-full">
+                        Page {currentPage} of {totalPages}
+                      </div>
+                    </div>
+                    <div className="flex justify-center">
+                      <Pagination>
+                        <PaginationContent>
+                          {renderPagination()}
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
                   </div>
                 )}
               </>
