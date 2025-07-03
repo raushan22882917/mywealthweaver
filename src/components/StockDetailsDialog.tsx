@@ -1405,11 +1405,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             <div className="flex items-center gap-2">
               <div className="text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md">Similar Companies</div>
               <Popover>
-                <PopoverTrigger asChild>
-                  <button className="w-5 h-5 flex items-center justify-center rounded-full border border-gray-400 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
-                    <AlertCircle className="w-3 h-3" />
-                  </button>
-                </PopoverTrigger>
                 <PopoverContent className="w-96 p-4 text-sm rounded-xl shadow-lg bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
                   <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700">
                     <table className="w-full text-sm">

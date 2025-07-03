@@ -1016,10 +1016,17 @@ const Dividend: React.FC = () => {
             className="bg-black dark:bg-black rounded-xl shadow-2xl border border-gray-700 backdrop-blur-sm transform transition-all duration-200 hover-card w-full max-w-[900px] overflow-auto p-8 max-h-[90vh]"
             style={{ maxHeight: '90vh' }}
           >
-            {/* Sticky Header */}
+            {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
+              <div className="flex flex-col items-center w-full mb-2">
+                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 shadow-md w-full justify-center">
+                  <Bell className="h-5 w-5 text-amber-400 animate-pulse" />
+                  <span className="text-amber-700 dark:text-amber-200 font-semibold text-base text-center">{dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}</span>
+                </div>
+                <hr className="w-full my-3 border-amber-300 dark:border-amber-700 opacity-70" />
+              </div>
+            )}
             <div className="sticky top-0 z-20 flex items-center justify-between p-3 bg-black/90 backdrop-blur-sm border-b border-gray-700 rounded-t-xl">
               <div className="flex items-center gap-6 flex-1 min-w-0">
-                {/* Logo, Title, Symbol */}
                 <div className="flex items-center gap-2 min-w-0">
                   <div
                     className="w-12 h-12a  flex items-center justify-center shadow-lg bg-white dark:bg-gray-900 overflow-hidden cursor-pointer"
@@ -1060,22 +1067,11 @@ const Dividend: React.FC = () => {
                         handleCloseHover();
                       }}
                     >
-                      <h3 className="font-bold text-white text-2xl truncate max-w-[250px]">{hoveredStockDetails.stock?.title}</h3>
+                      <h3 className="font-bold text-white text-2xl truncate ">{hoveredStockDetails.stock?.title}</h3>
                       <p className="text-base text-blue-300 font-semibold truncate max-w-[250px]">{hoveredStockDetails.stock?.Symbol}</p>
                     </div>
                   </div>
                 </div>
-                {/* Announcement (centered in row, after logo/title/symbol) */}
-                {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
-                  <div className="flex-1 flex justify-center">
-                    <div className="p-3 border border-amber-500 rounded-lg shadow-lg overflow-hidden bg-black/80 flex flex-col items-center min-w-[250px] max-w-[400px]">
-                      <div className="flex items-center gap-2 text-amber-300 text-xs font-medium text-center break-words w-full justify-center">
-                        <Bell className="h-5 w-5 text-amber-400 animate-pulse" />
-                        <span>{dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
               <div className="flex items-center gap-2 ml-4">
                 <button
@@ -1090,9 +1086,7 @@ const Dividend: React.FC = () => {
               </div>
             </div>
 
-            {/* Horizontal line above content */}
             <hr className="border-blue-900 mb-4 opacity-60" />
-            {/* Important box (insight) restored above Tabs */}
             {hoveredStockDetails.stock?.insight && (
               <div className="p-3 border border-amber-500 rounded-xl shadow-lg mb-4 bg-[#232e47]">
                 <div className="flex items-center gap-2 mb-2">
@@ -1102,9 +1096,7 @@ const Dividend: React.FC = () => {
                 <p className="text-xs text-amber-300 leading-relaxed">{hoveredStockDetails.stock?.insight}</p>
               </div>
             )}
-            {/* Main Content Area with fixed height, no scrollable content wrapper */}
             <div>
-              {/* Tabs for Dividend Info and Benchmark */}
               <Tabs defaultValue="dividend-info" className="w-full">
                 <TabsList className="mb-4">
                   <TabsTrigger value="dividend-info">Dividend Information</TabsTrigger>
@@ -1113,7 +1105,6 @@ const Dividend: React.FC = () => {
                 <TabsContent value="dividend-info">
                   <div className="relative border border-blue-900 rounded-xl shadow-2xl p-6 pt-8 overflow-hidden mb-3 bg-[#1a2236]">
                     <div className="relative z-10">
-                      {/* First row: Ex-Dividend, Payout, Report */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
                         <div className="flex flex-col">
                           <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Ex-Dividend Date:</span>
@@ -1135,7 +1126,6 @@ const Dividend: React.FC = () => {
                         </div>
                       </div>
                       <hr className="my-4 border-blue-800/40" />
-                      {/* Second row: Quarter Dividend, Annual Dividend, Yield */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
                         <div className="flex flex-col">
                           <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Quarter Dividend:</span>
@@ -1161,14 +1151,11 @@ const Dividend: React.FC = () => {
                         </div>
                       </div>
                       <hr className="my-4 border-blue-800/40" />
-                      {/* Payout Ratio and History in one row */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {/* Payout Ratio Section */}
                         <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47] relative">
                           <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-blue-700 pb-2">
                             <FaChartLine className="text-blue-400 w-4 h-4" /> Payout Ratio
                           </h4>
-                          {/* Payout Ratio in top right */}
                           <span className="absolute top-4 right-4 font-bold text-sm text-blue-300">
                             {hoveredStockDetails.stock?.payoutRatio}%
                           </span>
@@ -1180,7 +1167,6 @@ const Dividend: React.FC = () => {
                             </div>
                           </div>
                         </div>
-                        {/* History Section */}
                         <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47]">
                           <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-purple-700 pb-2">
                             <FaHistory className="text-purple-400 w-4 h-4" /> History
