@@ -27,7 +27,7 @@ const Auth = () => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           // User is already logged in, redirect to dashboard
-          navigate('/dashboard');
+          navigate('/');
         }
       } catch (error) {
         console.error('Error checking session:', error);
@@ -56,7 +56,7 @@ const Auth = () => {
           description: "Welcome back! Redirecting to your dashboard...",
         });
 
-        navigate("/dashboard");
+        navigate("/");
       } else {
         const { error: signUpError, data } = await supabase.auth.signUp({
           email,

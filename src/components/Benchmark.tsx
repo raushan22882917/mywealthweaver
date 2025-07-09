@@ -318,6 +318,37 @@ const Benchmark: React.FC<BenchmarkProps> = ({ ticker }) => {
           </Card>
         </div>
       </div>
+      {/* Enhanced button section below factor cards */}
+      <div className="flex flex-col items-center justify-center mt-10 mb-2 px-2">
+        <h3 className="text-xl font-bold text-white mb-1 drop-shadow">Explore Key Stock Factors</h3>
+        <p className="text-sm text-gray-300 mb-5 text-center max-w-md">Quickly access detailed insights about this stock’s safety, attractiveness, and momentum. Click a factor to learn more about what it means for your investment.</p>
+        <div className="flex flex-row gap-4 justify-center w-full bg-gradient-to-r from-[#232946] to-[#1a1a2e] rounded-xl py-6 px-4 shadow-lg">
+          <button
+            className="flex flex-col items-center gap-1 px-6 py-3 rounded-lg border border-green-400 bg-gradient-to-r from-green-700 to-green-500 text-white font-semibold shadow-md hover:from-green-600 hover:to-green-400 hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-300"
+            type="button"
+          >
+            <ArrowUpRight className="w-6 h-6 text-green-200 mb-1" />
+            <span>Dividend Safety</span>
+            <span className="text-xs text-green-100 font-normal mt-0.5">Stability & reliability</span>
+          </button>
+          <button
+            className="flex flex-col items-center gap-1 px-6 py-3 rounded-lg border border-blue-400 bg-gradient-to-r from-blue-700 to-blue-500 text-white font-semibold shadow-md hover:from-blue-600 hover:to-blue-400 hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            type="button"
+          >
+            <Info className="w-6 h-6 text-blue-200 mb-1" />
+            <span>Dividend Attractiveness</span>
+            <span className="text-xs text-blue-100 font-normal mt-0.5">Yield & growth</span>
+          </button>
+          <button
+            className="flex flex-col items-center gap-1 px-6 py-3 rounded-lg border border-purple-400 bg-gradient-to-r from-purple-700 to-purple-500 text-white font-semibold shadow-md hover:from-purple-600 hover:to-purple-400 hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-300"
+            type="button"
+          >
+            <ArrowDownRight className="w-6 h-6 text-purple-200 mb-1" />
+            <span>Price Momentum</span>
+            <span className="text-xs text-purple-100 font-normal mt-0.5">Recent performance</span>
+          </button>
+        </div>
+      </div>
     </section>
   );
 };

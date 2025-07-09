@@ -24,7 +24,7 @@ import {
 } from "recharts";
 import { fetchStockData, fetchChartData, fetchSimilarStocks } from "@/services/stockService";
 import type { StockData, ChartData, SimilarStock } from "@/services/stockService";
-import AIAnalysisDialog from "@/components/AIAnalysisDialog";
+// import AIAnalysisDialog from "@/components/AIAnalysisDialog";
 import { BarChart, TrendingUp, DollarSign, Calendar, Users, Activity, Percent, Clock, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 
@@ -469,7 +469,7 @@ const StockDetails = () => {
       </main>
       <Footer />
       
-      {/* AI Analysis Dialog */}
+      {/* AI Analysis Dialog
       <AIAnalysisDialog
         isOpen={isAnalysisOpen}
         onClose={() => setIsAnalysisOpen(false)}
@@ -477,7 +477,7 @@ const StockDetails = () => {
         company_name={stockData?.shortName || 'Unknown Company'}
         sector={stockData?.sector || 'Unknown'}
         currentPrice={stockData?.regularMarketPrice || 0}
-      />
+      /> */}
     </div>
   );
 };

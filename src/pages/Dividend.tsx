@@ -1013,186 +1013,166 @@ const Dividend: React.FC = () => {
       {hoveredStockDetails && (
         <div className="fixed inset-0 z-50 flex items-center justify-center ">
           <div
-            className="bg-black dark:bg-black rounded-xl shadow-2xl border border-gray-700 backdrop-blur-sm transform transition-all duration-200 hover-card w-full max-w-[900px] overflow-auto p-8 max-h-[90vh]"
+            className="bg-black dark:bg-black rounded-xl shadow-2xl border border-gray-700 backdrop-blur-sm transform transition-all duration-200 hover-card w-full max-w-[900px] overflow-auto p-8 max-h-[90vh] relative"
             style={{ maxHeight: '90vh' }}
           >
-            {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
-              <div className="flex flex-col items-center w-full mb-2">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 shadow-md w-full justify-center">
-                  <Bell className="h-5 w-5 text-amber-400 animate-pulse" />
-                  <span className="text-amber-700 dark:text-amber-200 font-semibold text-base text-center">{dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}</span>
-                </div>
-                <hr className="w-full my-3 border-amber-300 dark:border-amber-700 opacity-70" />
-              </div>
-            )}
-            <div className="sticky top-0 z-20 flex items-center justify-between p-3 bg-black/90 backdrop-blur-sm border-b border-gray-700 rounded-t-xl">
-              <div className="flex items-center gap-6 flex-1 min-w-0">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div
-                    className="w-12 h-12a  flex items-center justify-center shadow-lg bg-white dark:bg-gray-900 overflow-hidden cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const stockData: Stock = {
-                        cik_str: "",
-                        Symbol: hoveredStockDetails.stock.Symbol,
-                        title: hoveredStockDetails.stock.title
-                      };
-                      setSelectedStock(stockData);
-                      setDialogOpen(true);
-                      handleCloseHover();
-                    }}
-                  >
-                    <img
-                      src={companyLogos.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || hoveredStockDetails.stock?.LogoURL || csvLogoUrls.get(hoveredStockDetails.stock?.Symbol?.toUpperCase()) || 'stock.avif'}
-                      alt={hoveredStockDetails.stock?.Symbol}
-                      className="w-full h-full object-contain"
-                      loading="lazy"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'stock.avif';
-                      }}
-                    />
-                  </div>
-                  <div className="min-w-0">
-                    <div
-                      className="cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const stockData: Stock = {
-                          cik_str: "",
-                          Symbol: hoveredStockDetails.stock.Symbol,
-                          title: hoveredStockDetails.stock.title
-                        };
-                        setSelectedStock(stockData);
-                        setDialogOpen(true);
-                        handleCloseHover();
-                      }}
-                    >
-                      <h3 className="font-bold text-white text-2xl truncate ">{hoveredStockDetails.stock?.title}</h3>
-                      <p className="text-base text-blue-300 font-semibold truncate max-w-[250px]">{hoveredStockDetails.stock?.Symbol}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 ml-4">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleCloseHover();
-                  }}
-                  className="w-7 h-7 flex items-center justify-center rounded-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 transition-all duration-200 border border-red-400 shadow-lg hover:shadow-xl transform hover:scale-105"
-                >
-                  <X className="w-3 h-3 text-white" />
-                </button>
-              </div>
-            </div>
-
-            <hr className="border-blue-900 mb-4 opacity-60" />
-            {hoveredStockDetails.stock?.insight && (
-              <div className="p-3 border border-amber-500 rounded-xl shadow-lg mb-4 bg-[#232e47]">
-                <div className="flex items-center gap-2 mb-2">
-                  <FaInfoCircle className="text-amber-400 text-sm" />
-                  <span className="font-bold text-amber-400 text-xs">Important</span>
-                </div>
-                <p className="text-xs text-amber-300 leading-relaxed">{hoveredStockDetails.stock?.insight}</p>
-              </div>
-            )}
-            <div>
-              <Tabs defaultValue="dividend-info" className="w-full">
+            {/* Close button */}
+            <button
+              className="absolute top-4 right-4 z-50 text-gray-300 hover:text-white bg-gray-800 hover:bg-gray-700 rounded-full p-2 transition-colors"
+              onClick={() => setHoveredStockDetails(null)}
+              aria-label="Close"
+            >
+              <X className="h-5 w-5" />
+            </button>
+            <Tabs defaultValue="dividend-info" className="w-full">
+              <div className="sticky top-0 z-30  border-b border-blue-900/40">
                 <TabsList className="mb-4">
                   <TabsTrigger value="dividend-info">Dividend Information</TabsTrigger>
                   <TabsTrigger value="benchmark">Benchmark</TabsTrigger>
                 </TabsList>
-                <TabsContent value="dividend-info">
-                  <div className="relative border border-blue-900 rounded-xl shadow-2xl p-6 pt-8 overflow-hidden mb-3 bg-[#1a2236]">
-                    <div className="relative z-10">
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Ex-Dividend Date:</span>
-                          <span className="font-bold text-base text-blue-100">
-                            {hoveredStockDetails.stock?.exdividenddate ? new Date(hoveredStockDetails.stock.exdividenddate).toISOString().split('T')[0] : 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Payout Date:</span>
-                          <span className="font-bold text-base text-blue-100">
-                            {hoveredStockDetails.stock?.payoutdate ? new Date(hoveredStockDetails.stock.payoutdate).toISOString().split('T')[0] : 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Report Date:</span>
-                          <span className="font-bold text-base text-blue-100">
-                            {hoveredStockDetails.stock?.earningsdate ? new Date(hoveredStockDetails.stock.earningsdate).toISOString().split('T')[0] : 'N/A'}
-                          </span>
-                        </div>
+              </div>
+              {dividendAnnouncements[hoveredStockDetails.stock?.Symbol] && (
+                <div className="flex flex-col items-center w-full mb-2">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 shadow-md w-full justify-center">
+                    <Bell className="h-5 w-5 text-amber-400 animate-pulse" />
+                    <span className="text-amber-700 dark:text-amber-200 font-semibold text-base text-center">{dividendAnnouncements[hoveredStockDetails.stock?.Symbol]}</span>
+                  </div>
+                  <hr className="w-full my-3 border-amber-300 dark:border-amber-700 opacity-70" />
+                </div>
+              )}
+              <TabsContent value="dividend-info">
+                {hoveredStockDetails.stock && (
+                  <div
+                    className="flex items-center gap-4 mb-4 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg p-2 transition"
+                    onClick={() => {
+                      setSelectedStock({
+                        cik_str: "",
+                        Symbol: hoveredStockDetails.stock.Symbol,
+                        title: hoveredStockDetails.stock.title
+                      });
+                      setDialogOpen(true);
+                      setHoveredStockDetails(null);
+                    }}
+                    title="View detailed stock info"
+                  >
+                    <div className="w-12 h-12 flex items-center justify-center bg-white dark:bg-gray-900  overflow-hidden border border-gray-300 dark:border-gray-700">
+                      <img
+                        src={
+                          companyLogos.get(hoveredStockDetails.stock.Symbol?.toUpperCase()) ||
+                          hoveredStockDetails.stock.LogoURL ||
+                          csvLogoUrls.get(hoveredStockDetails.stock.Symbol?.toUpperCase()) ||
+                          'stock.avif'
+                        }
+                        alt={hoveredStockDetails.stock.Symbol}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                        onError={e => { (e.target as HTMLImageElement).src = 'stock.avif'; }}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-xl text-white">{hoveredStockDetails.stock.title}</h3>
+                      {/* <p className="text-blue-300 font-semibold">{hoveredStockDetails.stock.Symbol}</p> */}
+                    </div>
+                  </div>
+                )}
+                {hoveredStockDetails.stock?.insight && (
+                  <div className="p-3 border border-amber-500 rounded-xl shadow-lg mb-4 bg-[#232e47]">
+                    <div className="flex items-center gap-2 mb-2">
+                      <FaInfoCircle className="text-amber-400 text-sm" />
+                      <span className="font-bold text-amber-400 text-xs">Important</span>
+                    </div>
+                    <p className="text-[15px] text-amber-300 leading-relaxed">{hoveredStockDetails.stock?.insight}</p>
+                  </div>
+                )}
+                <div className="relative border border-blue-900 rounded-xl shadow-2xl p-6 pt-8 overflow-hidden mb-3 bg-[#1a2236]">
+                  <div className="relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Ex-Dividend Date:</span>
+                        <span className="font-bold text-base text-blue-100">
+                          {hoveredStockDetails.stock?.exdividenddate ? new Date(hoveredStockDetails.stock.exdividenddate).toISOString().split('T')[0] : 'N/A'}
+                        </span>
                       </div>
-                      <hr className="my-4 border-blue-800/40" />
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
-                        <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Quarter Dividend:</span>
-                          <span className="font-bold text-base text-emerald-300">
-                            ${hoveredStockDetails.stock?.dividend || 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Annual Dividend:</span>
-                          <span className="font-bold text-base text-emerald-300">
-                            {Number(hoveredStockDetails.stock?.dividend) && !isNaN(Number(hoveredStockDetails.stock?.dividend))
-                              ? `$${(Number(hoveredStockDetails.stock.dividend) * 4).toFixed(2)}`
-                              : 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Yield:</span>
-                          <span className="font-bold text-base text-emerald-300">
-                            {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
-                              ? 'N/A'
-                              : `${(Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)}%`}
-                          </span>
-                        </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Payout Date:</span>
+                        <span className="font-bold text-base text-blue-100">
+                          {hoveredStockDetails.stock?.payoutdate ? new Date(hoveredStockDetails.stock.payoutdate).toISOString().split('T')[0] : 'N/A'}
+                        </span>
                       </div>
-                      <hr className="my-4 border-blue-800/40" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47] relative">
-                          <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-blue-700 pb-2">
-                            <FaChartLine className="text-blue-400 w-4 h-4" /> Payout Ratio
-                          </h4>
-                          <span className="absolute top-4 right-4 font-bold text-sm text-blue-300">
-                            {hoveredStockDetails.stock?.payoutRatio}%
-                          </span>
-                          <div className="space-y-2 text-xs">
-                            <div className="p-2 bg-[#1a2236] rounded shadow-sm">
-                              <p className="text-blue-200 leading-relaxed">
-                                {hoveredStockDetails.stock?.message}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47]">
-                          <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-purple-700 pb-2">
-                            <FaHistory className="text-purple-400 w-4 h-4" /> History
-                          </h4>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Report Date:</span>
+                        <span className="font-bold text-base text-blue-100">
+                          {hoveredStockDetails.stock?.earningsdate ? new Date(hoveredStockDetails.stock.earningsdate).toISOString().split('T')[0] : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                    <hr className="my-4 border-blue-800/40" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Quarter Dividend:</span>
+                        <span className="font-bold text-base text-emerald-300">
+                          ${hoveredStockDetails.stock?.dividend || 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Annual Dividend:</span>
+                        <span className="font-bold text-base text-emerald-300">
+                          {Number(hoveredStockDetails.stock?.dividend) && !isNaN(Number(hoveredStockDetails.stock?.dividend))
+                            ? `$${(Number(hoveredStockDetails.stock.dividend) * 4).toFixed(2)}`
+                            : 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Yield:</span>
+                        <span className="font-bold text-base text-emerald-300">
+                          {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
+                            ? 'N/A'
+                            : `${(Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)}%`}
+                        </span>
+                      </div>
+                    </div>
+                    <hr className="my-4 border-blue-800/40" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47] relative">
+                        <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-blue-700 pb-2">
+                          <FaChartLine className="text-blue-400 w-4 h-4" /> Payout Ratio
+                        </h4>
+                        <span className="absolute top-4 right-4 font-bold text-sm text-blue-300">
+                          {hoveredStockDetails.stock?.payoutRatio}%
+                        </span>
+                        <div className="space-y-2 text-xs">
                           <div className="p-2 bg-[#1a2236] rounded shadow-sm">
-                            <p className="text-xs text-blue-200 leading-relaxed">
-                              {hoveredStockDetails.stock?.hist}
+                            <p className="text-blue-200 leading-relaxed">
+                              {hoveredStockDetails.stock?.message}
                             </p>
                           </div>
                         </div>
                       </div>
+                      <div className="p-4 border border-blue-800 rounded-xl shadow bg-[#232e47]">
+                        <h4 className="text-base font-bold mb-3 flex items-center gap-2 text-blue-100 border-b border-purple-700 pb-2">
+                          <FaHistory className="text-purple-400 w-4 h-4" /> History
+                        </h4>
+                        <div className="p-2 bg-[#1a2236] rounded shadow-sm">
+                          <p className="text-xs text-blue-200 leading-relaxed">
+                            {hoveredStockDetails.stock?.hist}
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </TabsContent>
-                <TabsContent value="benchmark">
-                  {hoveredStockDetails?.stock?.Symbol ? (
-                    <Benchmark ticker={hoveredStockDetails.stock.Symbol} />
-                  ) : (
-                    <div className="border border-gray-700 rounded-xl shadow-lg p-8 flex flex-col items-center justify-center min-h-[200px] text-white">
-                      <h3 className="text-xl font-bold mb-2">Benchmark Data</h3>
-                      <p className="text-gray-300">No stock selected for benchmarking.</p>
-                    </div>
-                  )}
-                </TabsContent>
-              </Tabs>
-            </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="benchmark">
+                {hoveredStockDetails?.stock?.Symbol ? (
+                  <Benchmark ticker={hoveredStockDetails.stock.Symbol} />
+                ) : (
+                  <div className="border border-gray-700 rounded-xl shadow-lg p-8 flex flex-col items-center justify-center min-h-[200px] text-white">
+                    <h3 className="text-xl font-bold mb-2">Benchmark Data</h3>
+                    <p className="text-gray-300">No stock selected for benchmarking.</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
       )}
