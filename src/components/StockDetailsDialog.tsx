@@ -30,10 +30,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Papa, { ParseResult } from 'papaparse';
 import { filterDividendData, type DividendHistoryData } from '@/utils/dividend';
+
+interface CsvLogoData {
+  id: string;
+  Symbol: string;
+  company_name: string;
+  domain: string;
+  LogoURL: string;
+}
 import UpDown from "@/pages/UpDown";
 import DividendYield from "@/pages/DividendYield";
 import { AIAnalysisDialog } from "./AIAnalysisDialog";
-import SimilarCompaniesPopover from "./SimilarCompaniesPopover";
+import SimilarCompaniesButton from "./SimilarCompaniesButton";
 
 interface Stock {
   cik_str: string;
@@ -136,8 +144,8 @@ interface RankingData {
   industry: string;
   sector: string;
   Symbol: string;
-  score: string;
-  rank: string;
+  Score: number;
+  Rank: number;
 }
 
 interface RankingDisplayData {
@@ -427,9 +435,41 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const [selectedStock, setSelectedStock] = useState<SimilarCompany | null>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [csvLogos, setCsvLogos] = useState<Map<string, string>>(new Map());
 
   // Add state for AI Analysis popover
   const [aiAnalysisPopoverOpen, setAIAnalysisPopoverOpen] = useState(false);
+
+  // Function to fetch logos from CSV file
+  const fetchLogosFromCSV = async () => {
+    try {
+      const response = await fetch('/logos.csv');
+      const csvText = await response.text();
+      
+      Papa.parse(csvText, {
+        header: true,
+        complete: (results: Papa.ParseResult<CsvLogoData>) => {
+          const logoMap = new Map<string, string>();
+          results.data.forEach((row) => {
+            if (row.Symbol && row.LogoURL) {
+              logoMap.set(row.Symbol.toUpperCase(), row.LogoURL);
+            }
+          });
+          setCsvLogos(logoMap);
+        },
+        error: (error) => {
+          console.error('Error parsing CSV:', error);
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching CSV:', error);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch logos from CSV on component mount
+    fetchLogosFromCSV();
+  }, []);
 
   // Function to fetch all dividend data for a specific stock symbol
   const fetchDividendData = async (symbol: string) => {
@@ -533,13 +573,79 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
         if (data) {
           const formattedData: CompanyProfile = {
-            ...data,
+            symbol: data.symbol || '',
+            phone: data.phone || '',
+            website: data.website || '',
+            industry: data.industry || '',
+            sector: data.sector || '',
+            long_business_summary: data.long_business_summary || '',
+            fullTimeEmployees: String(data.full_time_employees || ''),
+            auditRisk: Number(data.audit_risk) || 0,
+            boardRisk: Number(data.board_risk) || 0,
+            compensationRisk: Number(data.compensation_risk) || 0,
+            shareHolderRightsRisk: Number(data.share_holder_rights_risk) || 0,
+            overallRisk: Number(data.overall_risk) || 0,
             dividendRate: Number(data.dividend_rate) || 0,
             dividendYield: Number(data.dividend_yield) || 0,
-            shareHolderRightsRisk: Number(data.shareholder_rights_risk) || 0,
-            overallRisk: Number(data.overall_risk) || 0,
-            dividendPayoutRatio: Number(data.dividend_payout_ratio) || 0,
+            dividendPayoutRatio: Number(data.payout_ratio) || 0,
+            exDividendDate: data.ex_dividend_date || '',
             payoutRatio: Number(data.payout_ratio) || 0,
+            fiveYearAvgDividendYield: Number(data.five_year_avg_dividend_yield) || 0,
+            beta: Number(data.beta) || 0,
+            trailingPE: Number(data.trailing_pe) || 0,
+            forwardPE: Number(data.forward_pe) || 0,
+            priceToSalesTrailing12Months: Number(data.price_to_sales_trailing_12_months) || 0,
+            fiftyDayAverage: Number(data.fifty_day_average) || 0,
+            twoHundredDayAverage: Number(data.two_hundred_day_average) || 0,
+            trailingAnnualDividendRate: Number(data.trailing_annual_dividend_rate) || 0,
+            trailingAnnualDividendYield: Number(data.trailing_annual_dividend_yield) || 0,
+            profitMargins: Number(data.profit_margins) || 0,
+            heldPercentInsiders: Number(data.held_percent_insiders) || 0,
+            heldPercentInstitutions: Number(data.held_percent_institutions) || 0,
+            bookValue: Number(data.book_value) || 0,
+            priceToBook: Number(data.price_to_book) || 0,
+            lastFiscalYearEnd: data.last_fiscal_year_end || '',
+            earningsQuarterlyGrowth: Number(data.earnings_quarterly_growth) || 0,
+            netIncomeToCommon: Number(data.net_income_to_common) || 0,
+            trailingEps: Number(data.trailing_eps) || 0,
+            forwardEps: Number(data.forward_eps) || 0,
+            enterpriseToRevenue: Number(data.enterprise_to_revenue) || 0,
+            enterpriseToEbitda: Number(data.enterprise_to_ebitda) || 0,
+            weekChange52: Number(data.week_change_52) || 0,
+            sandP52WeekChange: Number(data.sand_p_52_week_change) || 0,
+            lastDividendValue: Number(data.last_dividend_value) || 0,
+            lastDividendDate: data.last_dividend_date || '',
+            exchange: data.exchange || '',
+            quoteType: data.quote_type || '',
+            shortName: data.short_name || '',
+            targetHighPrice: Number(data.target_high_price) || 0,
+            targetLowPrice: Number(data.target_low_price) || 0,
+            targetMeanPrice: Number(data.target_mean_price) || 0,
+            targetMedianPrice: Number(data.target_median_price) || 0,
+            recommendationMean: Number(data.recommendation_mean) || 0,
+            recommendationKey: data.recommendation_key || '',
+            numberOfAnalystOpinions: Number(data.number_of_analyst_opinions) || 0,
+            totalCash: Number(data.total_cash) || 0,
+            totalCashPerShare: Number(data.total_cash_per_share) || 0,
+            ebitda: Number(data.ebitda) || 0,
+            totalDebt: Number(data.total_debt) || 0,
+            quickRatio: Number(data.quick_ratio) || 0,
+            currentRatio: Number(data.current_ratio) || 0,
+            totalRevenue: Number(data.total_revenue) || 0,
+            debtToEquity: Number(data.debt_to_equity) || 0,
+            revenuePerShare: Number(data.revenue_per_share) || 0,
+            returnOnAssets: Number(data.return_on_assets) || 0,
+            returnOnEquity: Number(data.return_on_equity) || 0,
+            grossProfits: Number(data.gross_profits) || 0,
+            freeCashflow: Number(data.free_cashflow) || 0,
+            operatingCashflow: Number(data.operating_cashflow) || 0,
+            earningsGrowth: Number(data.earnings_growth) || 0,
+            revenueGrowth: Number(data.revenue_growth) || 0,
+            grossMargins: Number(data.gross_margins) || 0,
+            ebitdaMargins: Number(data.ebitda_margins) || 0,
+            operatingMargins: Number(data.operating_margins) || 0,
+            trailingPegRatio: Number(data.trailing_peg_ratio) || 0,
+            address: data.address || ''
           };
           setCompanyProfile(formattedData);
         }
@@ -574,8 +680,11 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           setRankingCSVData({
             rank: rankingData.Rank?.toString() || 'N/A',
             score: formattedData,
-            sector: rankingData.sector || 'Unknown',
-            industry: rankingData.industry || 'Unknown'
+            industryRank: 'N/A',
+            totalStocks: 'N/A',
+            totalIndustryStocks: 'N/A',
+            sector: rankingData.sector?.toString() || 'Unknown',
+            industry: rankingData.industry?.toString() || 'Unknown'
           });
         }
       } catch (error) {
@@ -643,15 +752,22 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             console.error('Error fetching company names:', companyError);
           }
 
-          const formattedData: SimilarCompany[] = similarData.map(company => ({
-            symbol: company.symbol,
-            similar_symbol: company.similar_symbol,
-            similar_company: companyNameMap.get(company.similar_symbol?.toUpperCase()) || company.similar_symbol,
-            revenue_2025: company.revenue_2025 || 'N/A',
-            dividend_yield: company.dividend_yield || 'N/A',
-            risks: company.risks || 'N/A',
-            LogoURL: logoMap.get(company.similar_symbol?.toUpperCase()) || '/stock.avif'
-          }));
+          const formattedData: SimilarCompany[] = similarData.map(company => {
+            // Try to get logo from database first, then from CSV
+            let logoUrl = logoMap.get(company.similar_symbol?.toUpperCase()) || 
+                         csvLogos.get(company.similar_symbol?.toUpperCase()) || 
+                         '/stock.avif';
+            
+            return {
+              symbol: company.symbol,
+              similar_symbol: company.similar_symbol,
+              similar_company: companyNameMap.get(company.similar_symbol?.toUpperCase()) || company.similar_symbol,
+              revenue_2025: company.revenue_2025 || 'N/A',
+              dividend_yield: company.dividend_yield || 'N/A',
+              risks: company.risks || 'N/A',
+              LogoURL: logoUrl
+            };
+          });
           setSimilarCompanies(formattedData);
         } else {
           console.log('No similar companies found for', stock.Symbol);
@@ -668,7 +784,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     };
 
     fetchSimilarCompanies();
-  }, [stock?.Symbol, toast]);
+  }, [stock?.Symbol, toast, csvLogos]);
 
   useEffect(() => {
     const fetchPayoutHistory = async () => {
@@ -724,15 +840,26 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             .limit(1);
 
           if (error) throw error;
-          setLogoURL(data[0].LogoURL);
+          
+          // Try to get logo from database first, then from CSV
+          let logoUrl = data[0]?.LogoURL || 
+                       csvLogos.get(stock.Symbol.toUpperCase()) || 
+                       '/stock.avif';
+          
+          setLogoURL(logoUrl);
         } catch (error) {
           console.error('Error fetching logo:', error);
+          // Fallback to CSV logo
+          const csvLogo = csvLogos.get(stock.Symbol.toUpperCase());
+          if (csvLogo) {
+            setLogoURL(csvLogo);
+          }
         }
       }
     };
 
     fetchLogo();
-  }, [stock?.Symbol]);
+  }, [stock?.Symbol, csvLogos]);
 
   useEffect(() => {
     const fetchSimilarStocks = async () => {
@@ -752,15 +879,22 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
           if (logoError) throw logoError;
 
-          const combinedData = similarData.map(company => ({
-            ...company,
-            logo: logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL
-          }));
+          const combinedData = similarData.map(company => {
+            // Try to get logo from database first, then from CSV
+            const dbLogo = logoData.find(logo => logo.Symbol === company.similar_symbol)?.LogoURL;
+            const csvLogo = csvLogos.get(company.similar_symbol?.toUpperCase());
+            const logoUrl = dbLogo || csvLogo || '/stock.avif';
+            
+            return {
+              ...company,
+              logo: logoUrl
+            };
+          });
 
           setSimilarStocks(combinedData.map(item => ({
             symbol: item.symbol,
-            company: item.company_name,
-            description: item.description || '',
+            company: item.similar_symbol,
+            description: item.risks || '',
             logoUrl: item.logo || ''
           })));
         } catch (error) {
@@ -770,7 +904,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
     };
 
     fetchSimilarStocks();
-  }, [stock?.Symbol]);
+  }, [stock?.Symbol, csvLogos]);
 
   const filterDataByPeriod = (period: string) => {
     const periodMap: { [key: string]: number } = {
@@ -976,7 +1110,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           user_id: user.id,
           symbol: stock.Symbol,
           company_name: stock.title,
-          LogoURL: stock.LogoURL || '',
+          logoUrl: stock.LogoURL || '',
           next_dividend_date: stock['Ex-Dividend Date'] || null,
           is_favorite: false
         };
@@ -1411,11 +1545,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           <div className="flex items-center gap-4">
             <div className="text-xs text-gray-500">{currentDateTime.toLocaleString('en-US')}</div>
             <div className="flex items-center gap-2">
-              <SimilarCompaniesPopover
-                similarCompanies={similarCompanies}
-                setIsOpen={setIsOpen}
-                stock={stock}
-              />
+              <SimilarCompaniesButton stock={stock} />
             </div>
           </div>
         </DialogTitle>
@@ -1467,10 +1597,6 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         <Dialog
           open={!!selectedStock}
           onOpenChange={() => setSelectedStock(null)}
-          onPointerDownOutside={(e) => {
-            // Auto-close when clicking outside
-            setSelectedStock(null);
-          }}
         >
           <DialogContent className="sm:max-w-md">
             <DialogHeader>

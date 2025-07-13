@@ -33,6 +33,15 @@ import InsightPage from "./pages/insight";
 import HelpSupport from "./pages/HelpSupport";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+interface Stock {
+  cik_str: string;
+  Symbol: string;
+  title: string;
+  LogoURL?: string;
+  marketCap?: number;
+  dividendyield?: number;
+}
+
 function App() {
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
@@ -44,6 +53,8 @@ function App() {
 
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedStockForDetails, setSelectedStockForDetails] = useState<Stock | null>(null);
+  const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -58,6 +69,20 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Add event listener for openStockDetails
+  useEffect(() => {
+    const handleOpenStockDetails = (event: CustomEvent<Stock>) => {
+      setSelectedStockForDetails(event.detail);
+      setIsStockDetailsOpen(true);
+    };
+
+    window.addEventListener('openStockDetails', handleOpenStockDetails as EventListener);
+
+    return () => {
+      window.removeEventListener('openStockDetails', handleOpenStockDetails as EventListener);
+    };
   }, []);
 
   if (loading) {
@@ -104,6 +129,16 @@ function App() {
               <Route path="/dividendyield/:symbol?" element={<ProtectedRoute><DividendYield /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            
+            {/* Global StockDetailsDialog */}
+            {selectedStockForDetails && (
+              <StockDetailsDialog
+                stock={selectedStockForDetails}
+                isOpen={isStockDetailsOpen}
+                setIsOpen={setIsStockDetailsOpen}
+              />
+            )}
+            
             <Toaster />
           </TooltipProvider>
         </QueryClientProvider>

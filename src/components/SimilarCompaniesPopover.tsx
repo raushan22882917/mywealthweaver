@@ -1,17 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AlertTriangle } from "lucide-react";
-
-interface SimilarCompany {
-  symbol: string;
-  similar_symbol: string;
-  similar_company: string;
-  revenue_2025: string;
-  LogoURL: string;
-  logoUrl?: string;
-  dividend_yield?: string;
-  risks?: string;
-}
+import { fetchSimilarCompanies, SimilarCompanyWithLogo } from "@/services/similarCompaniesService";
 
 interface Stock {
   cik_str: string;
@@ -23,12 +13,48 @@ interface Stock {
 }
 
 interface SimilarCompaniesPopoverProps {
-  similarCompanies: SimilarCompany[];
   setIsOpen: (open: boolean) => void;
   stock: Stock;
 }
 
-const SimilarCompaniesPopover: React.FC<SimilarCompaniesPopoverProps> = ({ similarCompanies, setIsOpen, stock }) => {
+const SimilarCompaniesPopover: React.FC<SimilarCompaniesPopoverProps> = ({ setIsOpen, stock }) => {
+  const [similarCompanies, setSimilarCompanies] = useState<SimilarCompanyWithLogo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const loadSimilarCompanies = async () => {
+      if (!stock.Symbol) return;
+      
+      setIsLoading(true);
+      try {
+        const data = await fetchSimilarCompanies(stock.Symbol);
+        setSimilarCompanies(data);
+      } catch (error) {
+        console.error('Error fetching similar companies:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadSimilarCompanies();
+  }, [stock.Symbol]);
+
+  if (isLoading) {
+    return (
+      <div className="text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md">
+        Loading similar companies...
+      </div>
+    );
+  }
+
+  if (similarCompanies.length === 0) {
+    return (
+      <div className="text-xs font-medium bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-md">
+        No similar companies found
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-md">Similar Companies</div>
