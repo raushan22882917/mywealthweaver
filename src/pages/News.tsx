@@ -69,7 +69,8 @@ const News = () => {
               sentiment_score: item.sentiment_score === 'N/A' ? '0' : item.sentiment_score,
               sentiment: item.sentiment,
               id: item.id || index + 1
-            } as NewsItem));
+            } as NewsItem))
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()); // Sort by date descending
 
           setNewsData(processedNews);
 
