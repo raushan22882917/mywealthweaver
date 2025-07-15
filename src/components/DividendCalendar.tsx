@@ -29,6 +29,27 @@ interface DividendEvent {
 
 const dayNames = ["MON", "TUE", "WED", "THU", "FRI"];
 
+const monthToImage: Record<string, string> = {
+  January: "/calendar-backgrounds/january.jpg",
+  February: "/calendar-backgrounds/february.jpg",
+  March: "/calendar-backgrounds/march.jpg",
+  April: "/calendar-backgrounds/april.jpg",
+  May: "/calendar-backgrounds/may.jpg",
+  June: "/calendar-backgrounds/june.jpg",
+  July: "/calendar-backgrounds/july.jpg",
+  August: "/calendar-backgrounds/august.jpg",
+  September: "/calendar-backgrounds/september.jpg",
+  October: "/calendar-backgrounds/october.jpg",
+  November: "/calendar-backgrounds/november.jpg",
+  December: "/calendar-backgrounds/december.jpg",
+};
+
+interface Holiday {
+  date: string;
+  name: string;
+  description: string;
+}
+
 // Robust CSV parsing for logo map
 function parseCSVLine(line: string) {
   // Handles quoted values and commas inside quotes
@@ -66,6 +87,7 @@ const DividendCalendar = () => {
   const [logoMap, setLogoMap] = useState<Record<string, string>>({});
   const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
   const [stockDetailsData, setStockDetailsData] = useState<any>(null);
+  const [holidays, setHolidays] = useState<Holiday[]>([]);
 
   // Fetch and parse logos.csv
   useEffect(() => {
@@ -125,6 +147,20 @@ const DividendCalendar = () => {
     // Re-run when logoMap changes
   }, [logoMap]);
 
+  // Fetch holidays from holiday.json
+  useEffect(() => {
+    const fetchHolidays = async () => {
+      try {
+        const response = await fetch("/calender/holiday.json");
+        const data = await response.json();
+        setHolidays(data.holidays || []);
+      } catch (e) {
+        console.error("Error loading holiday.json", e);
+      }
+    };
+    fetchHolidays();
+  }, []);
+
   const handlePreviousMonth = () => {
     const newMonth = new Date(month);
     newMonth.setMonth(newMonth.getMonth() - 1);
@@ -162,6 +198,12 @@ const DividendCalendar = () => {
     return dividendEvents.filter(event => event.ex_dividend_date === dateKey);
   };
 
+  // Helper to check if a date is a holiday
+  const getHolidayForDate = (date: Date) => {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    return holidays.find(h => h.date === dateKey);
+  };
+
   const renderCalendarGrid = () => {
     const daysInMonth = getDaysInMonth(month);
     const calendarDays = [];
@@ -196,80 +238,79 @@ const DividendCalendar = () => {
       );
       const isToday = isSameDay(currentDate, new Date());
       const hasEvents = events.length > 0;
+      const holiday = getHolidayForDate(currentDate);
 
       return (
-        <Card 
+        <div
           key={dateKey}
-          className={`
-            relative overflow-hidden h-full min-h-[180px] transition-all duration-200
-            ${isToday ? 'bg-purple-900/20 border-purple-500/70' : 'bg-gray-900/80 border-gray-800'}
-            ${hasEvents ? 'shadow-md shadow-purple-500/5' : ''}
-            hover:shadow-lg hover:shadow-purple-500/10 group
-          `}
+          className={`relative p-3 min-h-[200px] transition-all duration-300 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden`}
         >
-          <CardContent className="p-3 h-full">
-            <div className="flex justify-between items-center mb-3">
-              <div className={`
-                h-8 w-8 flex items-center justify-center rounded-full font-medium
-                ${isToday ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-200'}
-                ${hasEvents ? 'ring-2 ring-purple-500/40 ring-offset-1 ring-offset-gray-900' : ''}
-              `}>
-                {day}
-              </div>
-              
-              <span className={`
-                text-xs font-medium px-2 py-1 rounded-full
-                ${isToday ? 'bg-purple-500/20 text-purple-300' : 'bg-gray-800 text-gray-400'}
-              `}>
-                {format(currentDate, 'EEE')}
-              </span>
-            </div>
-
-            {hasEvents && (
-              <div className="space-y-3">
-                {/* Grid of first 6 stocks */}
-                <div className="grid grid-cols-3 gap-2">
-                  {(expandedDay === dateKey ? events : events.slice(0, 6)).map((event, index) => {
-                    return (
-                      <div
-                        key={`${event.id}-${index}`}
-                        onClick={() => handleEventClick(event)}
-                        className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
-                                 hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
-                      >
-                        <div className="w-10 h-10 flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
-                          <img
-                            src={event.LogoURL || '/stock.avif'}
-                            alt={event.Symbol}
-                            className="w-full h-full object-contain p-1"
-                            onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
-                          />
-                        </div>
-                        <p className="text-xs font-semibold text-gray-100 text-center">
-                          {event.Symbol}
-                        </p>
-                      </div>
-                    );
-                  })}
+          <div
+            className={`relative z-10 h-full rounded-lg backdrop-blur-sm ${
+              isToday ? 'bg-blue-50/70 dark:bg-blue-900/30' :
+              holiday ? 'bg-red-50/70 dark:bg-red-900/30' :
+              'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
+            }`}
+          >
+            <div className="flex justify-between items-start">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${
+                    isToday
+                      ? 'bg-purple-100/90 text-purple-700 dark:bg-purple-900/80 dark:text-purple-300'
+                      : 'bg-gray-100/90 text-gray-700 dark:bg-gray-800/80 dark:text-gray-300'
+                  }`}>
+                    {day}
+                  </span>
                 </div>
-
-                {/* Show More button if there are more than 6 stocks */}
-                {events.length > 6 && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowMoreDialogDay(dateKey);
-                    }}
-                    className="mt-2 text-xs text-purple-400 hover:text-purple-300 transition-colors w-full text-center flex items-center justify-center gap-1 py-1 px-2 rounded-md bg-gray-800/50 hover:bg-gray-800"
-                  >
-                    <Plus className="w-3 h-3" />
-                    Show {events.length - 6} more
-                  </button>
+                {holiday && (
+                  <div className="w-[200px] h-[150px] ml-2 mt-2 p-3 rounded-lg bg-red-100/90 dark:bg-red-900/50 border border-red-300 dark:border-red-700 shadow-sm">
+                    <p className="text-sm font-semibold text-red-800 dark:text-red-200">{holiday.name}</p>
+                    <p className="text-xs text-red-700 dark:text-red-400 mt-1">{holiday.description}</p>
+                  </div>
                 )}
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-3">
+              {(expandedDay === dateKey ? events : events.slice(0, 6)).map((event, index) => (
+                <div key={`${event.id}-${index}`} className="flex justify-center">
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => handleEventClick(event)}
+                  >
+                    <div className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}>
+                      <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
+                        <img
+                          src={event.LogoURL || '/stock.avif'}
+                          alt={event.Symbol}
+                          className="w-full h-full object-contain"
+                          loading="lazy"
+                          onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
+                        />
+                      </div>
+                      <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                        <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+                          {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {events.length > 6 && (
+                <div className="w-[300px] rounded-lg cursor-pointer transition-colors mt-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 px-2">
+                  <button
+                    className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-500 hover:text-blue-400 transition-colors rounded-lg border border-blue-500/30 hover:border-blue-400 bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-500/5 dark:hover:bg-blue-500/10"
+                    onClick={e => { e.stopPropagation(); setShowMoreDialogDay(dateKey); }}
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Show {events.length - 6} more stocks</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       );
     };
 
@@ -284,16 +325,16 @@ const DividendCalendar = () => {
     }
 
     return (
-      <div className="grid grid-cols-5 gap-4">
-        {/* Header Row */}
+      <div className="grid grid-cols-5 gap-1 md:gap-2 mb-2">
         {dayNames.map(day => (
-          <div key={day} className="text-center py-2 font-semibold text-gray-400 
-                                  bg-gray-900/70 rounded-lg backdrop-blur-sm border border-gray-800">
+          <div
+            key={day}
+            className="text-center font-semibold p-2 bg-gray-50/80 dark:bg-gray-800/50 text-sm rounded-lg text-gray-600 dark:text-gray-400 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-sm"
+          >
             {day}
           </div>
         ))}
         
-        {/* Calendar Days */}
         {calendarDays.map(day => renderCalendarCell(day))}
       </div>
     );
@@ -309,190 +350,190 @@ const DividendCalendar = () => {
     setIsStockDetailsOpen(true);
   };
 
+  // Set background image for the selected month
+  const backgroundImage = monthToImage[selectedMonth] || monthToImage[format(new Date(), 'MMMM')];
+
   return (
-    <div className="p-4 h-full bg-gray-950 text-white">
-      <div className="flex items-center justify-between mb-6 bg-gray-900/70 p-4 rounded-xl border border-gray-800 shadow-md">
-        <h2 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">{`${selectedMonth} ${year}`}</h2>
-        <div className="flex items-center space-x-2">
+    <div
+      className="p-4 h-full text-white relative"
+      style={{
+        minHeight: '100vh',
+      }}
+    >
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6  p-4 rounded-xl border border-gray-800 shadow-md">
+          <h2 className="text-2xl font-bold text-transparent  from-purple-400 to-indigo-400">{`${selectedMonth} ${year}`}</h2>
           <div className="flex items-center space-x-2">
-            <Select value={year} onValueChange={setYear}>
-              <SelectTrigger className="w-[90px] bg-gray-800 border-gray-700">
-                <SelectValue placeholder="Year" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                {Array.from({ length: 5 }, (_, i) => (
-                  <SelectItem 
-                    key={new Date().getFullYear() - 2 + i} 
-                    value={(new Date().getFullYear() - 2 + i).toString()}
-                    className="text-white hover:bg-gray-700"
-                  >
-                    {new Date().getFullYear() - 2 + i}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center space-x-2">
+              <Select value={year} onValueChange={setYear}>
+                <SelectTrigger className="w-[90px] bg-gray-800 border-gray-700">
+                  <SelectValue placeholder="Year" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <SelectItem 
+                      key={new Date().getFullYear() - 2 + i} 
+                      value={(new Date().getFullYear() - 2 + i).toString()}
+                      className="text-white hover:bg-gray-700"
+                    >
+                      {new Date().getFullYear() - 2 + i}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-[120px] bg-gray-800 border-gray-700">
+                  <SelectValue placeholder="Month" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  {['January', 'February', 'March', 'April', 'May', 'June', 
+                    'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
+                    <SelectItem key={month} value={month} className="text-white hover:bg-gray-700">
+                      {month}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={view} onValueChange={setView}>
+                <SelectTrigger className="w-[120px] bg-gray-800 border-gray-700">
+                  <SelectValue placeholder="View" />
+                </SelectTrigger>
+                <SelectContent className="bg-gray-800 border-gray-700">
+                  <SelectItem value="Monthly View" className="text-white hover:bg-gray-700">Monthly View</SelectItem>
+                  <SelectItem value="Weekly View" className="text-white hover:bg-gray-700">Weekly View</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-[120px] bg-gray-800 border-gray-700">
-                <SelectValue placeholder="Month" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                {['January', 'February', 'March', 'April', 'May', 'June', 
-                  'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
-                  <SelectItem key={month} value={month} className="text-white hover:bg-gray-700">
-                    {month}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={view} onValueChange={setView}>
-              <SelectTrigger className="w-[120px] bg-gray-800 border-gray-700">
-                <SelectValue placeholder="View" />
-              </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="Monthly View" className="text-white hover:bg-gray-700">Monthly View</SelectItem>
-                <SelectItem value="Weekly View" className="text-white hover:bg-gray-700">Weekly View</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="flex space-x-1">
-            <Button variant="outline" size="icon" onClick={handlePreviousMonth} className="bg-gray-800 border-gray-700 hover:bg-gray-700">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="outline" size="icon" onClick={handleNextMonth} className="bg-gray-800 border-gray-700 hover:bg-gray-700">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div className="flex space-x-1">
+              <Button variant="outline" size="icon" onClick={handlePreviousMonth} className="bg-gray-800 border-gray-700 hover:bg-gray-700">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon" onClick={handleNextMonth} className="bg-gray-800 border-gray-700 hover:bg-gray-700">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {renderCalendarGrid()}
+        {renderCalendarGrid()}
 
-      <Dialog open={!!showMoreDialogDay} onOpenChange={() => setShowMoreDialogDay(null)}>
-        <DialogContent className="w-full max-w-3xl h-[70vh] overflow-y-auto bg-gray-900 text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
-          <DialogHeader>
-            <DialogTitle>
-              Events on {showMoreDialogDay && format(parseISO(showMoreDialogDay), 'MMMM d, yyyy')}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-4 md:grid-cols-6 gap-4 mt-4">
-            {showMoreDialogDay &&
-              getEventsForDateKey(showMoreDialogDay).map((event, index) => {
-                return (
-                  <div
-                    key={`${event.id}-${index}`}
-                    onClick={() => handleEventClick(event)}
-                    className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
-                              hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
-                  >
-                    <div className="w-12 h-12 flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
-                      <img
-                        src={event.LogoURL || '/stock.avif'}
-                        alt={event.Symbol}
-                        className="w-full h-full object-contain p-1"
-                        onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
-                      />
+        <Dialog open={!!showMoreDialogDay} onOpenChange={() => setShowMoreDialogDay(null)}>
+          <DialogContent className="w-full max-w-3xl h-[70vh] overflow-y-auto bg-gray-900 text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
+            <DialogHeader>
+              <DialogTitle>
+                Events on {showMoreDialogDay && format(parseISO(showMoreDialogDay), 'MMMM d, yyyy')}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="grid grid-cols-4 md:grid-cols-6 gap-4 mt-4">
+              {showMoreDialogDay &&
+                getEventsForDateKey(showMoreDialogDay).map((event, index) => {
+                  return (
+                    <div
+                      key={`${event.id}-${index}`}
+                      onClick={() => handleEventClick(event)}
+                      className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
+                                hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
+                    >
+                      <div className="w-12 h-12 flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
+                        <img
+                          src={event.LogoURL || '/stock.avif'}
+                          alt={event.Symbol}
+                          className="w-full h-full object-contain p-1"
+                          onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
+                        />
+                      </div>
+                      <p className="text-xs font-semibold text-gray-100 text-center">
+                        {event.Symbol}
+                      </p>
                     </div>
-                    <p className="text-xs font-semibold text-gray-100 text-center">
-                      {event.Symbol}
-                    </p>
-                  </div>
-                );
-              })}
-          </div>
-        </DialogContent>
-      </Dialog>
+                  );
+                })}
+            </div>
+          </DialogContent>
+        </Dialog>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg  text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
-          {selectedEvent && (
-            <>
-              <DialogHeader>
-                <div className="flex items-center gap-3 mb-2">
-                  <img 
-                    src={selectedEvent.LogoURL || '/stock.avif'}
-                    alt={selectedEvent.Symbol} 
-                    className="w-12 h-12 p-1 border border-gray-300"
-                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
-                  />
-                  <div>
-                    <DialogTitle className="text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
-                      {selectedEvent.Symbol}
-                    </DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                      {selectedEvent.company_name || selectedEvent.Symbol}
-                    </DialogDescription>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-lg  text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
+            {selectedEvent && (
+              <>
+                <DialogHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                    <img 
+                      src={selectedEvent.LogoURL || '/stock.avif'}
+                      alt={selectedEvent.Symbol} 
+                      className="w-12 h-12 p-1 border border-gray-300"
+                      onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
+                    />
+                    <div>
+                      <DialogTitle className="text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
+                        {selectedEvent.Symbol}
+                      </DialogTitle>
+                      <DialogDescription className="text-gray-400">
+                        {selectedEvent.company_name || selectedEvent.Symbol}
+                      </DialogDescription>
+                    </div>
+                  </div>
+                </DialogHeader>
+                {/* Earnings/Revenue Table */}
+                <div className="w-full mt-4 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                  <div className="grid grid-cols-4 gap-2 items-center mb-2">
+                    <div></div>
+                    <div className="font-semibold text-sm text-gray-300 text-center">Low</div>
+                    <div className="font-semibold text-sm text-gray-300 text-center">High</div>
+                    <div className="font-semibold text-sm text-gray-300 text-center">Average</div>
+                  </div>
+                  {/* Earnings Row */}
+                  <div className="grid grid-cols-4 gap-2 items-center py-2 border-b border-gray-700">
+                    <div className="flex items-center gap-2 font-medium text-sm">
+                      <span className="bg-purple-600 text-white px-2 py-1 rounded flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zm0 0V4m0 16v-4m8-4a8 8 0 11-16 0 8 8 0 0116 0z" /></svg>
+                        Earnings
+                      </span>
+                    </div>
+                    <div className="text-center text-white">{selectedEvent.earnings_low !== undefined && selectedEvent.earnings_low !== null ? `$${selectedEvent.earnings_low.toFixed(2)}` : 'N/A'}</div>
+                    <div className="text-center text-white">{selectedEvent.earnings_high !== undefined && selectedEvent.earnings_high !== null ? `$${selectedEvent.earnings_high.toFixed(2)}` : 'N/A'}</div>
+                    <div className="text-center text-white">{selectedEvent.earnings_average !== undefined && selectedEvent.earnings_average !== null ? `$${selectedEvent.earnings_average.toFixed(2)}` : 'N/A'}</div>
+                  </div>
+                  {/* Revenue Row */}
+                  <div className="grid grid-cols-4 gap-2 items-center py-2">
+                    <div className="flex items-center gap-2 font-medium text-sm">
+                      <span className="bg-blue-600 text-white px-2 py-1 rounded flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3v18h18M18 17V9a2 2 0 00-2-2H7a2 2 0 00-2 2v8m13 0h-4m-4 0H5" /></svg>
+                        Revenue
+                      </span>
+                    </div>
+                    <div className="text-center text-white">{selectedEvent.revenue_low !== undefined && selectedEvent.revenue_low !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_low) : 'N/A'}</div>
+                    <div className="text-center text-white">{selectedEvent.revenue_high !== undefined && selectedEvent.revenue_high !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_high) : 'N/A'}</div>
+                    <div className="text-center text-white">{selectedEvent.revenue_average !== undefined && selectedEvent.revenue_average !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_average) : 'N/A'}</div>
                   </div>
                 </div>
-              </DialogHeader>
-              {/* Earnings/Revenue Table */}
-              <div className="w-full mt-4 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-                <div className="grid grid-cols-4 gap-2 items-center mb-2">
-                  <div></div>
-                  <div className="font-semibold text-sm text-gray-300 text-center">Low</div>
-                  <div className="font-semibold text-sm text-gray-300 text-center">High</div>
-                  <div className="font-semibold text-sm text-gray-300 text-center">Average</div>
+               
+                <div className="mt-4 flex justify-end">
+                  <Button 
+                    variant="outline" 
+                    className="bg-gray-800 border-gray-700 hover:bg-purple-900/30 hover:text-purple-300 transition-all"
+                    onClick={() => handleViewDetails(selectedEvent)}
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View Details
+                  </Button>
                 </div>
-                {/* Earnings Row */}
-                <div className="grid grid-cols-4 gap-2 items-center py-2 border-b border-gray-700">
-                  <div className="font-medium text-sm text-purple-300">Earnings</div>
-                  <div className="text-center text-white">{selectedEvent.earnings_low !== undefined && selectedEvent.earnings_low !== null ? `$${selectedEvent.earnings_low.toFixed(2)}` : 'N/A'}</div>
-                  <div className="text-center text-white">{selectedEvent.earnings_high !== undefined && selectedEvent.earnings_high !== null ? `$${selectedEvent.earnings_high.toFixed(2)}` : 'N/A'}</div>
-                  <div className="text-center text-white">{selectedEvent.earnings_average !== undefined && selectedEvent.earnings_average !== null ? `$${selectedEvent.earnings_average.toFixed(2)}` : 'N/A'}</div>
-                </div>
-                {/* Revenue Row */}
-                <div className="grid grid-cols-4 gap-2 items-center py-2">
-                  <div className="font-medium text-sm text-blue-300">Revenue</div>
-                  <div className="text-center text-white">{selectedEvent.revenue_low !== undefined && selectedEvent.revenue_low !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_low) : 'N/A'}</div>
-                  <div className="text-center text-white">{selectedEvent.revenue_high !== undefined && selectedEvent.revenue_high !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_high) : 'N/A'}</div>
-                  <div className="text-center text-white">{selectedEvent.revenue_average !== undefined && selectedEvent.revenue_average !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_average) : 'N/A'}</div>
-                </div>
-              </div>
-              {/* Dates Row */}
-              <div className="grid grid-cols-3 gap-4 mt-4 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-gray-400">Dividend Date</h4>
-                  <p className="font-medium text-white">
-                    {selectedEvent.dividend_date ? format(parseISO(selectedEvent.dividend_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-gray-400">Ex-Dividend Date</h4>
-                  <p className="font-medium text-white">
-                    {selectedEvent.ex_dividend_date ? format(parseISO(selectedEvent.ex_dividend_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-gray-400">Earnings Date</h4>
-                  <p className="font-medium text-white">
-                    {selectedEvent.earnings_date ? format(parseISO(selectedEvent.earnings_date), 'MMMM d, yyyy') : 'N/A'}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 flex justify-end">
-                <Button 
-                  variant="outline" 
-                  className="bg-gray-800 border-gray-700 hover:bg-purple-900/30 hover:text-purple-300 transition-all"
-                  onClick={() => handleViewDetails(selectedEvent)}
-                >
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  View Details
-                </Button>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-      {/* Stock Details Dialog */}
-      {stockDetailsData && (
-        <StockDetailsDialog
-          stock={stockDetailsData}
-          isOpen={isStockDetailsOpen}
-          setIsOpen={setIsStockDetailsOpen}
-        />
-      )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
+        {/* Stock Details Dialog */}
+        {stockDetailsData && (
+          <StockDetailsDialog
+            stock={stockDetailsData}
+            isOpen={isStockDetailsOpen}
+            setIsOpen={setIsStockDetailsOpen}
+          />
+        )}
+      </div>
     </div>
   );
 };

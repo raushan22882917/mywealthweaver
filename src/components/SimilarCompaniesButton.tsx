@@ -316,10 +316,7 @@ const SimilarCompaniesButton: React.FC<SimilarCompaniesButtonProps> = ({ stock }
                             <div className="flex items-center justify-center gap-1">
                               <AlertTriangle className="w-4 h-4 text-orange-500" />
                               <span className="text-xs text-gray-600 dark:text-gray-400">
-                                {company.risks && company.risks.length > 20 
-                                  ? company.risks.substring(0, 20) + '...' 
-                                  : company.risks || 'Low'
-                                }
+                                {company.risks || 'Low'}
                               </span>
                             </div>
                           </td>
