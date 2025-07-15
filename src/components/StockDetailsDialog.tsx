@@ -1331,7 +1331,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     />
                     {/* Y-Axis */}
                     <YAxis
-                      tick={{ fontSize: 12, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
+                      tick={{ fontSize: 14, fill: theme === 'dark' ? '#9CA3AF' : '#4B5563' }}
                       tickFormatter={(value) => `$${value.toFixed(2)}`}
                       axisLine={{ stroke: theme === 'dark' ? '#374151' : '#e5e7eb' }}
                       tickLine={false}
@@ -1352,7 +1352,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                     {/* Bar Graph */}
                     <Bar
                       dataKey="dividends"
-                      fill={theme === 'dark' ? '#6366f1' : '#4f46e5'}
+                      fill={theme === 'dark' ? '#FFD600' : '#1E90FF'} // Bright yellow for dark, bright blue for light
                       name="Dividend Amount"
                       radius={[6, 6, 0, 0]}
                     >
@@ -1361,7 +1361,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
                         position="top"
                         formatter={(value: number) => `$${value.toFixed(2)}`}
                         style={{
-                          fontSize: '10px',
+                          fontSize: '14px',
                           fill: theme === 'dark' ? '#9CA3AF' : '#4B5563'
                         }}
                       />

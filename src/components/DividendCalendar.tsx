@@ -204,123 +204,123 @@ const DividendCalendar = () => {
     return holidays.find(h => h.date === dateKey);
   };
 
-  const renderCalendarGrid = () => {
-    const daysInMonth = getDaysInMonth(month);
-    const calendarDays = [];
+  const renderCalendarCell = (
+    day: number,
+    month: Date,
+    expandedDay: string | null,
+    handleEventClick: (event: DividendEvent) => void,
+    getEventsForDate: (date: string) => DividendEvent[],
+    getHolidayForDate: (date: Date) => Holiday | undefined,
+    setShowMoreDialogDay: (dateKey: string) => void
+  ) => {
+    const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
+    const dateKey = format(currentDate, 'yyyy-MM-dd');
+    // Sort events alphabetically by Symbol
+    const events = getEventsForDate(dateKey).sort((a, b) =>
+      (a.Symbol || '').localeCompare(b.Symbol || '')
+    );
+    const isToday = isSameDay(currentDate, new Date());
+    const holiday = getHolidayForDate(currentDate);
 
-    // Get events for the current month and organize them by ex_dividend_date
-    const eventsByDate = dividendEvents.reduce((acc, event) => {
-      if (!event.ex_dividend_date) return acc;
-      const eventDate = new Date(event.ex_dividend_date);
-      if (eventDate.getMonth() === month.getMonth() && 
-          eventDate.getFullYear() === month.getFullYear()) {
-        const dateKey = format(eventDate, 'yyyy-MM-dd');
-        if (!acc[dateKey]) {
-          acc[dateKey] = [];
-        }
-        acc[dateKey].push(event);
-      }
-      return acc;
-    }, {} as Record<string, DividendEvent[]>);
-
-    // Helper function to get events for a specific date (by ex_dividend_date)
-    const getEventsForDate = (date: string) => {
-      return eventsByDate[date] || [];
-    };
-
-    // Render calendar cell with improved UI
-    const renderCalendarCell = (day: number) => {
-      const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
-      const dateKey = format(currentDate, 'yyyy-MM-dd');
-      // Sort events alphabetically by Symbol
-      const events = getEventsForDate(dateKey).sort((a, b) => 
-        (a.Symbol || '').localeCompare(b.Symbol || '')
-      );
-      const isToday = isSameDay(currentDate, new Date());
-      const hasEvents = events.length > 0;
-      const holiday = getHolidayForDate(currentDate);
-
-      return (
+    return (
+      <div
+        key={dateKey}
+        className={`relative p-3 min-h-[200px] transition-all duration-300 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden`}
+      >
         <div
-          key={dateKey}
-          className={`relative p-3 min-h-[200px] transition-all duration-300 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden`}
+          className={`relative z-10 h-full rounded-lg backdrop-blur-sm ${
+            isToday ? 'bg-blue-50/70 dark:bg-blue-900/30' :
+            holiday ? 'bg-red-50/70 dark:bg-red-900/30' :
+            'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
+          }`}
         >
-          <div
-            className={`relative z-10 h-full rounded-lg backdrop-blur-sm ${
-              isToday ? 'bg-blue-50/70 dark:bg-blue-900/30' :
-              holiday ? 'bg-red-50/70 dark:bg-red-900/30' :
-              'hover:bg-gray-50/70 dark:hover:bg-gray-800/30'
-            }`}
-          >
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${
-                    isToday
-                      ? 'bg-purple-100/90 text-purple-700 dark:bg-purple-900/80 dark:text-purple-300'
-                      : 'bg-gray-100/90 text-gray-700 dark:bg-gray-800/80 dark:text-gray-300'
-                  }`}>
-                    {day}
-                  </span>
-                </div>
-                {holiday && (
-                  <div className="w-[200px] h-[150px] ml-2 mt-2 p-3 rounded-lg bg-red-100/90 dark:bg-red-900/50 border border-red-300 dark:border-red-700 shadow-sm">
-                    <p className="text-sm font-semibold text-red-800 dark:text-red-200">{holiday.name}</p>
-                    <p className="text-xs text-red-700 dark:text-red-400 mt-1">{holiday.description}</p>
-                  </div>
-                )}
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${
+                  isToday
+                    ? 'bg-purple-100/90 text-purple-700 dark:bg-purple-900/80 dark:text-purple-300'
+                    : 'bg-gray-100/90 text-gray-700 dark:bg-gray-800/80 dark:text-gray-300'
+                }`}>
+                  {day}
+                </span>
               </div>
-            </div>
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {(expandedDay === dateKey ? events : events.slice(0, 6)).map((event, index) => (
-                <div key={`${event.id}-${index}`} className="flex justify-center">
-                  <div
-                    className="cursor-pointer"
-                    onClick={() => handleEventClick(event)}
-                  >
-                    <div className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}>
-                      <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
-                        <img
-                          src={event.LogoURL || '/stock.avif'}
-                          alt={event.Symbol}
-                          className="w-full h-full object-contain"
-                          loading="lazy"
-                          onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
-                        />
-                      </div>
-                      <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                        <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
-                          {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {events.length > 6 && (
-                <div className="w-[300px] rounded-lg cursor-pointer transition-colors mt-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 px-2">
-                  <button
-                    className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-500 hover:text-blue-400 transition-colors rounded-lg border border-blue-500/30 hover:border-blue-400 bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-500/5 dark:hover:bg-blue-500/10"
-                    onClick={e => { e.stopPropagation(); setShowMoreDialogDay(dateKey); }}
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Show {events.length - 6} more stocks</span>
-                  </button>
+              {holiday && (
+                <div className="w-[200px] h-[150px] ml-2 mt-2 p-3 rounded-lg bg-red-100/90 dark:bg-red-900/50 border border-red-300 dark:border-red-700 shadow-sm">
+                  <p className="text-sm font-semibold text-red-800 dark:text-red-200">{holiday.name}</p>
+                  <p className="text-xs text-red-700 dark:text-red-400 mt-1">{holiday.description}</p>
                 </div>
               )}
             </div>
           </div>
+          <div className="grid grid-cols-3 gap-2 mt-3">
+            {(expandedDay === dateKey ? events : events.slice(0, 6)).map((event, index) => (
+              <div key={`${event.id}-${index}`} className="flex justify-center">
+                <div
+                  className="cursor-pointer"
+                  onClick={() => handleEventClick(event)}
+                >
+                  <div className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}>
+                    <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
+                      <img
+                        src={event.LogoURL || '/stock.avif'}
+                        alt={event.Symbol}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                        onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
+                      />
+                    </div>
+                    <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+                      <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+                        {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {events.length > 6 && (
+              <div className="w-[300px] rounded-lg cursor-pointer transition-colors mt-2 hover:bg-gray-100 dark:hover:bg-gray-800/50 px-2">
+                <button
+                  className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-blue-500 hover:text-blue-400 transition-colors rounded-lg border border-blue-500/30 hover:border-blue-400 bg-blue-500/10 hover:bg-blue-500/20 dark:bg-blue-500/5 dark:hover:bg-blue-500/10"
+                  onClick={e => { e.stopPropagation(); setShowMoreDialogDay(dateKey); }}
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Show {events.length - 6} more stocks</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
-      );
-    };
+      </div>
+    );
+  };
 
-    // Generate calendar days (excluding weekends)
+  const renderCalendarGrid = () => {
+    const daysInMonth = getDaysInMonth(month);
+    const calendarCells = [];
+
+    // Get the weekday (0=Sunday, 1=Monday, ..., 6=Saturday) of the 1st of the month
+    const firstDayOfMonth = new Date(month.getFullYear(), month.getMonth(), 1);
+    let firstWeekday = getDay(firstDayOfMonth); // 0=Sunday, 1=Monday, ...
+    // Adjust so Monday=0, ..., Friday=4 (skip weekends)
+    // If Sunday (0), treat as 6 (after Friday)
+    if (firstWeekday === 0) firstWeekday = 7;
+    // Number of empty cells before the first day (Monday=1, so 0 empty; Tuesday=2, so 1 empty, ...)
+    const emptyCells = firstWeekday - 1;
+
+    // Add empty cells for alignment
+    for (let i = 0; i < emptyCells && i < 5; i++) {
+      calendarCells.push(<div key={`empty-${i}`}></div>);
+    }
+
+    // Add day cells (only weekdays)
     for (let day = 1; day <= daysInMonth; day++) {
       const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
       const dayOfWeek = getDay(currentDate);
-      
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
-        calendarDays.push(day);
+      // Only add Monday (1) to Friday (5)
+      if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+        calendarCells.push(renderCalendarCell(day, month, expandedDay, handleEventClick, getEventsForDateKey, getHolidayForDate, setShowMoreDialogDay));
       }
     }
 
@@ -334,8 +334,7 @@ const DividendCalendar = () => {
             {day}
           </div>
         ))}
-        
-        {calendarDays.map(day => renderCalendarCell(day))}
+        {calendarCells}
       </div>
     );
   };
@@ -420,40 +419,73 @@ const DividendCalendar = () => {
 
         {renderCalendarGrid()}
 
-        <Dialog open={!!showMoreDialogDay} onOpenChange={() => setShowMoreDialogDay(null)}>
-          <DialogContent className="w-full max-w-3xl h-[70vh] overflow-y-auto bg-gray-900 text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
-            <DialogHeader>
-              <DialogTitle>
-                Events on {showMoreDialogDay && format(parseISO(showMoreDialogDay), 'MMMM d, yyyy')}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="grid grid-cols-4 md:grid-cols-6 gap-4 mt-4">
-              {showMoreDialogDay &&
-                getEventsForDateKey(showMoreDialogDay).map((event, index) => {
+        {/* Show More Stocks Popup (refactored for overlay style) */}
+        {showMoreDialogDay && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowMoreDialogDay(null)}
+            tabIndex={-1}
+            aria-modal="true"
+            role="dialog"
+          >
+            <div
+              className="relative bg-[#232a36] text-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[80vh] overflow-y-auto"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-8 pt-8 pb-2">
+                <div>
+                  <h2 className="text-2xl font-bold text-white">Dividend Stocks</h2>
+                  <p className="text-sm text-gray-400 mt-1">{getEventsForDateKey(showMoreDialogDay).length} stocks found</p>
+                </div>
+                <button
+                  onClick={() => setShowMoreDialogDay(null)}
+                  className="text-gray-400 hover:text-white transition-colors text-2xl"
+                  aria-label="Close"
+                >
+                  <X className="w-7 h-7" />
+                </button>
+              </div>
+              <div className="border-b border-gray-700 mx-8 my-2" />
+              {/* Stock Grid */}
+              <div className="grid grid-cols-7 gap-4 px-8 pb-8">
+                {getEventsForDateKey(showMoreDialogDay).map((event, index) => {
+                  // Risky status for warning icon
+                  const isRisky = event.status === 'This stock may have a risky dividend.' || event.status === 'This stock does not pay a dividend.';
                   return (
                     <div
                       key={`${event.id}-${index}`}
                       onClick={() => handleEventClick(event)}
-                      className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
-                                hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
+                      className="flex flex-col items-center justify-center cursor-pointer"
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`View details for ${event.Symbol}`}
                     >
-                      <div className="w-12 h-12 flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
+                      <div className="relative w-14 h-14 flex items-center justify-center bg-[#1a202c] rounded-lg border border-gray-700 overflow-hidden">
                         <img
                           src={event.LogoURL || '/stock.avif'}
                           alt={event.Symbol}
-                          className="w-full h-full object-contain p-1"
+                          className="w-full h-full object-contain"
                           onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
                         />
+                        {isRisky && (
+                          <span className="absolute top-1 right-1 text-red-400" title="Risky Dividend">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                              <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+                            </svg>
+                          </span>
+                        )}
                       </div>
-                      <p className="text-xs font-semibold text-gray-100 text-center">
+                      <span className="text-xs font-semibold text-white text-center mt-1 truncate w-full">
                         {event.Symbol}
-                      </p>
+                      </span>
                     </div>
                   );
                 })}
+              </div>
             </div>
-          </DialogContent>
-        </Dialog>
+          </div>
+        )}
 
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-lg  text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
