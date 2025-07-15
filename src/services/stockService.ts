@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/types/supabase';
 
 export interface StockData {
   symbol: string;
@@ -301,5 +302,18 @@ export const fetchSimilarStocks = async (symbol: string): Promise<SimilarStock[]
       { symbol: 'KSS', lastPrice: 6.95, change: 0.31, changePercent: 4.67, companyName: 'Kohl\'s Corporation' },
       { symbol: 'NWL', lastPrice: 5.14, change: -0.33, changePercent: -5.95, companyName: 'Newell Brands Inc.' }
     ];
+  }
+};
+
+export const fetchAllEarningsReports = async (): Promise<Database['public']['Tables']['earnings_report']['Row'][]> => {
+  try {
+    const { data, error } = await supabase
+      .from('earnings_report')
+      .select('*');
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching earnings reports:', error);
+    return [];
   }
 };

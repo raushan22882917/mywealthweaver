@@ -7,20 +7,48 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tables } from "@/integrations/supabase/types";
+import StockDetailsDialog from "./StockDetailsDialog";
 
 interface DividendEvent {
   id: string;
-  symbol: string;
-  dividend_date: string;
-  ex_dividend_date: string;
-  earnings_date: string;
-  earnings_average: number;
-  revenue_average: number;
-  LogoURL?: string;
+  Symbol: string;
+  earnings_date?: string;
+  earnings_high?: number;
+  earnings_low?: number;
+  earnings_average?: number;
+  revenue_high?: number;
+  revenue_low?: number;
+  revenue_average?: number;
+  as_of_date?: string;
   company_name?: string;
+  domain?: string;
+  LogoURL?: string;
+  ex_dividend_date?: string; // <-- add this
+  dividend_date?: string;    // <-- add this
 }
 
 const dayNames = ["MON", "TUE", "WED", "THU", "FRI"];
+
+// Robust CSV parsing for logo map
+function parseCSVLine(line: string) {
+  // Handles quoted values and commas inside quotes
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim().replace(/^"|"$/g, ''));
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current.trim().replace(/^"|"$/g, ''));
+  return result;
+}
 
 const DividendCalendar = () => {
   const [date, setCalendarDate] = useState<Date>(new Date());
@@ -33,94 +61,69 @@ const DividendCalendar = () => {
   const [selectedMonth, setSelectedMonth] = useState<string>(format(new Date(), 'MMMM'));
   const [view, setView] = useState<string>("Monthly View");
   const [showAll, setShowAll] = useState(false);
-  const [companyLogos, setCompanyLogos] = useState<Map<string, string>>(new Map());
   const [hoveredStock, setHoveredStock] = useState<DividendEvent | null>(null);
-  const [showPopup, setShowPopup] = useState<Record<string, boolean>>({});
-  const [popupDividendData, setPopupDividendData] = useState<Record<string, Tables<'dividendsymbol'>[]>>({});
-  const [loadingPopup, setLoadingPopup] = useState<Record<string, boolean>>({});
+  const [showMoreDialogDay, setShowMoreDialogDay] = useState<string | null>(null);
+  const [logoMap, setLogoMap] = useState<Record<string, string>>({});
+  const [isStockDetailsOpen, setIsStockDetailsOpen] = useState(false);
+  const [stockDetailsData, setStockDetailsData] = useState<any>(null);
 
-  const togglePopup = (dateKey: string) => {
-    setShowPopup(prev => ({
-      ...prev,
-      [dateKey]: !prev[dateKey]
-    }));
-  };
-
-  const fetchPopupDividendData = async (dateKey: string, symbols: string[]) => {
-    setLoadingPopup(prev => ({ ...prev, [dateKey]: true }));
-    try {
-      // Fetch all dividendsymbol rows for the given date and symbols
-      const { data, error } = await supabase
-        .from('dividendsymbol')
-        .select('*')
-        .in('symbol', symbols)
-        .eq('exdividenddate', dateKey);
-      if (error) throw error;
-      setPopupDividendData(prev => ({ ...prev, [dateKey]: data || [] }));
-    } catch (err) {
-      setPopupDividendData(prev => ({ ...prev, [dateKey]: [] }));
-    } finally {
-      setLoadingPopup(prev => ({ ...prev, [dateKey]: false }));
-    }
-  };
-
+  // Fetch and parse logos.csv
   useEffect(() => {
-    const fetchDividendData = async () => {
+    const fetchLogos = async () => {
       try {
-        // Fetch dividend reports
-        const { data: dividendData, error: dividendError } = await supabase
-          .from("dividend_reports")
-          .select("*, ex_dividend_date");
-
-        if (dividendError) throw dividendError;
-
-        // Fetch company logos - using correct column name "Symbol"
-        const { data: logosData, error: logosError } = await supabase
-          .from("company_logos")
-          .select("Symbol, LogoURL");
-
-        if (logosError) throw logosError;
-
-        // Create a Map of symbols to logo URLs
-        const logoMap = new Map(
-          logosData.map((logo: { Symbol: string; LogoURL: string }) => [
-            logo.Symbol.toUpperCase(),
-            logo.LogoURL
-          ])
-        );
-        setCompanyLogos(logoMap);
-
-        // Map logos to dividend data
-        const eventsWithLogos = dividendData.map((event: any) => ({
-          ...event,
-          LogoURL: logoMap.get(event.symbol.toUpperCase()) || null,
-          company_name: event.company_name || event.symbol
-        }));
-
-        setDividendEvents(eventsWithLogos);
-      } catch (error) {
-        console.error("Error fetching data:", error);
+        const response = await fetch("/logos.csv");
+        const text = await response.text();
+        const lines = text.split(/\r?\n/);
+        const map: Record<string, string> = {};
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          if (!line.trim()) continue;
+          const cols = parseCSVLine(line);
+          // Symbol is at index 1, LogoURL is at index 4
+          if (cols[1] && cols[4]) {
+            map[cols[1].trim().toUpperCase()] = cols[4].trim();
+          }
+        }
+        setLogoMap(map);
+      } catch (e) {
+        console.error("Error loading logos.csv", e);
       }
     };
-
-    fetchDividendData();
+    fetchLogos();
   }, []);
 
-  // Fetch popup dividend data when a popup is opened
+  // Fetch earnings data and attach LogoURL
   useEffect(() => {
-    Object.entries(showPopup).forEach(([dateKey, isOpen]) => {
-      if (isOpen && !(popupDividendData[dateKey] || []).length && !loadingPopup[dateKey]) {
-        const syms = (dividendEvents.filter(ev => {
-          if (!ev.ex_dividend_date) return false;
-          return ev.ex_dividend_date === dateKey;
-        })).map(ev => ev.symbol);
-        if (syms.length > 0) {
-          fetchPopupDividendData(dateKey, syms);
-        }
+    const fetchEarningsData = async () => {
+      try {
+        const { data: earningsData, error } = await supabase
+          .from('earnings_report')
+          .select('*');
+        if (error) throw error;
+
+        setDividendEvents(
+          (earningsData || []).map((event: any) => {
+            return {
+              ...event,
+              id: `${event.Symbol}-${event.earnings_date}`,
+              Symbol: event.Symbol,
+              ex_dividend_date: event.earnings_date, // Use earnings_date as ex_dividend_date for calendar placement
+              company_name: event.Symbol,
+              LogoURL: logoMap[event.Symbol?.toUpperCase()] || null,
+              dividend_date: null,
+              earnings_date: event.earnings_date,
+              earnings_average: event.earnings_average,
+              revenue_average: event.revenue_average,
+            };
+          })
+        );
+      } catch (error) {
+        console.error('Error fetching earnings data:', error);
       }
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showPopup, dividendEvents]);
+    };
+    fetchEarningsData();
+    // Re-run when logoMap changes
+  }, [logoMap]);
 
   const handlePreviousMonth = () => {
     const newMonth = new Date(month);
@@ -155,14 +158,8 @@ const DividendCalendar = () => {
     return format(date, 'MMMM yyyy');
   };
 
-  const getEventsForDate = (day: number): DividendEvent[] => {
-    const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
-    const formattedDate = format(currentDate, 'yyyy-MM-dd');
-    
-    return dividendEvents.filter(event => {
-      if (!event.ex_dividend_date) return false;
-      return event.ex_dividend_date === formattedDate;
-    });
+  const getEventsForDateKey = (dateKey: string): DividendEvent[] => {
+    return dividendEvents.filter(event => event.ex_dividend_date === dateKey);
   };
 
   const renderCalendarGrid = () => {
@@ -193,9 +190,9 @@ const DividendCalendar = () => {
     const renderCalendarCell = (day: number) => {
       const currentDate = new Date(month.getFullYear(), month.getMonth(), day);
       const dateKey = format(currentDate, 'yyyy-MM-dd');
-      // Sort events alphabetically by symbol
+      // Sort events alphabetically by Symbol
       const events = getEventsForDate(dateKey).sort((a, b) => 
-        a.symbol.localeCompare(b.symbol)
+        (a.Symbol || '').localeCompare(b.Symbol || '')
       );
       const isToday = isSameDay(currentDate, new Date());
       const hasEvents = events.length > 0;
@@ -232,28 +229,28 @@ const DividendCalendar = () => {
               <div className="space-y-3">
                 {/* Grid of first 6 stocks */}
                 <div className="grid grid-cols-3 gap-2">
-                  {events.slice(0, 6).map((event, index) => (
-                    <div
-                      key={`${event.id}-${index}`}
-                      onClick={() => handleEventClick(event)}
-                      className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
-                               hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
-                    >
-                      <div className="w-10 h-10 bg-white rounded-full flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
-                        <img
-                          src={event.LogoURL || '/stock.avif'}
-                          alt={event.symbol}
-                          className="w-full h-full object-contain p-1"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/stock.avif';
-                          }}
-                        />
+                  {(expandedDay === dateKey ? events : events.slice(0, 6)).map((event, index) => {
+                    return (
+                      <div
+                        key={`${event.id}-${index}`}
+                        onClick={() => handleEventClick(event)}
+                        className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
+                                 hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
+                      >
+                        <div className="w-10 h-10 flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
+                          <img
+                            src={event.LogoURL || '/stock.avif'}
+                            alt={event.Symbol}
+                            className="w-full h-full object-contain p-1"
+                            onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
+                          />
+                        </div>
+                        <p className="text-xs font-semibold text-gray-100 text-center">
+                          {event.Symbol}
+                        </p>
                       </div>
-                      <p className="text-xs font-semibold text-gray-100 text-center">
-                        {event.symbol}
-                      </p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Show More button if there are more than 6 stocks */}
@@ -261,97 +258,13 @@ const DividendCalendar = () => {
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      togglePopup(dateKey);
+                      setShowMoreDialogDay(dateKey);
                     }}
                     className="mt-2 text-xs text-purple-400 hover:text-purple-300 transition-colors w-full text-center flex items-center justify-center gap-1 py-1 px-2 rounded-md bg-gray-800/50 hover:bg-gray-800"
                   >
                     <Plus className="w-3 h-3" />
                     Show {events.length - 6} more
                   </button>
-                )}
-
-                {showPopup[dateKey] && (
-                  <div 
-                    className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in-0 duration-300"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      togglePopup(dateKey);
-                    }}
-                  >
-                    <div 
-                      className="bg-gray-900 rounded-xl p-6 max-w-5xl w-full max-h-[90vh] overflow-y-auto m-4 border border-purple-500/30 shadow-xl shadow-purple-500/10"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-semibold text-white flex items-center gap-2">
-                          <CalendarIcon className="h-5 w-5 text-purple-500" />
-                          All Stocks for {format(currentDate, 'MMMM d, yyyy')}
-                        </h3>
-                        <button
-                          onClick={() => togglePopup(dateKey)}
-                          className="text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800 p-1"
-                        >
-                          <X className="w-5 h-5" />
-                        </button>
-                      </div>
-                      {loadingPopup[dateKey] ? (
-                        <div className="flex justify-center items-center h-40 text-purple-300">Loading...</div>
-                      ) : (
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full text-sm text-left text-gray-300">
-                            <thead className="sticky top-0 bg-gray-800/90 z-10">
-                              <tr>
-                                <th className="px-3 py-2">Logo</th>
-                                <th className="px-3 py-2">Symbol</th>
-                                <th className="px-3 py-2">Short Name</th>
-                                <th className="px-3 py-2">Ex-Dividend Date</th>
-                                <th className="px-3 py-2">Yield</th>
-                                <th className="px-3 py-2">Rate</th>
-                                <th className="px-3 py-2">Payout Ratio</th>
-                                <th className="px-3 py-2">Current Price</th>
-                                <th className="px-3 py-2">Prev Close</th>
-                                <th className="px-3 py-2">Insight</th>
-                                <th className="px-3 py-2">Details</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {events.map((stock, idx) => {
-                                const divData = (popupDividendData[dateKey] || []).find(
-                                  d => d.symbol?.toUpperCase() === stock.symbol.toUpperCase()
-                                );
-                                return (
-                                  <tr key={idx} className="hover:bg-purple-900/20 transition cursor-pointer" onClick={() => handleEventClick(stock)}>
-                                    <td className="px-3 py-2">
-                                      <img
-                                        src={stock.LogoURL || '/stock.avif'}
-                                        alt={stock.symbol}
-                                        className="w-10 h-10 rounded-full bg-white p-1 border border-gray-300 object-contain"
-                                        onError={e => (e.currentTarget.src = '/stock.avif')}
-                                      />
-                                    </td>
-                                    <td className="px-3 py-2 font-semibold">{stock.symbol}</td>
-                                    <td className="px-3 py-2">{divData?.shortname || stock.company_name || 'N/A'}</td>
-                                    <td className="px-3 py-2">{divData?.exdividenddate || 'N/A'}</td>
-                                    <td className="px-3 py-2">{divData?.dividendyield != null ? `${(divData.dividendyield * 100).toFixed(2)}%` : 'N/A'}</td>
-                                    <td className="px-3 py-2">{divData?.dividendrate != null ? `$${divData.dividendrate}` : 'N/A'}</td>
-                                    <td className="px-3 py-2">{divData?.payoutratio != null ? `${divData.payoutratio.toFixed(2)}%` : 'N/A'}</td>
-                                    <td className="px-3 py-2">{divData?.currentprice != null ? `$${divData.currentprice.toFixed(2)}` : 'N/A'}</td>
-                                    <td className="px-3 py-2">{divData?.previousclose != null ? `$${divData.previousclose.toFixed(2)}` : 'N/A'}</td>
-                                    <td className="px-3 py-2 max-w-xs truncate" title={divData?.insight || ''}>{divData?.insight || '—'}</td>
-                                    <td className="px-3 py-2">
-                                      <Button size="sm" variant="outline" className="border-gray-700 hover:bg-purple-900/30 hover:text-purple-300" onClick={e => { e.stopPropagation(); handleEventClick(stock); }}>
-                                        <ExternalLink className="w-4 h-4" />
-                                      </Button>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            </tbody>
-                          </table>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 )}
               </div>
             )}
@@ -384,6 +297,16 @@ const DividendCalendar = () => {
         {calendarDays.map(day => renderCalendarCell(day))}
       </div>
     );
+  };
+
+  const handleViewDetails = (event: DividendEvent) => {
+    setStockDetailsData({
+      Symbol: event.Symbol,
+      title: event.company_name || event.Symbol,
+      cik_str: '',
+      LogoURL: event.LogoURL || '',
+    });
+    setIsStockDetailsOpen(true);
   };
 
   return (
@@ -447,29 +370,88 @@ const DividendCalendar = () => {
 
       {renderCalendarGrid()}
 
+      <Dialog open={!!showMoreDialogDay} onOpenChange={() => setShowMoreDialogDay(null)}>
+        <DialogContent className="w-full max-w-3xl h-[70vh] overflow-y-auto bg-gray-900 text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
+          <DialogHeader>
+            <DialogTitle>
+              Events on {showMoreDialogDay && format(parseISO(showMoreDialogDay), 'MMMM d, yyyy')}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-4 md:grid-cols-6 gap-4 mt-4">
+            {showMoreDialogDay &&
+              getEventsForDateKey(showMoreDialogDay).map((event, index) => {
+                return (
+                  <div
+                    key={`${event.id}-${index}`}
+                    onClick={() => handleEventClick(event)}
+                    className="flex flex-col items-center p-2 rounded-lg bg-gray-800/70 backdrop-blur-sm
+                              hover:bg-purple-900/30 cursor-pointer transition-all transform hover:scale-105"
+                  >
+                    <div className="w-12 h-12 flex-shrink-0 overflow-hidden mb-1 border border-gray-300">
+                      <img
+                        src={event.LogoURL || '/stock.avif'}
+                        alt={event.Symbol}
+                        className="w-full h-full object-contain p-1"
+                        onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
+                      />
+                    </div>
+                    <p className="text-xs font-semibold text-gray-100 text-center">
+                      {event.Symbol}
+                    </p>
+                  </div>
+                );
+              })}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg bg-gray-900 text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
+        <DialogContent className="sm:max-w-lg  text-white border-gray-800 shadow-xl shadow-purple-500/10 animate-in zoom-in-90 duration-300">
           {selectedEvent && (
             <>
               <DialogHeader>
                 <div className="flex items-center gap-3 mb-2">
                   <img 
-                    src={selectedEvent.LogoURL || "/stock.avif"} 
-                    alt={selectedEvent.symbol} 
-                    className="w-12 h-12 rounded-full bg-white p-1 border border-gray-300"
+                    src={selectedEvent.LogoURL || '/stock.avif'}
+                    alt={selectedEvent.Symbol} 
+                    className="w-12 h-12 p-1 border border-gray-300"
+                    onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
                   />
                   <div>
                     <DialogTitle className="text-xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
-                      {selectedEvent.symbol}
+                      {selectedEvent.Symbol}
                     </DialogTitle>
                     <DialogDescription className="text-gray-400">
-                      {selectedEvent.company_name || selectedEvent.symbol}
+                      {selectedEvent.company_name || selectedEvent.Symbol}
                     </DialogDescription>
                   </div>
                 </div>
               </DialogHeader>
-              
-              <div className="grid grid-cols-2 gap-4 mt-4 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+              {/* Earnings/Revenue Table */}
+              <div className="w-full mt-4 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                <div className="grid grid-cols-4 gap-2 items-center mb-2">
+                  <div></div>
+                  <div className="font-semibold text-sm text-gray-300 text-center">Low</div>
+                  <div className="font-semibold text-sm text-gray-300 text-center">High</div>
+                  <div className="font-semibold text-sm text-gray-300 text-center">Average</div>
+                </div>
+                {/* Earnings Row */}
+                <div className="grid grid-cols-4 gap-2 items-center py-2 border-b border-gray-700">
+                  <div className="font-medium text-sm text-purple-300">Earnings</div>
+                  <div className="text-center text-white">{selectedEvent.earnings_low !== undefined && selectedEvent.earnings_low !== null ? `$${selectedEvent.earnings_low.toFixed(2)}` : 'N/A'}</div>
+                  <div className="text-center text-white">{selectedEvent.earnings_high !== undefined && selectedEvent.earnings_high !== null ? `$${selectedEvent.earnings_high.toFixed(2)}` : 'N/A'}</div>
+                  <div className="text-center text-white">{selectedEvent.earnings_average !== undefined && selectedEvent.earnings_average !== null ? `$${selectedEvent.earnings_average.toFixed(2)}` : 'N/A'}</div>
+                </div>
+                {/* Revenue Row */}
+                <div className="grid grid-cols-4 gap-2 items-center py-2">
+                  <div className="font-medium text-sm text-blue-300">Revenue</div>
+                  <div className="text-center text-white">{selectedEvent.revenue_low !== undefined && selectedEvent.revenue_low !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_low) : 'N/A'}</div>
+                  <div className="text-center text-white">{selectedEvent.revenue_high !== undefined && selectedEvent.revenue_high !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_high) : 'N/A'}</div>
+                  <div className="text-center text-white">{selectedEvent.revenue_average !== undefined && selectedEvent.revenue_average !== null ? new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }).format(selectedEvent.revenue_average) : 'N/A'}</div>
+                </div>
+              </div>
+              {/* Dates Row */}
+              <div className="grid grid-cols-3 gap-4 mt-4 bg-gray-800/50 p-4 rounded-lg border border-gray-700">
                 <div className="space-y-2">
                   <h4 className="font-medium text-sm text-gray-400">Dividend Date</h4>
                   <p className="font-medium text-white">
@@ -488,29 +470,12 @@ const DividendCalendar = () => {
                     {selectedEvent.earnings_date ? format(parseISO(selectedEvent.earnings_date), 'MMMM d, yyyy') : 'N/A'}
                   </p>
                 </div>
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm text-gray-400">Earnings (EPS)</h4>
-                  <p className="font-medium text-white">${selectedEvent.earnings_average?.toFixed(2) || 'N/A'}</p>
-                </div>
-                <div className="col-span-2 space-y-2">
-                  <h4 className="font-medium text-sm text-gray-400">Revenue</h4>
-                  <p className="font-medium text-white">
-                    {selectedEvent.revenue_average
-                      ? new Intl.NumberFormat('en-US', {
-                          style: 'currency',
-                          currency: 'USD',
-                          notation: 'compact',
-                          maximumFractionDigits: 1
-                        }).format(selectedEvent.revenue_average)
-                      : 'N/A'}
-                  </p>
-                </div>
               </div>
-              
               <div className="mt-4 flex justify-end">
                 <Button 
                   variant="outline" 
                   className="bg-gray-800 border-gray-700 hover:bg-purple-900/30 hover:text-purple-300 transition-all"
+                  onClick={() => handleViewDetails(selectedEvent)}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
                   View Details
@@ -520,6 +485,14 @@ const DividendCalendar = () => {
           )}
         </DialogContent>
       </Dialog>
+      {/* Stock Details Dialog */}
+      {stockDetailsData && (
+        <StockDetailsDialog
+          stock={stockDetailsData}
+          isOpen={isStockDetailsOpen}
+          setIsOpen={setIsStockDetailsOpen}
+        />
+      )}
     </div>
   );
 };
