@@ -42,6 +42,7 @@ import UpDown from "@/pages/UpDown";
 import DividendYield from "@/pages/DividendYield";
 import { AIAnalysisDialog } from "./AIAnalysisDialog";
 import SimilarCompaniesButton from "./SimilarCompaniesButton";
+import PayoutRatioChart from './PayoutRatioChart';
 
 interface Stock {
   cik_str: string;
@@ -1195,90 +1196,12 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           );
 
       case "Payout":
-        const lastPayout = payoutData[0]?.value || 0;
-        const healthyPayoutRange = { min: 40, max: 60 };
-        const isHealthyPayout = lastPayout >= healthyPayoutRange.min && lastPayout <= healthyPayoutRange.max;
-        const isHighPayout = lastPayout > healthyPayoutRange.max;
         return (
           <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
-            <div className="flex flex-col gap-4">
-              <h3 className="text-xl font-semibold mb-2 text-white">Payout Ratio Analysis</h3>
-              <div className={`text-2xl font-bold mb-4 ${
-                isHealthyPayout ? 'text-yellow-500' :
-                isHighPayout ? 'text-red-500' : 'text-green-500'
-              }`}>
-                {lastPayout.toFixed(2)}%
-              </div>
-              <div className="px-4 h-[300px] relative">
-                {/* Background color zones */}
-                <div className="absolute inset-0 flex flex-col">
-                  <div className="h-1/3 bg-red-600 opacity-20" />
-                  <div className="h-1/3 bg-yellow-400 opacity-20" />
-                  <div className="h-1/3 bg-green-500 opacity-20" />
-                </div>
-                {/* Zone labels */}
-                <div className="absolute right-0 top-0 bottom-0 flex flex-col justify-between pr-2 text-sm">
-                  <span className="text-white mt-2">65%</span>
-                  <span className="text-white">35%</span>
-                </div>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart
-                    data={payoutData}
-                    margin={{ top: 10, right: 30, left: 10, bottom: 10 }}
-                  >
-                    <XAxis
-                      dataKey="quarter"
-                      axisLine={false}
-                      tickLine={false}
-                      stroke="#fff"
-                      fontSize={12}
-                    />
-                    <YAxis
-                      domain={[0, 100]}
-                      axisLine={false}
-                      tickLine={false}
-                      stroke="#fff"
-                      fontSize={12}
-                      tickFormatter={(value) => `${value}%`}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="#2563eb"
-                      strokeWidth={2}
-                      dot={(props) => {
-                        const { cx, cy, payload } = props;
-                        // Use star marker for future projections (2025 onwards)
-                        const isFuture = payload.quarter.includes('2025');
-                        if (isFuture) {
-                          return (
-                            <path
-                              d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"
-                              transform={`translate(${cx - 10}, ${cy - 10}) scale(0.8)`}
-                              fill="#2563eb"
-                              stroke="none"
-                            />
-                          );
-                        }
-                        // Use square marker for historical data
-                        return (
-                          <rect
-                            x={cx - 4}
-                            y={cy - 4}
-                            width={8}
-                            height={8}
-                            fill="#2563eb"
-                            transform={`rotate(45, ${cx}, ${cy})`}
-                          />
-                        );
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+            <PayoutRatioChart symbol={stock.Symbol} />
           </div>
         );
+      
       case "Dividend History":
         return (
           <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
