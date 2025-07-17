@@ -111,6 +111,23 @@ const ChartSection = ({ loading, error, data }: { loading: boolean; error: strin
       }
       // Format date
       const dateStr = new Date(d.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+      let commentary = '';
+      if (d.dividends_paid != null) {
+        commentary += `Dividend Payout Ratio: ${d.payout_ratio != null ? d.payout_ratio.toFixed(0) + '%' : '-'}. `;
+        if (d.payout_ratio != null) {
+          if (d.payout_ratio < 0.2) {
+            commentary += "Not paying enough.";
+          } else if (d.payout_ratio < 0.5) {
+            commentary += "This suggests a healthy margin for the dividend.";
+          } else if (d.payout_ratio < 0.75) {
+            commentary += "This is a moderate payout ratio.";
+          } else if (d.payout_ratio < 1) {
+            commentary += "This high payout ratio might indicate less flexibility.";
+          } else {
+            commentary += "A payout ratio above 100% is unsustainable.";
+          }
+        }
+      }
       return (
         <div className="rounded shadow p-4 border text-sm min-w-[220px] backdrop-blur" style={{ background: 'rgba(30, 41, 59, 0.85)', color: '#fff', border: 'none' }}>
           <div className="flex items-center gap-2 mb-1"><MdOutlineLabel className="text-blue-200" /><b>Symbol:</b> {d.symbol}</div>
@@ -120,6 +137,7 @@ const ChartSection = ({ loading, error, data }: { loading: boolean; error: strin
           <div className="flex items-center gap-2 mb-1"><FaChartLine className="text-emerald-200" /><b>Dividends Paid:</b> {d.dividends_paid != null ? d.dividends_paid.toLocaleString() : '-'}</div>
           <div className="flex items-center gap-2 mb-1"><FaCalendarAlt className="text-gray-200" /><b>As of Date:</b> {d.as_of_date ?? '-'}</div>
           <div className="flex items-center gap-2 mt-2"><span className="inline-block w-3 h-3 rounded" style={{ background: bandSwatchColors[bandIdx] }}></span><span className="text-xs text-gray-200">Band: <b>{bandLabels[bandIdx]}</b></span></div>
+          {commentary && <div className="mt-2 text-xs text-gray-300">{commentary}</div>}
         </div>
       );
     }

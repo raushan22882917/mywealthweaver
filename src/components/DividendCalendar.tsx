@@ -449,7 +449,9 @@ const DividendCalendar = () => {
               <div className="border-b border-gray-700 mx-8 my-2" />
               {/* Stock Grid */}
               <div className="grid grid-cols-7 gap-4 px-8 pb-8">
-                {getEventsForDateKey(showMoreDialogDay).map((event, index) => {
+                {getEventsForDateKey(showMoreDialogDay)
+                  .sort((a, b) => (a.Symbol || '').localeCompare(b.Symbol || ''))
+                  .map((event, index) => {
                   // Risky status for warning icon
                   const isRisky = event.status === 'This stock may have a risky dividend.' || event.status === 'This stock does not pay a dividend.';
                   return (
@@ -477,7 +479,7 @@ const DividendCalendar = () => {
                         )}
                       </div>
                       <span className="text-xs font-semibold text-white text-center mt-1 truncate w-full">
-                        {event.Symbol}
+                        {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
                       </span>
                     </div>
                   );
