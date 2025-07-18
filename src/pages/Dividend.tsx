@@ -604,7 +604,7 @@ const Dividend: React.FC = () => {
       onClick={(e) => handleStockClick(stock, e)}
     >
       <div
-        className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-lg `}
+        className={`w-[50px] h-[60px] flex flex-col items-center border-2  justify-between rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-lg `}
       >
         <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
           <img

@@ -271,7 +271,7 @@ const DividendCalendar = () => {
                       />
                     </div>
                     <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                      <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+                      <span className="text-[12px] font-bold  leading-none truncate">
                         {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
                       </span>
                     </div>
