@@ -260,18 +260,16 @@ const DividendCalendar = () => {
                   className="cursor-pointer"
                   onClick={() => handleEventClick(event)}
                 >
-                  <div className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700 transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}>
-                    <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
+                  <div className={`w-[50px] h-[63px] flex flex-col items-center justify-between  overflow-hidden   `}>
                       <img
                         src={event.LogoURL || '/stock.avif'}
                         alt={event.Symbol}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain border border-gray-300 dark:border-gray-700 rounded"
                         loading="lazy"
                         onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
                       />
-                    </div>
-                    <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-                      <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+                    <div className="w-[50px] h-[15px]  flex items-center justify-center">
+                      <span className="text-[12px] font-bold  leading-none truncate">
                         {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
                       </span>
                     </div>

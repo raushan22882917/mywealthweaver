@@ -43,6 +43,7 @@ import DividendYield from "@/pages/DividendYield";
 import { AIAnalysisDialog } from "./AIAnalysisDialog";
 import SimilarCompaniesButton from "./SimilarCompaniesButton";
 import PayoutRatioChart from './PayoutRatioChart';
+import StockNewsDialog from "./StockNewsDialog";
 
 interface Stock {
   cik_str: string;
@@ -381,6 +382,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const [isLoginPopupOpen, setIsLoginPopupOpen] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(true); // Replace with actual auth check
+  const [showNewsDialog, setShowNewsDialog] = useState(false);
 
   const handleToggle = () => {
     if (!isUserLoggedIn) {
@@ -1201,6 +1203,12 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             <PayoutRatioChart symbol={stock.Symbol} />
           </div>
         );
+      case "News":
+        return (
+          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+            <StockNewsDialog symbol={stock.Symbol} isOpen={true} setIsOpen={() => setSelectedTab("Company")} />
+          </div>
+        );
       
       case "Dividend History":
         return (
@@ -1485,7 +1493,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
             {/* Tabs in a single row */}
             <div className="flex gap-1 mt-1 overflow-x-auto pb-1">
-              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings", "AI Analysis"].map((tab) => {
+              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings", "AI Analysis", "News"].map((tab) => {
                 return (
                   <div
                     key={tab}

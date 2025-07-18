@@ -604,22 +604,20 @@ const Dividend: React.FC = () => {
       onClick={(e) => handleStockClick(stock, e)}
     >
       <div
-        className={`w-[50px] h-[60px] flex flex-col items-center border-2  justify-between rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-lg `}
+        className={`w-[50px] h-[62px] flex flex-col items-center   justify-between  overflow-hidden  `}
       >
-        <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
           <img
             src={companyLogos.get(stock.Symbol?.toUpperCase()) || stock.LogoURL || csvLogoUrls.get(stock.Symbol?.toUpperCase()) || 'stock.avif'}
             alt={stock.Symbol}
-            className="w-full h-full object-contain"
+            className="w-full h-full object-contain border border-gray-300 dark:border-gray-700 rounded"
             loading="lazy"
             onError={(e) => {
               (e.target as HTMLImageElement).src = 'stock.avif';
               console.log('Failed to load logo for:', stock.Symbol);
             }}
           />
-        </div>
 
-        <div className="w-[50px] h-[15px]  flex items-center justify-center">
+        <div className="w-[50px] h-[15px]   flex items-center justify-center">
           <span className="text-[12px] font-bold  leading-none truncate">
             {stock.Symbol.length > 8
               ? `${stock.Symbol.slice(0, 8)}..`
