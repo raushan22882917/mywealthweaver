@@ -604,7 +604,7 @@ const Dividend: React.FC = () => {
       onClick={(e) => handleStockClick(stock, e)}
     >
       <div
-        className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden border-2 ${borderColorClass} transition-all hover:scale-105 hover:shadow-lg bg-white dark:bg-gray-900`}
+        className={`w-[50px] h-[60px] flex flex-col items-center justify-between rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-lg `}
       >
         <div className="w-[50px] h-[45px] flex items-center justify-center bg-white dark:bg-gray-800">
           <img
@@ -619,8 +619,8 @@ const Dividend: React.FC = () => {
           />
         </div>
 
-        <div className="w-[50px] h-[15px] bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
-          <span className="text-[12px] font-bold text-red-600 dark:text-red-400 leading-none truncate">
+        <div className="w-[50px] h-[15px]  flex items-center justify-center">
+          <span className="text-[12px] font-bold  leading-none truncate">
             {stock.Symbol.length > 8
               ? `${stock.Symbol.slice(0, 8)}..`
               : stock.Symbol
