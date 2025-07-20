@@ -1199,9 +1199,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
       case "Payout":
         return (
-          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
             <PayoutRatioChart symbol={stock.Symbol} />
-          </div>
         );
       case "News":
         return (

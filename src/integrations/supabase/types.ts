@@ -1119,6 +1119,33 @@ export type Database = {
         };
         Relationships: [];
       },
+      yearly_payout_ratio: {
+        Row: {
+          symbol: string;
+          dividends_paid: number;
+          date: string;
+          net_income: number | null;
+          payout_ratio: number | null;
+          as_of_date: string;
+        };
+        Insert: {
+          symbol: string;
+          dividends_paid: number;
+          date: string;
+          net_income?: number | null;
+          payout_ratio?: number | null;
+          as_of_date: string;
+        };
+        Update: {
+          symbol?: string;
+          dividends_paid?: number;
+          date?: string;
+          net_income?: number | null;
+          payout_ratio?: number | null;
+          as_of_date?: string;
+        };
+        Relationships: [];
+      },
       saved_stocks: {
         Row: {
           company_name: string
