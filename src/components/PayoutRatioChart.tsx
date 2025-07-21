@@ -419,7 +419,7 @@ const ChartSection = ({
           <Tooltip content={<CustomTooltip />} />
           {/* Colored Area under the line based on 4 bands */}
           <Area
-            type="monotone"
+            type="stepAfter"
             dataKey="payout_ratio"
             stroke="#fff"
             strokeWidth={3}

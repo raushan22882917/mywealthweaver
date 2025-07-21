@@ -1491,7 +1491,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
             {/* Tabs in a single row */}
             <div className="flex gap-1 mt-1 overflow-x-auto pb-1">
-              {["Company", "Dividend History", "Dividend Yield", "Payout", "Overall", "Analyst Ratings", "AI Analysis", "News"].map((tab) => {
+              {["Company", "Dividend History", "Dividend Yield", "Payout", "Analyst Ratings", "AI Analysis", "News", "Overall"].map((tab) => {
                 return (
                   <div
                     key={tab}
