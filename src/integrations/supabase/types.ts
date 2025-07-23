@@ -1718,6 +1718,42 @@ export type Database = {
         }
         Relationships: []
       }
+      earnings_report: {
+        Row: {
+          symbol: string;
+          earnings_date: string;
+          earnings_high: number | null;
+          earnings_low: number | null;
+          earnings_average: number | null;
+          revenue_high: number | null;
+          revenue_low: number | null;
+          revenue_average: number | null;
+          as_of_date: string | null;
+        };
+        Insert: {
+          symbol: string;
+          earnings_date: string;
+          earnings_high?: number | null;
+          earnings_low?: number | null;
+          earnings_average?: number | null;
+          revenue_high?: number | null;
+          revenue_low?: number | null;
+          revenue_average?: number | null;
+          as_of_date?: string | null;
+        };
+        Update: {
+          symbol?: string;
+          earnings_date?: string;
+          earnings_high?: number | null;
+          earnings_low?: number | null;
+          earnings_average?: number | null;
+          revenue_high?: number | null;
+          revenue_low?: number | null;
+          revenue_average?: number | null;
+          as_of_date?: string | null;
+        };
+        Relationships: [];
+      },
     }
     Views: {
       [_ in never]: never

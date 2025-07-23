@@ -19,10 +19,10 @@ import { useToast } from '@/components/ui/use-toast';
 interface NotificationDropdownProps {
   open: boolean;
   onClose: () => void;
+  notifications: Notification[];
 }
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClose }) => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClose, notifications }) => {
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -45,93 +45,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [open, onClose]);
-
-  useEffect(() => {
-    if (open) {
-      loadNotifications();
-    }
-  }, [open]);
-
-  const loadNotifications = async () => {
-    try {
-      setLoading(true);
-
-      const todayStr = new Date().toISOString().split('T')[0];
-
-      // Fetch and process dividend_announcements
-      const announcements = await fetchDividendAnnouncements();
-      const filteredAnnouncements = convertAnnouncementsToNotifications(announcements)
-        .filter(n => n.created_at.startsWith(todayStr));
-
-      // Fetch and process news
-      const news = await fetchNewsItems();
-      const filteredNews = convertNewsToNotifications(news)
-        .filter(n => n.created_at.startsWith(todayStr));
-
-      // Fetch and process dividend symbols
-      const { data: dividendData, error: dividendError } = await supabase
-        .from('dividendsymbol')
-        .select('*')
-        .limit(10);
-        
-      if (dividendError) {
-        console.log('Dividend query error:', dividendError);
-      }
-
-      const dividendNotifications: Notification[] = (dividendData || [])
-        .filter(item => item.exdividenddate && isToday(new Date(item.exdividenddate)))
-        .map(item => ({
-          id: `dividend-${item.symbol}-${item.exdividenddate}`,
-          type: 'dividend',
-          title: `Dividend Alert: ${item.symbol}`,
-          message: `Ex-Date: ${item.exdividenddate}`,
-          related_symbol: item.symbol,
-          read: false,
-          created_at: item.exdividenddate
-        }));
-
-      // Fetch and process dividend_reports
-      const { data: reportData, error: reportError } = await supabase
-        .from('dividend_reports')
-        .select('*')
-        .limit(10);
-        
-      if (reportError) {
-        console.log('Reports query error:', reportError);
-      }
-
-      const reportNotifications: Notification[] = (reportData || [])
-        .filter(item => item.ex_dividend_date && isToday(new Date(item.ex_dividend_date)))
-        .map(item => ({
-          id: `report-${item.symbol}-${item.ex_dividend_date}`,
-          type: 'dividend',
-          title: `Dividend Report: ${item.symbol}`,
-          message: `Ex-Date: ${item.ex_dividend_date}`,
-          related_symbol: item.symbol,
-          read: false,
-          created_at: item.ex_dividend_date
-        }));
-
-      // Combine all notifications
-      const allNotifications = [
-        ...filteredAnnouncements,
-        ...filteredNews,
-        ...dividendNotifications,
-        ...reportNotifications
-      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-
-      setNotifications(allNotifications);
-    } catch (error) {
-      console.error('Error loading notifications:', error);
-      toast({
-        title: "Failed to load notifications",
-        description: "Please try again later",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleNotificationClick = (notification: Notification) => {
     if (notification.type === 'news') {
@@ -216,7 +129,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ open, onClo
                        notification.type === 'announcement' ? 'Announcement' : 'General'}
                     </span>
                     <p className={`text-xs ${notification.type === 'system' ? 'text-red-500' : 'text-gray-500'}`}>
-                      {formatNotificationDate(notification.created_at)}
+                      {/* Always show current date in the format 'Today, Month Day, Year' */}
+                      {`Today, ${new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}`}
                     </p>
                     {notification.weblink && (
                       <ExternalLink className="h-3 w-3 text-blue-400 ml-2" />

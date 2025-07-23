@@ -82,17 +82,17 @@ export const fetchDividendSymbols = async (): Promise<any[]> => {
   }
 };
 
-export const fetchDividendReports = async (): Promise<any[]> => {
+export const fetchEarningsReports = async (): Promise<any[]> => {
   try {
     const { data, error } = await supabase
-      .from('dividend_reports')
+      .from('earnings_report')
       .select('*')
-      .order('ex_dividend_date', { ascending: false });
+      .order('earnings_date', { ascending: false });
 
     if (error) throw error;
     return data || [];
   } catch (error) {
-    console.error('Error fetching dividend reports:', error);
+    console.error('Error fetching earnings reports:', error);
     return [];
   }
 };
@@ -148,19 +148,19 @@ export const convertDividendSymbolsToNotifications = (
     }));
 };
 
-export const convertDividendReportsToNotifications = (
+export const convertEarningsReportsToNotifications = (
   items: any[]
 ): Notification[] => {
   return items
-    .filter((item) => isToday(new Date(item.ex_dividend_date)))
+    .filter((item) => isToday(new Date(item.earnings_date)))
     .map((item) => ({
-      id: `report-${item.id}`,
-      type: 'report',
-      title: `Dividend Report: ${item.symbol}`,
-      message: item.description || `Report available for ${item.symbol}`,
+      id: `earnings-${item.symbol}-${item.earnings_date}`,
+      type: 'earnings',
+      title: `Earnings Report: ${item.symbol}`,
+      message: `EPS Avg: $${item.earnings_average ?? 'N/A'} | Revenue Avg: $${item.revenue_average ?? 'N/A'}`,
       related_symbol: item.symbol,
       read: false,
-      created_at: item.ex_dividend_date,
+      created_at: item.earnings_date,
     }));
 };
 
@@ -206,14 +206,14 @@ export const getUnreadNotificationCount = async (): Promise<number> => {
       fetchDividendAnnouncements(),
       fetchNewsItems(),
       fetchDividendSymbols(),
-      fetchDividendReports()
+      fetchEarningsReports()
     ]);
 
     const count = [
       ...convertAnnouncementsToNotifications(ann),
       ...convertNewsToNotifications(news),
       ...convertDividendSymbolsToNotifications(symbols),
-      ...convertDividendReportsToNotifications(reports)
+      ...convertEarningsReportsToNotifications(reports)
     ].length;
 
     return count;

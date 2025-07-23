@@ -1,15 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import NotificationDropdown from './NotificationDropdown';
-import { getUnreadNotificationCount } from '@/utils/notifications';
+import {
+  fetchDividendAnnouncements,
+  convertAnnouncementsToNotifications,
+  fetchNewsItems,
+  convertNewsToNotifications,
+  Notification
+} from '@/utils/notifications';
 import { supabase } from '@/integrations/supabase/client';
 
 const NavbarNotificationSection: React.FC = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [notificationCount, setNotificationCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   useEffect(() => {
-    loadNotificationCount();
+    loadNotifications();
 
     // Set up a real-time subscription for new notifications
     const channel = supabase
@@ -22,8 +28,7 @@ const NavbarNotificationSection: React.FC = () => {
           table: 'dividend_announcements'
         },
         () => {
-          // Refresh notification count when new dividend announcements are added
-          loadNotificationCount();
+          loadNotifications();
         }
       )
       .on(
@@ -34,8 +39,7 @@ const NavbarNotificationSection: React.FC = () => {
           table: 'news'
         },
         () => {
-          // Refresh notification count when new news items are added
-          loadNotificationCount();
+          loadNotifications();
         }
       )
       .on(
@@ -46,8 +50,7 @@ const NavbarNotificationSection: React.FC = () => {
           table: 'dividendsymbol'
         },
         () => {
-          // Refresh notification count when new dividend symbols are added
-          loadNotificationCount();
+          loadNotifications();
         }
       )
       .on(
@@ -55,17 +58,16 @@ const NavbarNotificationSection: React.FC = () => {
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'dividend_reports'
+          table: 'earnings_report'
         },
         () => {
-          // Refresh notification count when new dividend reports are added
-          loadNotificationCount();
+          loadNotifications();
         }
       )
       .subscribe();
 
     // Check for new notifications every 2 minutes
-    const interval = setInterval(loadNotificationCount, 120000);
+    const interval = setInterval(loadNotifications, 120000);
 
     return () => {
       supabase.removeChannel(channel);
@@ -73,12 +75,27 @@ const NavbarNotificationSection: React.FC = () => {
     };
   }, []);
 
-  const loadNotificationCount = async () => {
+  const loadNotifications = async () => {
     try {
-      const count = await getUnreadNotificationCount();
-      setNotificationCount(count);
+      const todayStr = new Date().toISOString().split('T')[0];
+      const announcements = await fetchDividendAnnouncements();
+      const filteredAnnouncements = convertAnnouncementsToNotifications(announcements)
+        .filter(n => n.created_at.startsWith(todayStr));
+
+      const news = await fetchNewsItems();
+      const filteredNews = convertNewsToNotifications(news)
+        .filter(n => n.created_at.startsWith(todayStr));
+
+      // You can add dividendSymbols and earningsReports here if needed, similar to NotificationDropdown
+
+      const allNotifications = [
+        ...filteredAnnouncements,
+        ...filteredNews
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+      setNotifications(allNotifications);
     } catch (error) {
-      console.error('Error loading notification count:', error);
+      console.error('Error loading notifications:', error);
     }
   };
 
@@ -90,9 +107,9 @@ const NavbarNotificationSection: React.FC = () => {
         aria-label="Open notifications"
       >
         <Bell className="h-5 w-5 text-gray-300" />
-        {notificationCount > 0 && (
+        {notifications.length > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
-            {notificationCount}
+            {notifications.length}
           </span>
         )}
       </button>
@@ -100,6 +117,7 @@ const NavbarNotificationSection: React.FC = () => {
       <NotificationDropdown
         open={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
+        notifications={notifications}
       />
     </div>
   );

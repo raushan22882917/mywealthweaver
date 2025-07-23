@@ -2,11 +2,9 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, X, ExternalLink } from "lucide-react";
-import { format, isSameDay, parseISO, getDaysInMonth, getDay } from "date-fns";
+import { format, isSameDay,  getDaysInMonth, getDay } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent } from "@/components/ui/card";
-import { Tables } from "@/integrations/supabase/types";
 import StockDetailsDialog from "./StockDetailsDialog";
 
 interface DividendEvent {
@@ -124,20 +122,23 @@ const DividendCalendar = () => {
         if (error) throw error;
 
         setDividendEvents(
-          (earningsData || []).map((event: any) => {
-            return {
-              ...event,
-              id: `${event.Symbol}-${event.earnings_date}`,
-              Symbol: event.Symbol,
-              ex_dividend_date: event.earnings_date, // Use earnings_date as ex_dividend_date for calendar placement
-              company_name: event.Symbol,
-              LogoURL: logoMap[event.Symbol?.toUpperCase()] || null,
-              dividend_date: null,
-              earnings_date: event.earnings_date,
-              earnings_average: event.earnings_average,
-              revenue_average: event.revenue_average,
-            };
-          })
+          (earningsData || [])
+            .filter((event: any) => !!event.symbol) // Use 'symbol' from DB
+            .map((event: any) => {
+              const symbol = event.symbol?.toUpperCase();
+              return {
+                ...event,
+                id: `${symbol}-${event.earnings_date}`,
+                Symbol: symbol,
+                ex_dividend_date: event.earnings_date, // Use earnings_date as ex_dividend_date for calendar placement
+                company_name: logoMap[symbol] ? undefined : symbol, // fallback if not found in logoMap
+                LogoURL: logoMap[symbol] || null,
+                dividend_date: null,
+                earnings_date: event.earnings_date,
+                earnings_average: event.earnings_average,
+                revenue_average: event.revenue_average,
+              };
+            })
         );
       } catch (error) {
         console.error('Error fetching earnings data:', error);
@@ -270,7 +271,7 @@ const DividendCalendar = () => {
                       />
                     <div className="w-[50px] h-[15px]  flex items-center justify-center">
                       <span className="text-[12px] font-bold  leading-none truncate">
-                        {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
+                        {event.Symbol && event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol || "N/A"}
                       </span>
                     </div>
                   </div>
@@ -450,8 +451,7 @@ const DividendCalendar = () => {
                 {getEventsForDateKey(showMoreDialogDay)
                   .sort((a, b) => (a.Symbol || '').localeCompare(b.Symbol || ''))
                   .map((event, index) => {
-                  // Risky status for warning icon
-                  const isRisky = event.status === 'This stock may have a risky dividend.' || event.status === 'This stock does not pay a dividend.';
+                  // Remove risky status check (no 'status' field)
                   return (
                     <div
                       key={`${event.id}-${index}`}
@@ -468,16 +468,9 @@ const DividendCalendar = () => {
                           className="w-full h-full object-contain"
                           onError={e => { (e.currentTarget as HTMLImageElement).src = '/stock.avif'; }}
                         />
-                        {isRisky && (
-                          <span className="absolute top-1 right-1 text-red-400" title="Risky Dividend">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
-                              <path fillRule="evenodd" d="M9.401 3.003c1.155-2 4.043-2 5.197 0l7.355 12.748c1.154 2-.29 4.5-2.599 4.5H4.645c-2.309 0-3.752-2.5-2.598-4.5L9.4 3.003zM12 8.25a.75.75 0 01.75.75v3.75a.75.75 0 01-1.5 0V9a.75.75 0 01.75-.75zm0 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" />
-                            </svg>
-                          </span>
-                        )}
                       </div>
                       <span className="text-xs font-semibold text-white text-center mt-1 truncate w-full">
-                        {event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol}
+                        {event.Symbol && event.Symbol.length > 8 ? `${event.Symbol.slice(0, 8)}..` : event.Symbol || "N/A"}
                       </span>
                     </div>
                   );

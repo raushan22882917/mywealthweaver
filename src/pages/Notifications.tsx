@@ -165,14 +165,14 @@ const Notifications = () => {
 
         if (dividendSymbolsError) throw dividendSymbolsError;
 
-        // Fetch from dividend_reports table
-        const { data: dividendReportsData, error: dividendReportsError } = await supabase
-          .from("dividend_reports")
+        // Fetch from earnings_report table
+        const { data: earningsReportsData, error: earningsReportsError } = await supabase
+          .from("earnings_report")
           .select("*")
-          .eq('ex_dividend_date', dateString);
+          .eq('earnings_date', dateString);
 
-        if (dividendReportsError) {
-          console.log('Dividend reports query error:', dividendReportsError);
+        if (earningsReportsError) {
+          console.log('Earnings reports query error:', earningsReportsError);
         }
 
         // Fetch from dividend_announcements table
@@ -196,13 +196,18 @@ const Notifications = () => {
             company_name: item.company_name,
             LogoURL: item.LogoURL
           })) || []),
-          ...(dividendReportsData?.map((item: any) => ({
-            id: `report-${item.id}`,
+          ...(earningsReportsData?.map((item: any) => ({
+            id: `earnings-${item.symbol}-${item.earnings_date}`,
             type: 'earnings' as const,
             symbol: item.symbol,
-            ex_dividend_date: item.ex_dividend_date,
-            company_name: item.company_name,
-            LogoURL: item.LogoURL
+            earnings_date: item.earnings_date,
+            earnings_average: item.earnings_average,
+            revenue_average: item.revenue_average,
+            earnings_high: item.earnings_high,
+            earnings_low: item.earnings_low,
+            revenue_high: item.revenue_high,
+            revenue_low: item.revenue_low,
+            as_of_date: item.as_of_date
           })) || []),
           ...(dividendAnnouncementsData?.map((item: any) => ({
             id: `announcement-${item.id}`,
@@ -331,7 +336,7 @@ const Notifications = () => {
                 </a>
               </div>
               <p className="text-xs text-gray-500 mt-1">
-                Ex-Dividend Date: {formatDate(notification.ex_dividend_date || notification.exdividenddate || '')}
+                Earnings Date: {formatDate(notification.earnings_date || '')}
               </p>
               {notification.company_name && (
                 <p className="text-xs text-gray-400 mt-1 truncate">{notification.company_name}</p>

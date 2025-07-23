@@ -59,7 +59,7 @@ const DummyComponent: React.FC = () => {
         supabase.from('dividend_announcements').select('*').limit(20),
         supabase.from('news').select('*').limit(20),
         supabase.from('dividendsymbol').select('*').limit(20),
-        supabase.from('dividend_reports').select('*').limit(20)
+        supabase.from('earnings_report').select('*').limit(20)
       ]);
 
       const combinedData: DummyData[] = [];
@@ -107,17 +107,17 @@ const DummyComponent: React.FC = () => {
         });
       }
 
-      // Process dividend reports
+      // Process earnings reports
       if (reportsRes.data) {
         reportsRes.data.forEach(item => {
           combinedData.push({
-            id: item.id,
+            id: `${item.symbol}-${item.earnings_date}`,
             symbol: item.symbol,
-            name: `${item.symbol} Report`,
+            name: `${item.symbol} Earnings Report`,
             dividendRate: item.earnings_average || 0,
             dividendYield: 0,
-            type: 'dividend' as const,
-            exDividendDate: item.ex_dividend_date
+            type: 'earnings' as const,
+            exDividendDate: item.earnings_date
           });
         });
       }
