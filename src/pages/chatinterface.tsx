@@ -151,25 +151,22 @@ const ChatInterface = () => {
     setInputValue('');
     setIsLoading(true);
 
-    // Check if the message contains a stock symbol pattern
-    const symbolMatch = currentInput.match(/\b[A-Z]{1,5}\b/g);
-    if (symbolMatch && symbolMatch.length > 0) {
-      // Search for PDFs related to the symbol
-      try {
+    try {
+      // Check if the message contains a stock symbol pattern
+      const symbolMatch = currentInput.match(/\b[A-Z]{1,5}\b/g);
+      if (symbolMatch && symbolMatch.length > 0) {
+        // Search for PDFs related to the symbol
         const symbol = symbolMatch[0];
         const pdfs = await PDFService.searchPDFsBySymbol(symbol);
         
         if (pdfs.length > 0) {
-          const aiResponse: Message = {
-            id: (Date.now() + 1).toString(),
-            content: `I found ${pdfs.length} PDF document(s) related to ${symbol}. I've loaded them in the PDF preview section for you to review. You can ask me questions about the content of these documents.`,
-            role: 'assistant',
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, aiResponse]);
+          // Set the PDF for preview
           setSearchResults(pdfs);
-          setCurrentPDF(pdfs[0]); // Set the first PDF as current
+          setCurrentPDF(pdfs[0]);
           setPdfPreview(PDFService.getPDFPublicURL(pdfs[0].file_path));
+          
+          // Analyze PDF with backend
+          await analyzePDFWithBackend(pdfs[0], currentInput);
         } else {
           const aiResponse: Message = {
             id: (Date.now() + 1).toString(),
@@ -179,19 +176,11 @@ const ChatInterface = () => {
           };
           setMessages(prev => [...prev, aiResponse]);
         }
-      } catch (error) {
-        console.error('Error searching PDFs:', error);
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          content: 'I encountered an error while searching for PDF documents. Please try again.',
-          role: 'assistant',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, aiResponse]);
-      }
-    } else {
-      // Regular AI response
-      setTimeout(() => {
+      } else if (currentPDF) {
+        // If there's a current PDF and no symbol search, analyze the current PDF
+        await analyzePDFWithBackend(currentPDF, currentInput);
+      } else {
+        // Regular AI response without PDF analysis
         const aiResponse: Message = {
           id: (Date.now() + 1).toString(),
           content: generateAIResponse(currentInput),
@@ -199,11 +188,74 @@ const ChatInterface = () => {
           timestamp: new Date()
         };
         setMessages(prev => [...prev, aiResponse]);
-        setIsLoading(false);
-      }, 1000 + Math.random() * 2000);
+      }
+    } catch (error) {
+      console.error('Error in handleSendMessage:', error);
+      const aiResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        content: 'I encountered an error while processing your request. Please try again.',
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
+  };
+
+  const analyzePDFWithBackend = async (pdf: PDFDocument, userQuery: string) => {
+    try {
+      // First show that we found the PDF
+      const foundPDFMessage: Message = {
+        id: Date.now().toString(),
+        content: `Found PDF: ${pdf.file_name} for ${pdf.symbol}. Analyzing the document...`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, foundPDFMessage]);
+
+      // Get the PDF download URL
+      const downloadUrl = await PDFService.getPDFDownloadURL(pdf.file_path);
+      
+      // Send PDF to backend for analysis
+      const response = await fetch('http://127.0.0.1:8000/pdf', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pdf_url: downloadUrl,
+          query: userQuery,
+          symbol: pdf.symbol,
+          company_name: pdf.company_name
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Backend error: ${response.status}`);
+      }
+
+      const analysisResult = await response.json();
+      
+      // Display the analysis result
+      const analysisMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: analysisResult.analysis || analysisResult.response || 'Analysis completed successfully.',
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, analysisMessage]);
+
+    } catch (error) {
+      console.error('Error analyzing PDF:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: `I encountered an error while analyzing the PDF document. Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please ensure the backend service is running at http://127.0.0.1:8000/pdf`,
+        role: 'assistant',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
   };
 
   const generateAIResponse = (userInput: string): string => {
@@ -316,9 +368,18 @@ const ChatInterface = () => {
     }
   };
 
-  const handlePDFSelect = (pdf: PDFDocument) => {
+  const handlePDFSelect = async (pdf: PDFDocument) => {
     setCurrentPDF(pdf);
     setPdfPreview(PDFService.getPDFPublicURL(pdf.file_path));
+    
+    // Add a message about the selected PDF
+    const selectMessage: Message = {
+      id: Date.now().toString(),
+      content: `Selected PDF: ${pdf.file_name} (${pdf.symbol}). You can now ask questions about this document.`,
+      role: 'assistant',
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, selectMessage]);
   };
 
   const handlePDFUpload = async () => {
@@ -472,12 +533,83 @@ const ChatInterface = () => {
             </TabsContent>
 
             <TabsContent value="pdf" className="flex-1 overflow-hidden flex flex-col">
-              <div className="p-4">
-                <div className="text-center py-4 text-gray-400">
-                  <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Search for PDFs using the search bar in the header</p>
-                  <p className="text-xs mt-1">or upload a new PDF to get started</p>
+              <div className="p-4 space-y-4">
+                {/* PDF Search */}
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Search PDFs by symbol (e.g., AAPL)"
+                      value={pdfSearchTerm}
+                      onChange={(e) => setPdfSearchTerm(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handlePDFSearch()}
+                    />
+                    <Button onClick={handlePDFSearch} disabled={isSearching}>
+                      <Search className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Search Results */}
+                {searchResults.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Found PDFs:</h4>
+                    {searchResults.map((pdf) => (
+                      <Card 
+                        key={pdf.id} 
+                        className={`cursor-pointer transition-colors ${
+                          currentPDF?.id === pdf.id ? 'bg-blue-50 dark:bg-blue-900 border-blue-200' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                        onClick={() => handlePDFSelect(pdf)}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-start gap-2">
+                            <FileText className="w-4 h-4 text-gray-500 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                              <h5 className="text-xs font-medium truncate">{pdf.file_name}</h5>
+                              <p className="text-xs text-gray-500">{pdf.symbol} - {pdf.company_name}</p>
+                              <p className="text-xs text-gray-400">{formatFileSize(pdf.file_size)}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* Current PDF Preview */}
+                {pdfPreview ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Current PDF: {currentPDF?.file_name}
+                      </h4>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (currentPDF) {
+                            window.open(pdfPreview, '_blank');
+                          }
+                        }}
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </Button>
+                    </div>
+                    <div className="border rounded-lg overflow-hidden bg-white">
+                      <iframe
+                        src={pdfPreview}
+                        className="w-full h-64"
+                        title="PDF Preview"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-gray-400">
+                    <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">Search for a symbol to find related PDFs</p>
+                    <p className="text-xs mt-1">or upload a new PDF to get started</p>
+                  </div>
+                )}
               </div>
               
               {/* PDF Preview Section */}
