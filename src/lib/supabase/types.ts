@@ -233,6 +233,41 @@ export interface Database {
           as_of_date?: string | null;
         };
       };
+      pdf_documents: {
+        Row: {
+          id: string;
+          symbol: string;
+          company_name: string;
+          file_path: string;
+          file_name: string;
+          file_size: number;
+          document_type: string;
+          upload_date: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          symbol: string;
+          company_name: string;
+          file_path: string;
+          file_name: string;
+          file_size: number;
+          document_type?: string;
+          upload_date?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          symbol?: string;
+          company_name?: string;
+          file_path?: string;
+          file_name?: string;
+          file_size?: number;
+          document_type?: string;
+          upload_date?: string;
+          created_at?: string;
+        };
+      };
     }
     Views: {
       [_ in never]: never

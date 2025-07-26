@@ -148,6 +148,16 @@ const Index = () => {
                     Learn More
                   </Button>
                 </Link>
+
+                <Link to="/chatinterface">
+                  <Button 
+                    size="lg"
+                    className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 md:px-8 py-4 md:py-6 rounded-xl text-base md:text-lg font-semibold transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
+                  >
+                    <MessageSquare className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                    Chat with AI
+                  </Button>
+                </Link>
               </div>
             </div>
 

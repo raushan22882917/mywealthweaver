@@ -32,6 +32,7 @@ import DividendYield from "./pages/DividendYield";
 import InsightPage from "./pages/insight";
 import HelpSupport from "./pages/HelpSupport";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ChatInterface from "./pages/chatinterface";
 
 interface Stock {
   cik_str: string;
@@ -128,6 +129,7 @@ function App() {
               <Route path="/dividendyield" element={<ProtectedRoute><DividendYield /></ProtectedRoute>} />
               <Route path="/dividendyield/:symbol?" element={<ProtectedRoute><DividendYield /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
+              <Route path="/chatinterface" element={<ProtectedRoute><ChatInterface /></ProtectedRoute>} />
             </Routes>
             
             {/* Global StockDetailsDialog */}
