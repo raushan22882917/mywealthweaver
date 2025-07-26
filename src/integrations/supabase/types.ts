@@ -7,6 +7,11 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instanciate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: "12.2.3 (519615d)"
+  }
   public: {
     Tables: {
       analytics_data: {
@@ -113,6 +118,47 @@ export type Database = {
           symbol?: string
         }
         Relationships: []
+      }
+      chat_history: {
+        Row: {
+          chat_title: string
+          created_at: string
+          id: string
+          messages: Json
+          pdf_document_id: string | null
+          symbol: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_title: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          pdf_document_id?: string | null
+          symbol?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_title?: string
+          created_at?: string
+          id?: string
+          messages?: Json
+          pdf_document_id?: string | null
+          symbol?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_chat_history_pdf_document"
+            columns: ["pdf_document_id"]
+            isOneToOne: false
+            referencedRelation: "pdf_documents"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_logos: {
         Row: {
@@ -412,16 +458,19 @@ export type Database = {
         Row: {
           as_of_date: string
           id: number
+          status: string | null
           symbol: string | null
         }
         Insert: {
           as_of_date: string
           id?: number
+          status?: string | null
           symbol?: string | null
         }
         Update: {
           as_of_date?: string
           id?: number
+          status?: string | null
           symbol?: string | null
         }
         Relationships: []
@@ -515,91 +564,67 @@ export type Database = {
       }
       dividend_metrics: {
         Row: {
+          as_of_date: string | null
+          attractiveness: string | null
+          attractiveness_score: number | null
+          coverage_ratio: number | null
           created_at: string
+          debt_to_equity_ratio: number | null
+          dividend_commentary: string | null
+          dividend_safety_status: string | null
+          fcf_coverage_ratio: number | null
           id: number
+          momentum_12m: string | null
+          momentum_3m: string | null
+          momentum_analysis: string | null
+          payout_ratio: number | null
+          safety_score: number | null
+          tag: string | null
+          ticker: string
+          trend_12m: string | null
+          trend_3m: string | null
         }
         Insert: {
+          as_of_date?: string | null
+          attractiveness?: string | null
+          attractiveness_score?: number | null
+          coverage_ratio?: number | null
           created_at?: string
+          debt_to_equity_ratio?: number | null
+          dividend_commentary?: string | null
+          dividend_safety_status?: string | null
+          fcf_coverage_ratio?: number | null
           id?: number
+          momentum_12m?: string | null
+          momentum_3m?: string | null
+          momentum_analysis?: string | null
+          payout_ratio?: number | null
+          safety_score?: number | null
+          tag?: string | null
+          ticker: string
+          trend_12m?: string | null
+          trend_3m?: string | null
         }
         Update: {
+          as_of_date?: string | null
+          attractiveness?: string | null
+          attractiveness_score?: number | null
+          coverage_ratio?: number | null
           created_at?: string
+          debt_to_equity_ratio?: number | null
+          dividend_commentary?: string | null
+          dividend_safety_status?: string | null
+          fcf_coverage_ratio?: number | null
           id?: number
-        }
-        Relationships: []
-      }
-      dividend_payout: {
-        Row: {
-          created_at: string
-          date: string
-          dividends: number
-          id: string
-          last_quarter: string | null
-          payout: number | null
-          quarter_year: string | null
-          quarterly_eps: number | null
-          stock_symbol: string
-        }
-        Insert: {
-          created_at?: string
-          date: string
-          dividends: number
-          id?: string
-          last_quarter?: string | null
-          payout?: number | null
-          quarter_year?: string | null
-          quarterly_eps?: number | null
-          stock_symbol: string
-        }
-        Update: {
-          created_at?: string
-          date?: string
-          dividends?: number
-          id?: string
-          last_quarter?: string | null
-          payout?: number | null
-          quarter_year?: string | null
-          quarterly_eps?: number | null
-          stock_symbol?: string
-        }
-        Relationships: []
-      }
-      dividend_reports: {
-        Row: {
-          created_at: string | null
-          earnings_average: number | null
-          earnings_high: number | null
-          earnings_low: number | null
-          ex_dividend_date: string | null
-          id: string
-          revenue_average: number | null
-          revenue_high: number | null
-          revenue_low: number | null
-          symbol: string
-        }
-        Insert: {
-          created_at?: string | null
-          earnings_average?: number | null
-          earnings_high?: number | null
-          earnings_low?: number | null
-          ex_dividend_date?: string | null
-          id?: string
-          revenue_average?: number | null
-          revenue_high?: number | null
-          revenue_low?: number | null
-          symbol: string
-        }
-        Update: {
-          created_at?: string | null
-          earnings_average?: number | null
-          earnings_high?: number | null
-          earnings_low?: number | null
-          ex_dividend_date?: string | null
-          id?: string
-          revenue_average?: number | null
-          revenue_high?: number | null
-          revenue_low?: number | null
-          symbol?: string
+          momentum_12m?: string | null
+          momentum_3m?: string | null
+          momentum_analysis?: string | null
+          payout_ratio?: number | null
+          safety_score?: number | null
+          tag?: string | null
+          ticker?: string
+          trend_12m?: string | null
+          trend_3m?: string | null
         }
         Relationships: []
       }
@@ -768,6 +793,66 @@ export type Database = {
         }
         Relationships: []
       }
+      earnings_report: {
+        Row: {
+          as_of_date: string | null
+          earnings_average: number | null
+          earnings_date: string
+          earnings_high: number | null
+          earnings_low: number | null
+          revenue_average: number | null
+          revenue_high: number | null
+          revenue_low: number | null
+          symbol: string
+        }
+        Insert: {
+          as_of_date?: string | null
+          earnings_average?: number | null
+          earnings_date: string
+          earnings_high?: number | null
+          earnings_low?: number | null
+          revenue_average?: number | null
+          revenue_high?: number | null
+          revenue_low?: number | null
+          symbol: string
+        }
+        Update: {
+          as_of_date?: string | null
+          earnings_average?: number | null
+          earnings_date?: string
+          earnings_high?: number | null
+          earnings_low?: number | null
+          revenue_average?: number | null
+          revenue_high?: number | null
+          revenue_low?: number | null
+          symbol?: string
+        }
+        Relationships: []
+      }
+      favorite_analyses: {
+        Row: {
+          analysis_id: string
+          id: string
+          saved_date: string | null
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          id?: string
+          saved_date?: string | null
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          id?: string
+          saved_date?: string | null
+          symbol?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       google_analytics_config: {
         Row: {
           created_at: string
@@ -848,35 +933,44 @@ export type Database = {
       }
       news: {
         Row: {
+          as_of_date: string | null
           date: string
+          func: string | null
           id: number
           news_title: string
           original_link: string
           sentiment: string
           sentiment_score: string
           source: string
+          summary: string | null
           symbol: string
           weblink: string
         }
         Insert: {
+          as_of_date?: string | null
           date: string
+          func?: string | null
           id?: number
           news_title: string
           original_link: string
           sentiment: string
           sentiment_score: string
           source: string
+          summary?: string | null
           symbol: string
           weblink: string
         }
         Update: {
+          as_of_date?: string | null
           date?: string
+          func?: string | null
           id?: number
           news_title?: string
           original_link?: string
           sentiment?: string
           sentiment_score?: string
           source?: string
+          summary?: string | null
           symbol?: string
           weblink?: string
         }
@@ -918,36 +1012,39 @@ export type Database = {
         }
         Relationships: []
       }
-      payout_history: {
+      pdf_documents: {
         Row: {
+          company_name: string
           created_at: string | null
-          date: string
-          dividends: number
-          eps: number | null
-          id: number
-          payout: number | null
-          quarter_year: string | null
+          document_type: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
           symbol: string
+          upload_date: string | null
         }
         Insert: {
+          company_name: string
           created_at?: string | null
-          date: string
-          dividends: number
-          eps?: number | null
-          id?: number
-          payout?: number | null
-          quarter_year?: string | null
+          document_type?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
           symbol: string
+          upload_date?: string | null
         }
         Update: {
+          company_name?: string
           created_at?: string | null
-          date?: string
-          dividends?: number
-          eps?: number | null
-          id?: number
-          payout?: number | null
-          quarter_year?: string | null
+          document_type?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
           symbol?: string
+          upload_date?: string | null
         }
         Relationships: []
       }
@@ -1094,58 +1191,31 @@ export type Database = {
       }
       quarterly_payout_ratio: {
         Row: {
-          symbol: string;
-          date: string;
-          net_income: number | null;
-          payout_ratio: number | null;
-          dividends_paid: number | null;
-          as_of_date: string | null;
-        };
+          as_of_date: string | null
+          date: string
+          dividends_paid: number | null
+          net_income: number | null
+          payout_ratio: number | null
+          symbol: string
+        }
         Insert: {
-          symbol: string;
-          date: string;
-          net_income?: number | null;
-          payout_ratio?: number | null;
-          dividends_paid?: number | null;
-          as_of_date?: string | null;
-        };
+          as_of_date?: string | null
+          date: string
+          dividends_paid?: number | null
+          net_income?: number | null
+          payout_ratio?: number | null
+          symbol: string
+        }
         Update: {
-          symbol?: string;
-          date?: string;
-          net_income?: number | null;
-          payout_ratio?: number | null;
-          dividends_paid?: number | null;
-          as_of_date?: string | null;
-        };
-        Relationships: [];
-      },
-      yearly_payout_ratio: {
-        Row: {
-          symbol: string;
-          dividends_paid: number;
-          date: string;
-          net_income: number | null;
-          payout_ratio: number | null;
-          as_of_date: string;
-        };
-        Insert: {
-          symbol: string;
-          dividends_paid: number;
-          date: string;
-          net_income?: number | null;
-          payout_ratio?: number | null;
-          as_of_date: string;
-        };
-        Update: {
-          symbol?: string;
-          dividends_paid?: number;
-          date?: string;
-          net_income?: number | null;
-          payout_ratio?: number | null;
-          as_of_date?: string;
-        };
-        Relationships: [];
-      },
+          as_of_date?: string | null
+          date?: string
+          dividends_paid?: number | null
+          net_income?: number | null
+          payout_ratio?: number | null
+          symbol?: string
+        }
+        Relationships: []
+      }
       saved_stocks: {
         Row: {
           company_name: string
@@ -1187,6 +1257,7 @@ export type Database = {
       }
       similar_companies: {
         Row: {
+          as_of_date: string | null
           dividend_yield: string | null
           id: number
           revenue_2025: string | null
@@ -1195,6 +1266,7 @@ export type Database = {
           symbol: string | null
         }
         Insert: {
+          as_of_date?: string | null
           dividend_yield?: string | null
           id?: number
           revenue_2025?: string | null
@@ -1203,6 +1275,7 @@ export type Database = {
           symbol?: string | null
         }
         Update: {
+          as_of_date?: string | null
           dividend_yield?: string | null
           id?: number
           revenue_2025?: string | null
@@ -1284,12 +1357,24 @@ export type Database = {
       stock_analysis: {
         Row: {
           analysis_date: string
-          analysis_text: string
+          analysis_text: string | null
+          catalysts: Json | null
+          competitive_position: string | null
+          confidence_score: number | null
           created_at: string
+          dividend_analysis: string | null
+          financial_health: string | null
+          growth_potential: string | null
           id: string
+          investment_thesis: string | null
+          key_metrics: Json | null
+          key_strengths: Json | null
+          key_weaknesses: Json | null
           opportunity: string | null
-          price_target: number | null
+          price_target: string | null
           recommendation: string | null
+          risk_assessment: string | null
+          risks: Json | null
           sentiment: string | null
           strength: string | null
           symbol: string
@@ -1298,12 +1383,24 @@ export type Database = {
         }
         Insert: {
           analysis_date: string
-          analysis_text: string
+          analysis_text?: string | null
+          catalysts?: Json | null
+          competitive_position?: string | null
+          confidence_score?: number | null
           created_at?: string
+          dividend_analysis?: string | null
+          financial_health?: string | null
+          growth_potential?: string | null
           id?: string
+          investment_thesis?: string | null
+          key_metrics?: Json | null
+          key_strengths?: Json | null
+          key_weaknesses?: Json | null
           opportunity?: string | null
-          price_target?: number | null
+          price_target?: string | null
           recommendation?: string | null
+          risk_assessment?: string | null
+          risks?: Json | null
           sentiment?: string | null
           strength?: string | null
           symbol: string
@@ -1312,17 +1409,65 @@ export type Database = {
         }
         Update: {
           analysis_date?: string
-          analysis_text?: string
+          analysis_text?: string | null
+          catalysts?: Json | null
+          competitive_position?: string | null
+          confidence_score?: number | null
           created_at?: string
+          dividend_analysis?: string | null
+          financial_health?: string | null
+          growth_potential?: string | null
           id?: string
+          investment_thesis?: string | null
+          key_metrics?: Json | null
+          key_strengths?: Json | null
+          key_weaknesses?: Json | null
           opportunity?: string | null
-          price_target?: number | null
+          price_target?: string | null
           recommendation?: string | null
+          risk_assessment?: string | null
+          risks?: Json | null
           sentiment?: string | null
           strength?: string | null
           symbol?: string
           threat?: string | null
           weakness?: string | null
+        }
+        Relationships: []
+      }
+      stock_analysis_history: {
+        Row: {
+          analysis_date: string
+          company_name: string | null
+          confidence_score: number | null
+          created_at: string | null
+          id: string
+          price_target: string | null
+          recommendation: string | null
+          symbol: string
+          user_id: string
+        }
+        Insert: {
+          analysis_date: string
+          company_name?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          price_target?: string | null
+          recommendation?: string | null
+          symbol: string
+          user_id: string
+        }
+        Update: {
+          analysis_date?: string
+          company_name?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          id?: string
+          price_target?: string | null
+          recommendation?: string | null
+          symbol?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1688,6 +1833,33 @@ export type Database = {
           },
         ]
       }
+      yearly_payout_ratio: {
+        Row: {
+          as_of_date: string
+          date: string
+          dividends_paid: number
+          net_income: number | null
+          payout_ratio: number | null
+          symbol: string
+        }
+        Insert: {
+          as_of_date: string
+          date: string
+          dividends_paid: number
+          net_income?: number | null
+          payout_ratio?: number | null
+          symbol: string
+        }
+        Update: {
+          as_of_date?: string
+          date?: string
+          dividends_paid?: number
+          net_income?: number | null
+          payout_ratio?: number | null
+          symbol?: string
+        }
+        Relationships: []
+      }
       yield_data: {
         Row: {
           close: number
@@ -1718,42 +1890,6 @@ export type Database = {
         }
         Relationships: []
       }
-      earnings_report: {
-        Row: {
-          symbol: string;
-          earnings_date: string;
-          earnings_high: number | null;
-          earnings_low: number | null;
-          earnings_average: number | null;
-          revenue_high: number | null;
-          revenue_low: number | null;
-          revenue_average: number | null;
-          as_of_date: string | null;
-        };
-        Insert: {
-          symbol: string;
-          earnings_date: string;
-          earnings_high?: number | null;
-          earnings_low?: number | null;
-          earnings_average?: number | null;
-          revenue_high?: number | null;
-          revenue_low?: number | null;
-          revenue_average?: number | null;
-          as_of_date?: string | null;
-        };
-        Update: {
-          symbol?: string;
-          earnings_date?: string;
-          earnings_high?: number | null;
-          earnings_low?: number | null;
-          earnings_average?: number | null;
-          revenue_high?: number | null;
-          revenue_low?: number | null;
-          revenue_average?: number | null;
-          as_of_date?: string | null;
-        };
-        Relationships: [];
-      },
     }
     Views: {
       [_ in never]: never
@@ -1782,21 +1918,25 @@ export type Database = {
   }
 }
 
-type DefaultSchema = Database[Extract<keyof Database, "public">]
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
@@ -1814,14 +1954,16 @@ export type Tables<
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
@@ -1837,14 +1979,16 @@ export type TablesInsert<
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
@@ -1860,14 +2004,16 @@ export type TablesUpdate<
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
@@ -1875,14 +2021,16 @@ export type Enums<
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof Database },
+    | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
-    schema: keyof Database
+    schema: keyof DatabaseWithoutInternals
   }
-    ? keyof Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never

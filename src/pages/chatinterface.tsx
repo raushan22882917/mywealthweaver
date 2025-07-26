@@ -12,20 +12,14 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PDFService, PDFDocument } from '@/services/pdfService';
+import { ChatHistoryService, ChatMessage, ChatHistoryRecord } from '@/services/chatHistoryService';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
   timestamp: Date;
-}
-
-interface ChatHistory {
-  id: string;
-  title: string;
-  lastMessage: string;
-  timestamp: Date;
-  messageCount: number;
 }
 
 const ChatInterface = () => {
@@ -39,29 +33,9 @@ const ChatInterface = () => {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([
-    {
-      id: '1',
-      title: 'Stock Analysis Discussion',
-      lastMessage: 'Can you analyze AAPL stock performance?',
-      timestamp: new Date(Date.now() - 3600000),
-      messageCount: 15
-    },
-    {
-      id: '2',
-      title: 'Investment Strategy',
-      lastMessage: 'What\'s the best approach for dividend investing?',
-      timestamp: new Date(Date.now() - 7200000),
-      messageCount: 8
-    },
-    {
-      id: '3',
-      title: 'Market Trends',
-      lastMessage: 'How are tech stocks performing this quarter?',
-      timestamp: new Date(Date.now() - 86400000),
-      messageCount: 12
-    }
-  ]);
+  const [chatHistory, setChatHistory] = useState<ChatHistoryRecord[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [pdfPreview, setPdfPreview] = useState<string | null>(null);
   const [pdfSearchTerm, setPdfSearchTerm] = useState('');
@@ -81,17 +55,86 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize Supabase bucket on component mount
+  // Initialize authentication and data on component mount
   useEffect(() => {
-    const initializeBucket = async () => {
+    const initialize = async () => {
       try {
+        // Check authentication
+        const { data: { user } } = await supabase.auth.getUser();
+        setIsAuthenticated(!!user);
+        
+        // Initialize PDF bucket
         await PDFService.initializeBucket();
+        
+        // Load chat history if authenticated
+        if (user) {
+          const history = await ChatHistoryService.getUserChatHistory();
+          setChatHistory(history);
+        }
       } catch (error) {
-        console.error('Failed to initialize bucket:', error);
+        console.error('Failed to initialize:', error);
       }
     };
-    initializeBucket();
+    initialize();
   }, []);
+
+  // Save chat messages to database when they change
+  useEffect(() => {
+    const saveChatToDatabase = async () => {
+      if (!isAuthenticated || messages.length <= 1) return; // Skip initial message
+      
+      try {
+        const symbol = extractSymbolFromMessages(messages);
+        const chatTitle = generateChatTitle(messages);
+        
+        if (currentChatId) {
+          // Update existing chat
+          await ChatHistoryService.updateChatHistory(currentChatId, messages, chatTitle);
+        } else {
+          // Create new chat
+          const savedChat = await ChatHistoryService.saveChatHistory(
+            chatTitle,
+            messages,
+            symbol,
+            currentPDF?.id
+          );
+          setCurrentChatId(savedChat.id);
+          
+          // Refresh history list
+          const history = await ChatHistoryService.getUserChatHistory();
+          setChatHistory(history);
+        }
+      } catch (error) {
+        console.error('Error saving chat:', error);
+      }
+    };
+    
+    saveChatToDatabase();
+  }, [messages, isAuthenticated, currentChatId, currentPDF?.id]);
+
+  // Helper functions
+  const extractSymbolFromMessages = (msgs: Message[]): string | undefined => {
+    for (const msg of msgs) {
+      if (msg.role === 'user') {
+        const symbolMatch = msg.content.match(/\b[A-Z]{1,5}\b/g);
+        if (symbolMatch && symbolMatch.length > 0) {
+          return symbolMatch[0];
+        }
+      }
+    }
+    return undefined;
+  };
+
+  const generateChatTitle = (msgs: Message[]): string => {
+    const userMessages = msgs.filter(m => m.role === 'user');
+    if (userMessages.length > 0) {
+      const firstMessage = userMessages[0].content;
+      return firstMessage.length > 50 
+        ? firstMessage.substring(0, 50) + '...' 
+        : firstMessage;
+    }
+    return 'New Chat';
+  };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() && !selectedFile) return;
@@ -206,6 +249,42 @@ const ChatInterface = () => {
     setPdfPreview(null);
     setSearchResults([]);
     setCurrentPDF(null);
+    setCurrentChatId(null);
+  };
+
+  const loadChat = async (chatId: string) => {
+    try {
+      const chat = await ChatHistoryService.getChatById(chatId);
+      if (chat) {
+        setMessages(chat.messages);
+        setCurrentChatId(chat.id);
+        
+        // If chat has associated PDF, load it
+        if (chat.pdf_document_id) {
+          const pdf = await PDFService.getPDFById(chat.pdf_document_id);
+          if (pdf) {
+            setCurrentPDF(pdf);
+            setPdfPreview(PDFService.getPDFPublicURL(pdf.file_path));
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error loading chat:', error);
+    }
+  };
+
+  const deleteChat = async (chatId: string) => {
+    try {
+      await ChatHistoryService.deleteChatHistory(chatId);
+      setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
+      
+      // If this was the current chat, create a new one
+      if (currentChatId === chatId) {
+        createNewChat();
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -348,29 +427,39 @@ const ChatInterface = () => {
                     <Card 
                       key={chat.id} 
                       className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      onClick={() => loadChat(chat.id)}
                     >
                       <CardContent className="p-3">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
                             <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                              {chat.title}
+                              {chat.chat_title}
                             </h4>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                              {chat.lastMessage}
+                              {chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].content.substring(0, 50) + '...' : 'No messages'}
                             </p>
                             <div className="flex items-center gap-2 mt-2">
                               <span className="text-xs text-gray-400">
-                                {formatDate(chat.timestamp)}
+                                {formatDate(new Date(chat.updated_at))}
                               </span>
                               <Badge variant="secondary" className="text-xs">
-                                {chat.messageCount} messages
+                                {chat.messages.length} messages
                               </Badge>
+                              {chat.symbol && (
+                                <Badge variant="outline" className="text-xs">
+                                  {chat.symbol}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                           <Button
                             variant="ghost"
                             size="sm"
                             className="text-gray-400 hover:text-red-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteChat(chat.id);
+                            }}
                           >
                             <Trash2 className="w-3 h-3" />
                           </Button>
@@ -528,7 +617,7 @@ const ChatInterface = () => {
                     <span>Found {searchResults.length} document{searchResults.length !== 1 ? 's' : ''}</span>
                     <Button
                       variant="ghost"
-                      size="xs"
+                      size="sm"
                       onClick={() => setSearchResults([])}
                       className="h-5 w-5 p-0 text-blue-500 hover:text-blue-700"
                     >
