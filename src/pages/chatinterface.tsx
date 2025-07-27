@@ -1,52 +1,41 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Plus, Download, FileText, History, MessageSquare, User, Bot, Trash2, Upload, X, Search, ExternalLink } from 'lucide-react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PDFService, PDFDocument } from '@/services/pdfService';
-import { ChatHistoryService, ChatMessage, ChatHistoryRecord } from '@/services/chatHistoryService';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState, useEffect, useRef } from 'react';
+import { PDFAnalysisApiService, PDFInfo, PDFAnalysis, ChatMessage, ChatResponse } from '../services/pdfAnalysisApiService';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Badge } from '../components/ui/badge';
+import { ScrollArea } from '../components/ui/scroll-area';
+import { Separator } from '../components/ui/separator';
+import { Loader2, Send, FileText, MessageSquare, AlertCircle, CheckCircle, RefreshCw, Search, Menu, X } from 'lucide-react';
+import { Alert, AlertDescription } from '../components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import PDFApiTest from '../components/PDFApiTest';
+import { cn } from '../lib/utils';
 
-interface Message {
-  id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
-}
-
-const ChatInterface = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: 'Hello! I\'m your AI assistant. How can I help you today? You can search for stock symbols to find related PDF documents, or upload your own PDFs for analysis.',
-      role: 'assistant',
-      timestamp: new Date()
-    }
-  ]);
-  const [inputValue, setInputValue] = useState('');
+const ChatInterface: React.FC = () => {
+  const [pdfs, setPdfs] = useState<PDFInfo[]>([]);
+  const [selectedPDF, setSelectedPDF] = useState<string>('');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chatHistory, setChatHistory] = useState<ChatHistoryRecord[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysis, setAnalysis] = useState<PDFAnalysis | null>(null);
+  const [apiHealth, setApiHealth] = useState<boolean | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [chatSessions, setChatSessions] = useState<Array<{
+    id: string;
+    title: string;
+    date: Date;
+    messages: ChatMessage[];
+  }>>([]);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [pdfPreview, setPdfPreview] = useState<string | null>(null);
-  const [pdfSearchTerm, setPdfSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<PDFDocument[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [currentPDF, setCurrentPDF] = useState<PDFDocument | null>(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [isUploading, setIsUploading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
 
+  // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -55,388 +44,158 @@ const ChatInterface = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Initialize authentication and data on component mount
+  // Close sidebar when clicking outside
   useEffect(() => {
-    const initialize = async () => {
-      try {
-        // Check authentication
-        const { data: { user } } = await supabase.auth.getUser();
-        setIsAuthenticated(!!user);
-        
-        // Initialize PDF bucket
-        await PDFService.initializeBucket();
-        
-        // Load chat history if authenticated
-        if (user) {
-          const history = await ChatHistoryService.getUserChatHistory();
-          setChatHistory(history);
-        }
-      } catch (error) {
-        console.error('Failed to initialize:', error);
+    function handleClickOutside(event: MouseEvent) {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+        setSidebarOpen(false);
       }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
     };
-    initialize();
   }, []);
 
-  // Save chat messages to database when they change
+  // Initialize with a default chat session if none exists
   useEffect(() => {
-    const saveChatToDatabase = async () => {
-      if (!isAuthenticated || messages.length <= 1) return; // Skip initial message
-      
-      try {
-        const symbol = extractSymbolFromMessages(messages);
-        const chatTitle = generateChatTitle(messages);
-        
-        if (currentChatId) {
-          // Update existing chat
-          await ChatHistoryService.updateChatHistory(currentChatId, messages, chatTitle);
-        } else {
-          // Create new chat
-          const savedChat = await ChatHistoryService.saveChatHistory(
-            chatTitle,
-            messages,
-            symbol,
-            currentPDF?.id
-          );
-          setCurrentChatId(savedChat.id);
-          
-          // Refresh history list
-          const history = await ChatHistoryService.getUserChatHistory();
-          setChatHistory(history);
-        }
-      } catch (error) {
-        console.error('Error saving chat:', error);
-      }
-    };
-    
-    saveChatToDatabase();
-  }, [messages, isAuthenticated, currentChatId, currentPDF?.id]);
-
-  // Helper functions
-  const extractSymbolFromMessages = (msgs: Message[]): string | undefined => {
-    for (const msg of msgs) {
-      if (msg.role === 'user') {
-        const symbolMatch = msg.content.match(/\b[A-Z]{1,5}\b/g);
-        if (symbolMatch && symbolMatch.length > 0) {
-          return symbolMatch[0];
-        }
-      }
+    if (chatSessions.length === 0) {
+      const newChatId = Date.now().toString();
+      setChatSessions([{
+        id: newChatId,
+        title: 'New Chat',
+        date: new Date(),
+        messages: []
+      }]);
+      setCurrentChatId(newChatId);
     }
-    return undefined;
-  };
+  }, []);
 
-  const generateChatTitle = (msgs: Message[]): string => {
-    const userMessages = msgs.filter(m => m.role === 'user');
-    if (userMessages.length > 0) {
-      const firstMessage = userMessages[0].content;
-      return firstMessage.length > 50 
-        ? firstMessage.substring(0, 50) + '...' 
-        : firstMessage;
+  // Update chat session when messages change
+  useEffect(() => {
+    if (currentChatId && messages.length > 0) {
+      setChatSessions(prevSessions => 
+        prevSessions.map(session => 
+          session.id === currentChatId 
+            ? { ...session, messages: [...messages] }
+            : session
+        )
+      );
     }
-    return 'New Chat';
-  };
+  }, [messages, currentChatId]);
 
-  const handleSendMessage = async () => {
-    if (!inputValue.trim() && !selectedFile) return;
+  // Check API health and load PDFs on component mount
+  useEffect(() => {
+    checkApiHealth();
+    loadPDFs();
+  }, []);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: inputValue,
-      role: 'user',
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
-    const currentInput = inputValue;
-    setInputValue('');
-    setIsLoading(true);
-
+  const checkApiHealth = async () => {
     try {
-      // Check if the message contains a stock symbol pattern
-      const symbolMatch = currentInput.match(/\b[A-Z]{1,5}\b/g);
-      if (symbolMatch && symbolMatch.length > 0) {
-        // Search for PDFs related to the symbol
-        const symbol = symbolMatch[0];
-        const pdfs = await PDFService.searchPDFsBySymbol(symbol);
-        
-        if (pdfs.length > 0) {
-          // Set the PDF for preview
-          setSearchResults(pdfs);
-          setCurrentPDF(pdfs[0]);
-          setPdfPreview(PDFService.getPDFPublicURL(pdfs[0].file_path));
-          
-          // Analyze PDF with backend
-          await analyzePDFWithBackend(pdfs[0], currentInput);
-        } else {
-          const aiResponse: Message = {
-            id: (Date.now() + 1).toString(),
-            content: `I couldn't find any PDF documents for ${symbol} in our database. You can upload a PDF document related to this symbol if you'd like me to analyze it.`,
-            role: 'assistant',
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, aiResponse]);
-        }
-      } else if (currentPDF) {
-        // If there's a current PDF and no symbol search, analyze the current PDF
-        await analyzePDFWithBackend(currentPDF, currentInput);
+      const isHealthy = await PDFAnalysisApiService.checkApiHealth();
+      setApiHealth(isHealthy);
+      if (!isHealthy) {
+        setError('PDF Analysis API is not available. Please ensure the API server is running.');
       } else {
-        // Regular AI response without PDF analysis
-        const aiResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          content: generateAIResponse(currentInput),
-          role: 'assistant',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, aiResponse]);
+        setError(null);
       }
     } catch (error) {
-      console.error('Error in handleSendMessage:', error);
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: 'I encountered an error while processing your request. Please try again.',
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, aiResponse]);
+      setApiHealth(false);
+      setError('Failed to connect to PDF Analysis API');
+    }
+  };
+
+  const loadPDFs = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const pdfList = await PDFAnalysisApiService.listPDFs();
+      // Ensure pdfList is an array
+      setPdfs(Array.isArray(pdfList) ? pdfList : []);
+    } catch (error) {
+      console.error('Error loading PDFs:', error);
+      setError('Failed to load PDFs');
+      setPdfs([]); // Set empty array on error
     } finally {
       setIsLoading(false);
     }
   };
 
-  const analyzePDFWithBackend = async (pdf: PDFDocument, userQuery: string) => {
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim() || !selectedPDF || isLoading) return;
+
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: inputMessage,
+      timestamp: new Date(),
+    };
+
+    // If this is a new chat, create a new session
+    if (messages.length === 0) {
+      const newChatId = Date.now().toString();
+      const newChat = {
+        id: newChatId,
+        title: inputMessage.slice(0, 30) + (inputMessage.length > 30 ? '...' : ''),
+        date: new Date(),
+        messages: [userMessage]
+      };
+      setChatSessions(prev => [newChat, ...prev]);
+      setCurrentChatId(newChatId);
+    } else {
+      setMessages(prev => [...prev, userMessage]);
+    }
+    
+    setInputMessage('');
+    setIsLoading(true);
+
     try {
-      // First show that we found the PDF
-      const foundPDFMessage: Message = {
-        id: Date.now().toString(),
-        content: `Found PDF: ${pdf.file_name} for ${pdf.symbol}. Analyzing the document...`,
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, foundPDFMessage]);
-
-      // Get the PDF download URL
-      const downloadUrl = await PDFService.getPDFDownloadURL(pdf.file_path);
+      const response = await PDFAnalysisApiService.chatWithPDF(selectedPDF, inputMessage);
       
-      // Send PDF to backend for analysis
-      const response = await fetch('http://127.0.0.1:8000/pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pdf_url: downloadUrl,
-          query: userQuery,
-          symbol: pdf.symbol,
-          company_name: pdf.company_name
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Backend error: ${response.status}`);
-      }
-
-      const analysisResult = await response.json();
-      
-      // Display the analysis result
-      const analysisMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: analysisResult.analysis || analysisResult.response || 'Analysis completed successfully.',
+      const assistantMessage: ChatMessage = {
         role: 'assistant',
-        timestamp: new Date()
+        content: response.response || response.message,
+        timestamp: new Date(),
       };
-      setMessages(prev => [...prev, analysisMessage]);
 
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Error analyzing PDF:', error);
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: `I encountered an error while analyzing the PDF document. Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please ensure the backend service is running at http://127.0.0.1:8000/pdf`,
+      console.error('Error sending message:', error);
+      const errorMessage: ChatMessage = {
         role: 'assistant',
-        timestamp: new Date()
+        content: 'Sorry, I encountered an error while processing your message. Please try again.',
+        timestamp: new Date(),
       };
       setMessages(prev => [...prev, errorMessage]);
-    }
-  };
-
-  const generateAIResponse = (userInput: string): string => {
-    const responses = [
-      "I understand your question about that. Let me provide you with a comprehensive analysis...",
-      "That's an interesting point. Based on current market data, I would suggest...",
-      "Great question! Here's what the latest financial indicators are showing...",
-      "I can help you with that. Let me break down the key factors to consider...",
-      "Based on my analysis of the market trends, here's what I recommend..."
-    ];
-    return responses[Math.floor(Math.random() * responses.length)];
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type === 'application/pdf') {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setPdfPreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeFile = () => {
-    setSelectedFile(null);
-    setPdfPreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const createNewChat = () => {
-    setMessages([{
-      id: '1',
-      content: 'Hello! I\'m your AI assistant. How can I help you today? You can search for stock symbols to find related PDF documents, or upload your own PDFs for analysis.',
-      role: 'assistant',
-      timestamp: new Date()
-    }]);
-    setInputValue('');
-    setSelectedFile(null);
-    setPdfPreview(null);
-    setSearchResults([]);
-    setCurrentPDF(null);
-    setCurrentChatId(null);
-  };
-
-  const loadChat = async (chatId: string) => {
-    try {
-      const chat = await ChatHistoryService.getChatById(chatId);
-      if (chat) {
-        setMessages(chat.messages);
-        setCurrentChatId(chat.id);
-        
-        // If chat has associated PDF, load it
-        if (chat.pdf_document_id) {
-          const pdf = await PDFService.getPDFById(chat.pdf_document_id);
-          if (pdf) {
-            setCurrentPDF(pdf);
-            setPdfPreview(PDFService.getPDFPublicURL(pdf.file_path));
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error loading chat:', error);
-    }
-  };
-
-  const deleteChat = async (chatId: string) => {
-    try {
-      await ChatHistoryService.deleteChatHistory(chatId);
-      setChatHistory(prev => prev.filter(chat => chat.id !== chatId));
-      
-      // If this was the current chat, create a new one
-      if (currentChatId === chatId) {
-        createNewChat();
-      }
-    } catch (error) {
-      console.error('Error deleting chat:', error);
-    }
-  };
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const formatDate = (date: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    return date.toLocaleDateString();
-  };
-
-  const handlePDFSearch = async () => {
-    if (!pdfSearchTerm.trim()) return;
-    
-    setIsSearching(true);
-    try {
-      const results = await PDFService.searchPDFsBySymbol(pdfSearchTerm);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Error searching PDFs:', error);
     } finally {
-      setIsSearching(false);
+      setIsLoading(false);
     }
   };
 
-  const handlePDFSelect = async (pdf: PDFDocument) => {
-    setCurrentPDF(pdf);
-    setPdfPreview(PDFService.getPDFPublicURL(pdf.file_path));
-    
-    // Add a message about the selected PDF
-    const selectMessage: Message = {
-      id: Date.now().toString(),
-      content: `Selected PDF: ${pdf.file_name} (${pdf.symbol}). You can now ask questions about this document.`,
-      role: 'assistant',
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, selectMessage]);
-  };
+  const handleAnalyzePDF = async () => {
+    if (!selectedPDF || isAnalyzing) return;
 
-  const handlePDFUpload = async () => {
-    if (!selectedFile) return;
-    
-    setIsUploading(true);
-    setUploadProgress(0);
-    
+    setIsAnalyzing(true);
     try {
-      // Extract symbol from filename or prompt user
-      const symbol = prompt('Please enter the stock symbol for this PDF:')?.toUpperCase();
-      if (!symbol) {
-        alert('Please provide a stock symbol');
-        return;
-      }
-      
-      const companyName = prompt('Please enter the company name:') || 'Unknown Company';
-      
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
-          }
-          return prev + 10;
-        });
-      }, 200);
-      
-      const uploadedPDF = await PDFService.uploadPDF(selectedFile, symbol, companyName);
-      
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-      
-      // Add success message
-      const successMessage: Message = {
-        id: Date.now().toString(),
-        content: `Successfully uploaded PDF for ${symbol} (${companyName}). The document is now available for analysis.`,
-        role: 'assistant',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, successMessage]);
-      
-      // Clear the file
-      removeFile();
-      
-      // Update search results
-      const updatedResults = await PDFService.searchPDFsBySymbol(symbol);
-      setSearchResults(updatedResults);
-      
+      const analysisResult = await PDFAnalysisApiService.analyzePDF(selectedPDF);
+      setAnalysis(analysisResult);
     } catch (error) {
-      console.error('Error uploading PDF:', error);
-      alert('Failed to upload PDF. Please try again.');
+      console.error('Error analyzing PDF:', error);
+      setError('Failed to analyze PDF');
     } finally {
-      setIsUploading(false);
-      setUploadProgress(0);
+      setIsAnalyzing(false);
     }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setAnalysis(null);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -447,468 +206,495 @@ const ChatInterface = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'Unknown date';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // Filter chat sessions based on search query
+  const filteredChatSessions = chatSessions.filter(session => 
+    session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    session.messages.some(msg => 
+      msg.content.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar />
-      
-     
-      <div className="flex h-[calc(100vh-4rem-200px)]">
-        {/* Left Sidebar */}
-        <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-          {/* New Chat Button */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div 
+        ref={sidebarRef}
+        className={cn(
+          "fixed inset-y-0 left-0 z-30 w-64 bg-white border-r transition-transform duration-300 ease-in-out transform",
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          "lg:translate-x-0 lg:static lg:inset-auto lg:z-auto"
+        )}
+      >
+        <div className="flex flex-col h-full">
+          <div className="p-4 border-b">
             <Button 
-              onClick={createNewChat}
+              onClick={() => {
+                setMessages([]);
+                setAnalysis(null);
+                setSelectedPDF('');
+              }}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              New Chat
+              + New Chat
             </Button>
           </div>
-
-          {/* Tabs */}
-          <Tabs defaultValue="history" className="flex-1 flex flex-col">
-            <div className="px-4 pt-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="history" className="flex items-center gap-2">
-                  <History className="w-4 h-4" />
-                  History
-                </TabsTrigger>
-                <TabsTrigger value="pdf" className="flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  PDF Preview
-                </TabsTrigger>
-              </TabsList>
-            </div>
-
-            <TabsContent value="history" className="flex-1 p-4">
-              <ScrollArea className="h-full">
-                <div className="space-y-2">
-                  {chatHistory.map((chat) => (
-                    <Card 
-                      key={chat.id} 
-                      className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      onClick={() => loadChat(chat.id)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
-                              {chat.chat_title}
-                            </h4>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                              {chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].content.substring(0, 50) + '...' : 'No messages'}
-                            </p>
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className="text-xs text-gray-400">
-                                {formatDate(new Date(chat.updated_at))}
-                              </span>
-                              <Badge variant="secondary" className="text-xs">
-                                {chat.messages.length} messages
-                              </Badge>
-                              {chat.symbol && (
-                                <Badge variant="outline" className="text-xs">
-                                  {chat.symbol}
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-gray-400 hover:text-red-500"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteChat(chat.id);
-                            }}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </ScrollArea>
-            </TabsContent>
-
-            <TabsContent value="pdf" className="flex-1 overflow-hidden flex flex-col">
-              <div className="p-4 space-y-4">
-                {/* PDF Search */}
-                <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Search PDFs by symbol (e.g., AAPL)"
-                      value={pdfSearchTerm}
-                      onChange={(e) => setPdfSearchTerm(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handlePDFSearch()}
-                    />
-                    <Button onClick={handlePDFSearch} disabled={isSearching}>
-                      <Search className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Search Results */}
-                {searchResults.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Found PDFs:</h4>
-                    {searchResults.map((pdf) => (
-                      <Card 
-                        key={pdf.id} 
-                        className={`cursor-pointer transition-colors ${
-                          currentPDF?.id === pdf.id ? 'bg-blue-50 dark:bg-blue-900 border-blue-200' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
-                        onClick={() => handlePDFSelect(pdf)}
-                      >
-                        <CardContent className="p-3">
-                          <div className="flex items-start gap-2">
-                            <FileText className="w-4 h-4 text-gray-500 mt-0.5" />
-                            <div className="flex-1 min-w-0">
-                              <h5 className="text-xs font-medium truncate">{pdf.file_name}</h5>
-                              <p className="text-xs text-gray-500">{pdf.symbol} - {pdf.company_name}</p>
-                              <p className="text-xs text-gray-400">{formatFileSize(pdf.file_size)}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-
-                {/* Current PDF Preview */}
-                {pdfPreview ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Current PDF: {currentPDF?.file_name}
-                      </h4>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          if (currentPDF) {
-                            window.open(pdfPreview, '_blank');
-                          }
-                        }}
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </Button>
-                    </div>
-                    <div className="border rounded-lg overflow-hidden bg-white">
-                      <iframe
-                        src={pdfPreview}
-                        className="w-full h-64"
-                        title="PDF Preview"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-4 text-gray-400">
-                    <FileText className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Search for a symbol to find related PDFs</p>
-                    <p className="text-xs mt-1">or upload a new PDF to get started</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* PDF Preview Section */}
-              <div className="flex-1 overflow-auto p-4 pt-0">
-
-                {/* PDF Preview */}
-                {pdfPreview && (
-                  <Card className="h-full flex flex-col">
-                    <CardHeader className="p-4 border-b">
-                      <CardTitle className="text-sm flex items-center justify-between">
-                        <span className="truncate">
-                          {currentPDF?.file_name || 'PDF Preview'}
-                        </span>
-                        {currentPDF && (
-                          <div className="flex items-center gap-2 ml-2">
-                            <Badge variant="outline" className="text-xs">
-                              {currentPDF.symbol}
-                            </Badge>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setPdfPreview(null);
-                                setCurrentPDF(null);
-                              }}
-                              className="text-gray-400 hover:text-red-500 h-6 w-6 p-0"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        )}
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-1 overflow-hidden p-0">
-                      <div className="h-full flex flex-col">
-                        <div className="flex-1 overflow-auto">
-                          <iframe
-                            src={pdfPreview}
-                            className="w-full h-full min-h-[500px]"
-                            title="PDF Preview"
-                          />
-                        </div>
-                        {currentPDF && (
-                          <div className="p-3 border-t flex items-center justify-between text-xs text-gray-500 bg-gray-50 dark:bg-gray-800">
-                            <span className="truncate max-w-[60%]" title={currentPDF.file_name}>
-                              {currentPDF.file_name}
-                            </span>
-                            <div className="flex items-center gap-3">
-                              <span className="text-gray-400">{formatFileSize(currentPDF.file_size)}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
-                                onClick={() => window.open(PDFService.getPDFPublicURL(currentPDF.file_path), '_blank')}
-                                title="Open in new tab"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
-          {/* Chat Header */}
-          <div className="border-b border-gray-200 dark:border-gray-700 p-4">
-            <div className="flex flex-col space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <MessageSquare className="w-5 h-5 text-blue-600" />
-                  <h1 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    AI Assistant
-                  </h1>
-                  <Badge variant="secondary" className="text-xs">
-                    Online
-                  </Badge>
-                </div>
-                
-                {/* PDF Search and Upload Buttons */}
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <Input
-                      placeholder="Search PDFs..."
-                      value={pdfSearchTerm}
-                      onChange={(e) => setPdfSearchTerm(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handlePDFSearch()}
-                      className="w-48 h-8 text-sm"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                      onClick={handlePDFSearch}
-                      disabled={!pdfSearchTerm.trim() || isSearching}
-                    >
-                      {isSearching ? (
-                        <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <Search className="w-3 h-3" />
-                      )}
-                    </Button>
-                  </div>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={isUploading}
-                    className="h-8 text-xs"
-                  >
-                    <Upload className="w-3 h-3 mr-1" />
-                    Upload PDF
-                  </Button>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pdf"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    disabled={isUploading}
-                  />
-                </div>
-              </div>
-              
-              {/* Search Results */}
-              {searchResults.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-900/10 p-2 rounded-md">
-                  <div className="flex items-center justify-between text-xs text-blue-700 dark:text-blue-300 mb-1">
-                    <span>Found {searchResults.length} document{searchResults.length !== 1 ? 's' : ''}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSearchResults([])}
-                      className="h-5 w-5 p-0 text-blue-500 hover:text-blue-700"
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {searchResults.slice(0, 3).map((pdf) => (
-                      <Badge
-                        key={pdf.id}
-                        variant={currentPDF?.id === pdf.id ? 'default' : 'outline'}
-                        className="text-xs cursor-pointer flex items-center gap-1"
-                        onClick={() => handlePDFSelect(pdf)}
-                      >
-                        {pdf.symbol}
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1">
-                          {pdf.document_type}
-                        </Badge>
-                      </Badge>
-                    ))}
-                    {searchResults.length > 3 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{searchResults.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-              )}
+          
+          <div className="p-4 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Input
+                type="search"
+                placeholder="Search chats..."
+                className="w-full pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
           </div>
 
-          {/* Messages Area */}
-          <ScrollArea className="flex-1 p-4">
-            <div className="space-y-4 max-w-4xl mx-auto">
-              {messages.map((message) => (
-                <div
-                  key={message.id}
-                  className={`flex gap-3 ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
+          <ScrollArea className="flex-1">
+            <div className="p-2 space-y-1">
+              {filteredChatSessions.map((session) => (
+                <button
+                  key={session.id}
+                  onClick={() => {
+                    setCurrentChatId(session.id);
+                    setMessages(session.messages);
+                    setSidebarOpen(false);
+                  }}
+                  className={cn(
+                    "w-full text-left p-3 rounded-md text-sm truncate",
+                    currentChatId === session.id 
+                      ? "bg-blue-50 text-blue-700" 
+                      : "hover:bg-gray-100"
+                  )}
                 >
-                  {message.role === 'assistant' && (
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src="/logo.png" />
-                      <AvatarFallback className="bg-blue-600 text-white">
-                        <Bot className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                  
-                  <div
-                    className={`max-w-[70%] rounded-lg p-3 ${
-                      message.role === 'user'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                    <p className="text-xs opacity-70 mt-1">
-                      {formatTime(message.timestamp)}
-                    </p>
+                  <div className="font-medium">{session.title}</div>
+                  <div className="text-xs text-gray-500">
+                    {session.date.toLocaleDateString()}
                   </div>
-
-                  {message.role === 'user' && (
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-gray-600 text-white">
-                        <User className="w-4 h-4" />
-                      </AvatarFallback>
-                    </Avatar>
-                  )}
-                </div>
+                </button>
               ))}
-
-              {isLoading && (
-                <div className="flex gap-3 justify-start">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src="/logo.png" />
-                    <AvatarFallback className="bg-blue-600 text-white">
-                      <Bot className="w-4 h-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
 
-          {/* Input Area */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-            <div className="max-w-4xl mx-auto">
-              {/* File Upload Preview */}
-              {selectedFile && (
-                <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-600" />
-                    <span className="text-sm text-blue-600 dark:text-blue-400">
-                      {selectedFile.name}
-                    </span>
+          {/* PDF Preview Section */}
+          <div className="p-4 border-t">
+            <h3 className="text-sm font-medium mb-2 text-gray-700">PDF Preview</h3>
+            {selectedPDF ? (
+              <div className="bg-gray-50 p-3 rounded-md">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium truncate">{selectedPDF}</span>
+                </div>
+                {analysis && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    <div className="truncate">
+                      {analysis.summary?.substring(0, 100)}{analysis.summary?.length > 100 ? '...' : ''}
+                    </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={removeFile}
-                    className="text-gray-400 hover:text-red-500"
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Type your message here..."
-                    className="min-h-[44px] max-h-32 resize-none pr-12"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-blue-600"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className="w-4 h-4" />
-                  </Button>
-                </div>
-                <Button
-                  onClick={handleSendMessage}
-                  disabled={(!inputValue.trim() && !selectedFile) || isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+                )}
               </div>
-              
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center">
-                Press Enter to send, Shift+Enter for new line
-              </p>
-            </div>
+            ) : (
+              <p className="text-sm text-gray-500">No PDF selected</p>
+            )}
           </div>
         </div>
       </div>
 
-      <Footer />
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white border-b">
+          <div className="flex items-center justify-between p-4">
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="lg:hidden mr-2"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <h1 className="text-xl font-semibold">PDF Analysis Chat</h1>
+            </div>
+            
+            <div className="flex-1 max-w-2xl mx-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Input
+                  type="search"
+                  placeholder="Search in chat..."
+                  className="w-full pl-10"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center">
+              <PDFApiTest />
+              {apiHealth !== null && (
+                <div className="ml-2">
+                  {apiHealth ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : (
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto p-4 bg-gray-50">
+          <div className="max-w-5xl mx-auto w-full bg-white rounded-lg shadow-sm border p-6">
+            {apiHealth !== null && (
+              <Alert className={`mb-6 ${apiHealth ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+                <div className="flex items-center gap-2">
+                  {apiHealth ? (
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                  )}
+                  <AlertDescription>
+                    {apiHealth 
+                      ? 'PDF Analysis API is connected and ready' 
+                      : 'PDF Analysis API is not available'
+                    }
+                  </AlertDescription>
+                </div>
+              </Alert>
+            )}
+
+            {error && (
+              <Alert className="mb-6 border-red-200 bg-red-50">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </div>
+              </Alert>
+            )}
+
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Available PDFs
+                  </CardTitle>
+                  <CardDescription>
+                    Select a PDF to chat with or analyze
+                  </CardDescription>
+                </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadPDFs}
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearChat}
+                  disabled={messages.length === 0}
+                >
+                  Clear Chat
+                </Button>
+              </div>
+
+              <Select value={selectedPDF} onValueChange={setSelectedPDF}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a PDF" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.isArray(pdfs) && pdfs.length > 0 ? (
+                    pdfs.map((pdf) => (
+                      <SelectItem key={pdf.name} value={pdf.name}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{pdf.name}</span>
+                                                  <span className="text-xs text-muted-foreground">
+                          {formatFileSize(pdf.size)} • {formatDate(pdf.created_at)}
+                        </span>
+                        </div>
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                      {isLoading ? 'Loading PDFs...' : 'No PDFs available'}
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+
+              {selectedPDF && (
+                <div className="space-y-2">
+                  <Button
+                    onClick={handleAnalyzePDF}
+                    disabled={isAnalyzing}
+                    className="w-full"
+                  >
+                    {isAnalyzing ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : (
+                      <FileText className="h-4 w-4 mr-2" />
+                    )}
+                    {isAnalyzing ? 'Analyzing...' : 'Analyze PDF'}
+                  </Button>
+                </div>
+              )}
+
+              {isLoading && (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="w-full">
+          <Tabs defaultValue="chat" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="chat" className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="analysis" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Analysis
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="chat" className="mt-4">
+              <Card className="min-h-[calc(100vh-200px)] flex flex-col border-0 shadow-none">
+                <CardHeader>
+                  <CardTitle>
+                    {selectedPDF ? `Chat with ${selectedPDF}` : 'Select a PDF to start chatting'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex-1 flex flex-col">
+                  <ScrollArea className="flex-1 mb-4">
+                    <div className="space-y-4">
+                      {messages.length === 0 ? (
+                        <div className="text-center text-muted-foreground py-8">
+                          <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                          <p>No messages yet. Start a conversation!</p>
+                        </div>
+                      ) : (
+                        messages.map((message, index) => (
+                          <div
+                            key={index}
+                            className={`group w-full flex ${
+                              message.role === 'user' ? 'justify-end' : 'justify-start'
+                            }`}
+                          >
+                            <div
+                              className={`max-w-3xl rounded-2xl px-4 py-3 ${
+                                message.role === 'user'
+                                  ? 'bg-blue-600 text-white rounded-tr-none'
+                                  : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                              }`}
+                            >
+                              <div className="prose prose-sm max-w-none">
+                                {message.content.split('\n').map((paragraph, i) => (
+                                  <p key={i} className="mb-2 last:mb-0">
+                                    {paragraph || <br />}
+                                  </p>
+                                ))}
+                              </div>
+                              <div className={`text-xs mt-1 ${
+                                message.role === 'user' ? 'text-blue-200' : 'text-gray-500'
+                              }`}>
+                                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                      {isLoading && (
+                        <div className="flex justify-start w-full">
+                          <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 max-w-3xl">
+                            <div className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
+                              <span className="text-sm text-gray-500">AI is thinking...</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      <div ref={messagesEndRef} />
+                    </div>
+                  </ScrollArea>
+
+                  <div className="sticky bottom-0 bg-white pt-4 pb-2">
+                    <div className="flex items-end gap-2 rounded-lg border p-2">
+                      <div className="flex-1">
+                        <Input
+                          value={inputMessage}
+                          onChange={(e) => setInputMessage(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                          placeholder="Message PDF Analysis..."
+                          disabled={!selectedPDF || isLoading}
+                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[40px]"
+                        />
+                      </div>
+                      <Button
+                        onClick={handleSendMessage}
+                        disabled={!selectedPDF || !inputMessage.trim() || isLoading}
+                        size="icon"
+                        className="h-9 w-9 rounded-full bg-blue-600 hover:bg-blue-700"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-center text-muted-foreground mt-2">
+                      PDF Analysis may produce inaccurate information about people, places, or facts.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="analysis" className="mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>PDF Analysis</CardTitle>
+                  <CardDescription>
+                    Detailed analysis of the selected PDF
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {!selectedPDF ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                      <p>Select a PDF to view its analysis</p>
+                    </div>
+                  ) : !analysis ? (
+                    <div className="text-center py-8">
+                      <Button onClick={handleAnalyzePDF} disabled={isAnalyzing}>
+                        {isAnalyzing ? (
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <FileText className="h-4 w-4 mr-2" />
+                        )}
+                        {isAnalyzing ? 'Analyzing...' : 'Analyze PDF'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-semibold mb-2">Analysis</h3>
+                        <p className="text-muted-foreground">{analysis.analysis}</p>
+                      </div>
+                      
+                      {analysis.summary && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Summary</h3>
+                          <p className="text-muted-foreground">{analysis.summary}</p>
+                        </div>
+                      )}
+
+                      {analysis.key_points && analysis.key_points.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Key Points</h3>
+                          <ul className="space-y-1">
+                            {analysis.key_points.map((point, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <span className="text-primary">•</span>
+                                <span>{point}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {analysis.financial_metrics && Object.keys(analysis.financial_metrics).length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Financial Metrics</h3>
+                          <div className="grid grid-cols-2 gap-4">
+                            {Object.entries(analysis.financial_metrics).map(([key, value]) => (
+                              <div key={key} className="flex justify-between">
+                                <span className="font-medium">{key}:</span>
+                                <span>{value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {analysis.risk_factors && analysis.risk_factors.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Risk Factors</h3>
+                          <div className="space-y-2">
+                            {analysis.risk_factors.map((risk, index) => (
+                              <Badge key={index} variant="destructive">
+                                {risk}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {analysis.recommendations && analysis.recommendations.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">Recommendations</h3>
+                          <ul className="space-y-1">
+                            {analysis.recommendations.map((rec, index) => (
+                              <li key={index} className="flex items-start gap-2">
+                                <span className="text-green-600">✓</span>
+                                <span>{rec}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      <div className="pt-4 border-t">
+                        <div className="grid grid-cols-2 gap-4 text-sm text-muted-foreground">
+                          <div>
+                            <span className="font-medium">Content Length:</span> {analysis.content_length} characters
+                          </div>
+                          <div>
+                            <span className="font-medium">Analyzed:</span> {new Date(analysis.analyzed_at).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </main>
+  </div>
     </div>
   );
 };

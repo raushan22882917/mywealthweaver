@@ -1,145 +1,160 @@
-# PDF Integration with Supabase
+# PDF Analysis API Frontend Integration
 
-This document describes the PDF storage and retrieval system integrated into the chat interface.
+This document describes how the frontend React application integrates with the PDF Analysis API.
 
 ## Overview
 
-The PDF integration allows users to:
-- Upload PDF documents to Supabase storage
-- Search for PDFs by stock symbol
-- Preview PDFs directly in the chat interface
-- Chat with AI about the content of PDF documents
+The frontend provides a comprehensive interface for:
+- 📄 Listing and selecting PDFs from the Supabase bucket
+- 🔍 Analyzing PDF content with AI-powered insights
+- 💬 Chatting with PDFs using natural language
+- 📊 Viewing detailed analysis results
+- 🔧 Testing API connectivity and health
 
-## Setup Instructions
+## Components
 
-### 1. Database Setup
+### 1. ChatInterface (`src/pages/chatinterface.tsx`)
+The main interface for interacting with PDFs. Features include:
 
-Run the following SQL script in your Supabase dashboard to create the required table:
+- **PDF Selection Panel**: Lists all available PDFs with file information
+- **Chat Interface**: Real-time conversation with selected PDF
+- **Analysis View**: Detailed AI analysis of PDF content
+- **API Health Monitoring**: Real-time status of API connectivity
 
-```sql
--- Run the contents of src/scripts/create-pdf-table.sql
+### 2. PDFApiTest (`src/components/PDFApiTest.tsx`)
+A testing component that:
+- Tests API connectivity
+- Displays API version and information
+- Shows available PDFs
+- Provides quick health status
+
+### 3. PDFAnalysisApiService (`src/services/pdfAnalysisApiService.ts`)
+The service layer that handles all API communication:
+
+```typescript
+// Key methods:
+- getApiInfo(): Promise<ApiInfoResponse>
+- checkApiHealth(): Promise<boolean>
+- listPDFs(): Promise<PDFInfo[]>
+- getPDFInfo(pdfName: string): Promise<PDFInfo>
+- analyzePDF(pdfName: string): Promise<PDFAnalysis>
+- chatWithPDF(pdfName: string, message: string): Promise<ChatResponse>
+- chatWithPDFStandard(pdfName: string, message: string): Promise<ChatResponse>
 ```
 
-This will create:
-- `pdf_documents` table with proper indexes
-- Row Level Security (RLS) policies
-- Sample data for testing
+## API Endpoints Used
 
-### 2. Storage Bucket Setup
+The frontend integrates with the following API endpoints:
 
-The system automatically creates a storage bucket called `pdf-documents` with the following configuration:
-- Private bucket (not public)
-- PDF files only (MIME type restriction)
-- 50MB file size limit
-- Organized by symbol folders
-
-### 3. Environment Variables
-
-Ensure your Supabase credentials are properly configured in `src/lib/supabase/client.ts`.
+1. **GET** `/` - Get API information
+2. **GET** `/health` - Check API health
+3. **GET** `/pdfs` - List all PDFs
+4. **GET** `/pdfs/{pdf_name}` - Get PDF information
+5. **GET** `/pdfs/{pdf_name}/analyze` - Analyze PDF content
+6. **POST** `/pdfs/{pdf_name}/chat-simple` - Chat with PDF (simplified)
+7. **POST** `/pdfs/{pdf_name}/chat` - Chat with PDF (standard)
 
 ## Features
 
-### PDF Upload
-- Users can upload PDF files through the chat interface
-- Files are automatically organized by stock symbol
-- Metadata is stored in the database for easy retrieval
-- Progress indicators show upload status
+### PDF Management
+- Automatic loading of available PDFs
+- File size and creation date display
+- Direct PDF viewing via Supabase URLs
+- Refresh functionality
 
-### PDF Search
-- Search by stock symbol (e.g., "AAPL", "MSFT")
-- Results show document type, file size, and upload date
-- Click to preview documents in the interface
+### Chat Interface
+- Real-time messaging with PDFs
+- Message history with timestamps
+- Loading states and error handling
+- Auto-scroll to latest messages
+- Keyboard shortcuts (Enter to send)
 
-### PDF Preview
-- Inline PDF preview using iframe
-- External link to open in new tab
-- Document metadata display
-- Easy navigation between documents
+### Analysis Display
+- Comprehensive PDF analysis
+- Key points extraction
+- Financial metrics display
+- Risk factors identification
+- AI-generated recommendations
+- Analysis metadata (content length, timestamp)
 
-### AI Integration
-- When users mention stock symbols in chat, the system automatically searches for related PDFs
-- AI responses reference found documents
-- Users can ask questions about PDF content
+### Error Handling
+- API connectivity monitoring
+- Graceful error display
+- Retry mechanisms
+- User-friendly error messages
 
-## File Structure
+## Usage
 
+### Starting the Application
+1. Ensure the PDF Analysis API is running on `http://127.0.0.1:8000`
+2. Start the React development server
+3. Navigate to the chat interface
+
+### Basic Workflow
+1. **Select a PDF**: Choose from the available PDFs in the left panel
+2. **Chat**: Send messages to interact with the PDF content
+3. **Analyze**: Click "Analyze PDF" to get comprehensive analysis
+4. **View Results**: Switch between chat and analysis tabs
+
+### API Testing
+Use the PDFApiTest component to:
+- Verify API connectivity
+- Check available PDFs
+- Monitor API health status
+
+## Configuration
+
+### API Base URL
+The API base URL is configured in `PDFAnalysisApiService`:
+```typescript
+private static baseUrl = 'http://127.0.0.1:8000';
 ```
-src/
-├── services/
-│   ├── pdfService.ts          # Main PDF service class
-│   └── PDF_INTEGRATION_README.md
-├── scripts/
-│   ├── create-pdf-table.sql   # Database setup script
-│   └── setup-pdf-storage.ts   # Storage initialization
-├── lib/supabase/
-│   ├── client.ts              # Supabase client
-│   └── types.ts               # TypeScript types (updated)
-└── pages/
-    └── chatinterface.tsx      # Updated chat interface
-```
 
-## Usage Examples
+### Environment Variables
+No additional environment variables are required for the frontend. The API credentials are handled server-side.
 
-### Searching for PDFs
-1. Type a stock symbol in the chat (e.g., "AAPL")
-2. The system automatically searches for related PDFs
-3. Results appear in the PDF Preview tab
-4. Click on a document to preview it
+## Error Handling
 
-### Uploading PDFs
-1. Go to the PDF Preview tab
-2. Click "Choose File" to select a PDF
-3. Enter the stock symbol and company name when prompted
-4. Click "Upload to Supabase"
-5. The file will be stored and available for future searches
+The application handles various error scenarios:
 
-### Chatting with PDF Content
-1. Search for or upload a PDF
-2. Ask questions about the document content
-3. The AI will reference the PDF in its responses
+1. **API Unavailable**: Shows health status and error messages
+2. **PDF Not Found**: Displays appropriate error messages
+3. **Network Errors**: Graceful degradation with retry options
+4. **Invalid Responses**: Fallback to default states
 
-## API Reference
+## Future Enhancements
 
-### PDFService Class
+Potential improvements for the frontend:
 
-#### Methods
-
-- `initializeBucket()`: Creates the storage bucket if it doesn't exist
-- `uploadPDF(file, symbol, companyName, documentType)`: Uploads a PDF file
-- `searchPDFsBySymbol(symbol)`: Searches for PDFs by stock symbol
-- `getPDFById(id)`: Retrieves a specific PDF by ID
-- `getPDFDownloadURL(filePath)`: Gets a signed download URL
-- `getPDFPublicURL(filePath)`: Gets a public preview URL
-- `deletePDF(id)`: Deletes a PDF from storage and database
-- `getAllPDFs()`: Retrieves all PDF documents
-
-## Security Considerations
-
-- Row Level Security (RLS) is enabled on the pdf_documents table
-- Storage bucket is private by default
-- File type restrictions prevent non-PDF uploads
-- File size limits prevent abuse
+1. **File Upload**: Direct PDF upload to Supabase bucket
+2. **Chat History**: Persistent chat sessions
+3. **Export Features**: Export analysis results
+4. **Advanced Filtering**: Filter PDFs by type, date, etc.
+5. **Real-time Updates**: WebSocket integration for live updates
+6. **Offline Support**: Service worker for offline functionality
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Bucket not found**: Run the setup script to initialize the bucket
-2. **Table not found**: Execute the SQL script in Supabase dashboard
-3. **Upload fails**: Check file size and type restrictions
-4. **Preview not working**: Ensure the PDF URL is accessible
+1. **API Connection Failed**
+   - Ensure the PDF Analysis API is running
+   - Check the base URL configuration
+   - Verify network connectivity
 
-### Debug Mode
+2. **No PDFs Displayed**
+   - Check if PDFs exist in the Supabase bucket
+   - Verify bucket permissions
+   - Check API response format
 
-Enable console logging to debug issues:
-```typescript
-// In pdfService.ts, uncomment console.log statements
-```
+3. **Chat Not Working**
+   - Ensure OpenAI API key is configured on the backend
+   - Check API endpoint responses
+   - Verify PDF name encoding
 
-## Future Enhancements
-
-- PDF text extraction for better AI analysis
-- Document versioning
-- Advanced search filters
-- Bulk upload functionality
-- Document sharing and collaboration 
+### Debug Information
+The application provides debug information through:
+- Browser console logs
+- API health status display
+- Error messages in the UI
+- Network tab for API requests 

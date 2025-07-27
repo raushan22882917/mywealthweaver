@@ -1,4 +1,4 @@
-import { Search, Sun, Moon, LogOut, Home, ChevronDown, CalendarDays, DollarSign, User, LayoutDashboard, Shield, Bell, Settings, HelpCircle, Menu, X } from "lucide-react";
+import { Search, Sun, Moon, LogOut, Home, ChevronDown, CalendarDays, DollarSign, User, LayoutDashboard, Shield, Bell, Settings, HelpCircle, Menu, X, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme-provider";
 import { supabase } from "@/integrations/supabase/client";
@@ -292,6 +292,11 @@ const Navbar = () => {
               <a href="/top-stocks" className="nav-item text-sm">
                 Top Stocks
               </a>
+
+              <a href="/chatinterface" className="nav-item text-sm flex items-center gap-1">
+                <MessageSquare className="w-4 h-4" />
+                Chat
+              </a>
             </div>
           </div>
           
@@ -535,6 +540,10 @@ const Navbar = () => {
               </a>
               <a href="/top-stocks" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 Top Stocks
+              </a>
+              <a href="/chatinterface" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Chat
               </a>
               
               {/* Mobile Login/User Section */}

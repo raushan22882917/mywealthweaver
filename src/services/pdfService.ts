@@ -1,9 +1,9 @@
-import { supabase } from '@/lib/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface PDFDocument {
   id: string;
   symbol: string;
-  company_name: string;
+  company_name: string | null;
   file_path: string;
   file_name: string;
   file_size: number;
@@ -13,28 +13,34 @@ export interface PDFDocument {
 }
 
 export class PDFService {
-  private static BUCKET_NAME = 'pdf-documents';
+  private static BUCKET_NAME = 'pdfdocument';
 
-  // Initialize the bucket if it doesn't exist
+  // Check if the PDF storage bucket exists
   static async initializeBucket() {
     try {
-      const { data: buckets } = await supabase.storage.listBuckets();
+      // First check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User must be authenticated to access storage bucket');
+      }
+
+      const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+      
+      if (listError) {
+        console.error('Error listing buckets:', listError);
+        throw new Error(`Failed to list storage buckets: ${listError.message}`);
+      }
+      
       const bucketExists = buckets?.some(bucket => bucket.name === this.BUCKET_NAME);
       
       if (!bucketExists) {
-        const { error } = await supabase.storage.createBucket(this.BUCKET_NAME, {
-          public: false,
-          allowedMimeTypes: ['application/pdf'],
-          fileSizeLimit: 52428800 // 50MB limit
-        });
-        
-        if (error) {
-          console.error('Error creating bucket:', error);
-          throw error;
-        }
+        console.log('PDF storage bucket does not exist');
+        throw new Error('PDF storage bucket "C" does not exist. Please create it manually in the Supabase dashboard under Storage > Buckets, or run the setup script provided in the documentation.');
+      } else {
+        console.log('PDF storage bucket exists and is accessible');
       }
     } catch (error) {
-      console.error('Error initializing bucket:', error);
+      console.error('Error checking bucket:', error);
       throw error;
     }
   }
@@ -43,7 +49,7 @@ export class PDFService {
   static async uploadPDF(
     file: File,
     symbol: string,
-    companyName: string,
+    companyName?: string,
     documentType: string = 'financial_report'
   ): Promise<PDFDocument> {
     try {
@@ -73,7 +79,7 @@ export class PDFService {
         .from('pdf_documents')
         .insert({
           symbol: symbol.toUpperCase(),
-          company_name: companyName,
+          company_name: companyName || null, // Make company_name optional
           file_path: filePath,
           file_name: file.name,
           file_size: file.size,
@@ -261,6 +267,157 @@ export class PDFService {
     } catch (error) {
       console.error('Error in getAllPDFs:', error);
       throw error;
+    }
+  }
+
+  // Test method to check if a specific file exists in the bucket
+  static async testFileExists(filename: string): Promise<boolean> {
+    try {
+      console.log('Testing if file exists:', filename);
+      
+      // Try to get the public URL for the file
+      const { data: { publicUrl } } = supabase.storage
+        .from(this.BUCKET_NAME)
+        .getPublicUrl(filename);
+      
+      console.log('Public URL for file:', publicUrl);
+      
+      // Try to fetch the file to see if it exists
+      const response = await fetch(publicUrl);
+      const exists = response.ok;
+      
+      console.log('File exists:', exists, 'Status:', response.status);
+      
+      return exists;
+    } catch (error) {
+      console.error('Error testing file existence:', error);
+      return false;
+    }
+  }
+
+  // List all PDF files from storage bucket for search suggestions
+  static async listAllPDFFilesInBucket(): Promise<string[]> {
+    try {
+      // First check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        console.log('User not authenticated for bucket listing');
+        throw new Error('User must be authenticated to access storage bucket');
+      }
+
+      console.log('Listing files in bucket:', this.BUCKET_NAME);
+
+      // List all files in the bucket (root directory)
+      const { data: files, error } = await supabase.storage
+        .from(this.BUCKET_NAME)
+        .list('', {
+          limit: 1000, // Adjust as needed
+          offset: 0,
+          sortBy: { column: 'name', order: 'asc' }
+        });
+
+      if (error) {
+        console.error('Error listing files in bucket:', error);
+        throw error;
+      }
+
+      console.log('Raw files from bucket:', files);
+
+      if (!files || files.length === 0) {
+        console.log('No files found in bucket root');
+        return [];
+      }
+
+      // Extract filenames and filter for PDFs
+      const pdfFiles = files
+        .filter(file => file.name.toLowerCase().endsWith('.pdf'))
+        .map(file => file.name);
+
+      console.log('PDF files found in root:', pdfFiles);
+
+      // Also try to list files with a different approach - check if there are any files
+      // that might be stored with a different path structure
+      try {
+        // Try to get a direct list without any path restrictions
+        const { data: allFiles, error: allFilesError } = await supabase.storage
+          .from(this.BUCKET_NAME)
+          .list('', {
+            limit: 1000,
+            offset: 0
+          });
+
+        if (!allFilesError && allFiles) {
+          console.log('All files in bucket (alternative method):', allFiles);
+          
+          // Check if we found more files this way
+          const allPdfFiles = allFiles
+            .filter(file => file.name.toLowerCase().endsWith('.pdf'))
+            .map(file => file.name);
+          
+          console.log('All PDF files found (alternative method):', allPdfFiles);
+          
+          // Combine results and remove duplicates
+          const combinedPdfFiles = Array.from(new Set([...pdfFiles, ...allPdfFiles]));
+          console.log('Combined PDF files:', combinedPdfFiles);
+          
+          return combinedPdfFiles;
+        }
+      } catch (alternativeError) {
+        console.log('Alternative listing method failed:', alternativeError);
+      }
+
+      return pdfFiles;
+    } catch (error) {
+      console.error('Error in listAllPDFFilesInBucket:', error);
+      // Return empty array instead of throwing to prevent UI crashes
+      return [];
+    }
+  }
+
+  // Search PDF filenames for suggestions (fuzzy search)
+  static async searchPDFFilenames(query: string): Promise<string[]> {
+    try {
+      console.log('Searching PDF filenames for query:', query);
+      const allFiles = await this.listAllPDFFilesInBucket();
+      console.log('All files available for search:', allFiles);
+      
+      if (!query.trim()) {
+        console.log('No query provided, returning first 10 files');
+        return allFiles.slice(0, 10); // Return first 10 files if no query
+      }
+
+      const lowercaseQuery = query.toLowerCase();
+      console.log('Lowercase query:', lowercaseQuery);
+      
+      // Filter files that contain the query (case-insensitive)
+      const matchingFiles = allFiles.filter(filename => 
+        filename.toLowerCase().includes(lowercaseQuery)
+      );
+
+      console.log('Matching files:', matchingFiles);
+
+      // Sort by relevance (exact matches first, then partial matches)
+      const sortedFiles = matchingFiles.sort((a, b) => {
+        const aLower = a.toLowerCase();
+        const bLower = b.toLowerCase();
+        
+        // Exact match gets highest priority
+        if (aLower === lowercaseQuery) return -1;
+        if (bLower === lowercaseQuery) return 1;
+        
+        // Starts with query gets second priority
+        if (aLower.startsWith(lowercaseQuery)) return -1;
+        if (bLower.startsWith(lowercaseQuery)) return 1;
+        
+        // Otherwise, sort alphabetically
+        return aLower.localeCompare(bLower);
+      });
+
+      console.log('Sorted matching files:', sortedFiles);
+      return sortedFiles.slice(0, 10); // Limit to 10 suggestions
+    } catch (error) {
+      console.error('Error in searchPDFFilenames:', error);
+      return [];
     }
   }
 } 
