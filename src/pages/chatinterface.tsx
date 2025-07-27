@@ -7,11 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Separator } from '../components/ui/separator';
-import { Loader2, Send, FileText, MessageSquare, AlertCircle, CheckCircle, RefreshCw, Search, Menu, X } from 'lucide-react';
+import { Loader2, Send, FileText, MessageSquare, AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import PDFApiTest from '../components/PDFApiTest';
-import { cn } from '../lib/utils';
 
 const ChatInterface: React.FC = () => {
   const [pdfs, setPdfs] = useState<PDFInfo[]>([]);
@@ -23,17 +22,7 @@ const ChatInterface: React.FC = () => {
   const [analysis, setAnalysis] = useState<PDFAnalysis | null>(null);
   const [apiHealth, setApiHealth] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [chatSessions, setChatSessions] = useState<Array<{
-    id: string;
-    title: string;
-    date: Date;
-    messages: ChatMessage[];
-  }>>([]);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const sidebarRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -43,46 +32,6 @@ const ChatInterface: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
-
-  // Close sidebar when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-        setSidebarOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  // Initialize with a default chat session if none exists
-  useEffect(() => {
-    if (chatSessions.length === 0) {
-      const newChatId = Date.now().toString();
-      setChatSessions([{
-        id: newChatId,
-        title: 'New Chat',
-        date: new Date(),
-        messages: []
-      }]);
-      setCurrentChatId(newChatId);
-    }
-  }, []);
-
-  // Update chat session when messages change
-  useEffect(() => {
-    if (currentChatId && messages.length > 0) {
-      setChatSessions(prevSessions => 
-        prevSessions.map(session => 
-          session.id === currentChatId 
-            ? { ...session, messages: [...messages] }
-            : session
-        )
-      );
-    }
-  }, [messages, currentChatId]);
 
   // Check API health and load PDFs on component mount
   useEffect(() => {
@@ -130,21 +79,7 @@ const ChatInterface: React.FC = () => {
       timestamp: new Date(),
     };
 
-    // If this is a new chat, create a new session
-    if (messages.length === 0) {
-      const newChatId = Date.now().toString();
-      const newChat = {
-        id: newChatId,
-        title: inputMessage.slice(0, 30) + (inputMessage.length > 30 ? '...' : ''),
-        date: new Date(),
-        messages: [userMessage]
-      };
-      setChatSessions(prev => [newChat, ...prev]);
-      setCurrentChatId(newChatId);
-    } else {
-      setMessages(prev => [...prev, userMessage]);
-    }
-    
+    setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
 
@@ -217,194 +152,61 @@ const ChatInterface: React.FC = () => {
     });
   };
 
-  // Filter chat sessions based on search query
-  const filteredChatSessions = chatSessions.filter(session => 
-    session.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    session.messages.some(msg => 
-      msg.content.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
-
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div 
-        ref={sidebarRef}
-        className={cn(
-          "fixed inset-y-0 left-0 z-30 w-64 bg-white border-r transition-transform duration-300 ease-in-out transform",
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
-          "lg:translate-x-0 lg:static lg:inset-auto lg:z-auto"
-        )}
-      >
-        <div className="flex flex-col h-full">
-          <div className="p-4 border-b">
-            <Button 
-              onClick={() => {
-                setMessages([]);
-                setAnalysis(null);
-                setSelectedPDF('');
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              + New Chat
-            </Button>
-          </div>
-          
-          <div className="p-4 border-b">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              <Input
-                type="search"
-                placeholder="Search chats..."
-                className="w-full pl-10"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
+    <div className="container mx-auto p-4 max-w-7xl">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">PDF Analysis Chat</h1>
+        <p className="text-muted-foreground">
+          Chat with your PDF documents and get intelligent analysis
+        </p>
+      </div>
 
-          <ScrollArea className="flex-1">
-            <div className="p-2 space-y-1">
-              {filteredChatSessions.map((session) => (
-                <button
-                  key={session.id}
-                  onClick={() => {
-                    setCurrentChatId(session.id);
-                    setMessages(session.messages);
-                    setSidebarOpen(false);
-                  }}
-                  className={cn(
-                    "w-full text-left p-3 rounded-md text-sm truncate",
-                    currentChatId === session.id 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "hover:bg-gray-100"
-                  )}
-                >
-                  <div className="font-medium">{session.title}</div>
-                  <div className="text-xs text-gray-500">
-                    {session.date.toLocaleDateString()}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </ScrollArea>
-
-          {/* PDF Preview Section */}
-          <div className="p-4 border-t">
-            <h3 className="text-sm font-medium mb-2 text-gray-700">PDF Preview</h3>
-            {selectedPDF ? (
-              <div className="bg-gray-50 p-3 rounded-md">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium truncate">{selectedPDF}</span>
-                </div>
-                {analysis && (
-                  <div className="mt-2 text-xs text-gray-500">
-                    <div className="truncate">
-                      {analysis.summary?.substring(0, 100)}{analysis.summary?.length > 100 ? '...' : ''}
-                    </div>
-                  </div>
+      {/* API Health Status */}
+      <div className="mb-6 flex justify-between items-start">
+        <div className="flex-1">
+          {apiHealth !== null && (
+            <Alert className={`mb-4 ${apiHealth ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
+              <div className="flex items-center gap-2">
+                {apiHealth ? (
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-600" />
                 )}
+                <AlertDescription>
+                  {apiHealth 
+                    ? 'PDF Analysis API is connected and ready' 
+                    : 'PDF Analysis API is not available'
+                  }
+                </AlertDescription>
               </div>
-            ) : (
-              <p className="text-sm text-gray-500">No PDF selected</p>
-            )}
-          </div>
+            </Alert>
+          )}
+        </div>
+        <div className="ml-4">
+          <PDFApiTest />
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="bg-white border-b">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="lg:hidden mr-2"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-              <h1 className="text-xl font-semibold">PDF Analysis Chat</h1>
-            </div>
-            
-            <div className="flex-1 max-w-2xl mx-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <Input
-                  type="search"
-                  placeholder="Search in chat..."
-                  className="w-full pl-10"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            <div className="flex items-center">
-              <PDFApiTest />
-              {apiHealth !== null && (
-                <div className="ml-2">
-                  {apiHealth ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                  ) : (
-                    <AlertCircle className="h-5 w-5 text-red-500" />
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
+      {error && (
+        <Alert className="mb-4 border-red-200 bg-red-50">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        <main className="flex-1 overflow-y-auto p-4 bg-gray-50">
-          <div className="max-w-5xl mx-auto w-full bg-white rounded-lg shadow-sm border p-6">
-            {apiHealth !== null && (
-              <Alert className={`mb-6 ${apiHealth ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                <div className="flex items-center gap-2">
-                  {apiHealth ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                  )}
-                  <AlertDescription>
-                    {apiHealth 
-                      ? 'PDF Analysis API is connected and ready' 
-                      : 'PDF Analysis API is not available'
-                    }
-                  </AlertDescription>
-                </div>
-              </Alert>
-            )}
-
-            {error && (
-              <Alert className="mb-6 border-red-200 bg-red-50">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </div>
-              </Alert>
-            )}
-
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Available PDFs
-                  </CardTitle>
-                  <CardDescription>
-                    Select a PDF to chat with or analyze
-                  </CardDescription>
-                </CardHeader>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* PDF Selection Panel */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Available PDFs
+              </CardTitle>
+              <CardDescription>
+                Select a PDF to chat with or analyze
+              </CardDescription>
+            </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-2">
                 <Button
@@ -475,7 +277,8 @@ const ChatInterface: React.FC = () => {
           </Card>
         </div>
 
-        <div className="w-full">
+        {/* Chat and Analysis Panel */}
+        <div className="lg:col-span-3">
           <Tabs defaultValue="chat" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="chat" className="flex items-center gap-2">
@@ -489,7 +292,7 @@ const ChatInterface: React.FC = () => {
             </TabsList>
 
             <TabsContent value="chat" className="mt-4">
-              <Card className="min-h-[calc(100vh-200px)] flex flex-col border-0 shadow-none">
+              <Card className="h-[600px] flex flex-col">
                 <CardHeader>
                   <CardTitle>
                     {selectedPDF ? `Chat with ${selectedPDF}` : 'Select a PDF to start chatting'}
@@ -507,39 +310,29 @@ const ChatInterface: React.FC = () => {
                         messages.map((message, index) => (
                           <div
                             key={index}
-                            className={`group w-full flex ${
-                              message.role === 'user' ? 'justify-end' : 'justify-start'
-                            }`}
+                            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                           >
                             <div
-                              className={`max-w-3xl rounded-2xl px-4 py-3 ${
+                              className={`max-w-[80%] rounded-lg p-3 ${
                                 message.role === 'user'
-                                  ? 'bg-blue-600 text-white rounded-tr-none'
-                                  : 'bg-gray-100 text-gray-800 rounded-tl-none'
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted'
                               }`}
                             >
-                              <div className="prose prose-sm max-w-none">
-                                {message.content.split('\n').map((paragraph, i) => (
-                                  <p key={i} className="mb-2 last:mb-0">
-                                    {paragraph || <br />}
-                                  </p>
-                                ))}
-                              </div>
-                              <div className={`text-xs mt-1 ${
-                                message.role === 'user' ? 'text-blue-200' : 'text-gray-500'
-                              }`}>
-                                {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              </div>
+                              <p className="text-sm">{message.content}</p>
+                              <p className="text-xs opacity-70 mt-1">
+                                {message.timestamp.toLocaleTimeString()}
+                              </p>
                             </div>
                           </div>
                         ))
                       )}
                       {isLoading && (
-                        <div className="flex justify-start w-full">
-                          <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 max-w-3xl">
+                        <div className="flex justify-start">
+                          <div className="bg-muted rounded-lg p-3">
                             <div className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
-                              <span className="text-sm text-gray-500">AI is thinking...</span>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span className="text-sm">AI is thinking...</span>
                             </div>
                           </div>
                         </div>
@@ -548,34 +341,21 @@ const ChatInterface: React.FC = () => {
                     </div>
                   </ScrollArea>
 
-                  <div className="sticky bottom-0 bg-white pt-4 pb-2">
-                    <div className="flex items-end gap-2 rounded-lg border p-2">
-                      <div className="flex-1">
-                        <Input
-                          value={inputMessage}
-                          onChange={(e) => setInputMessage(e.target.value)}
-                          onKeyPress={handleKeyPress}
-                          placeholder="Message PDF Analysis..."
-                          disabled={!selectedPDF || isLoading}
-                          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[40px]"
-                        />
-                      </div>
-                      <Button
-                        onClick={handleSendMessage}
-                        disabled={!selectedPDF || !inputMessage.trim() || isLoading}
-                        size="icon"
-                        className="h-9 w-9 rounded-full bg-blue-600 hover:bg-blue-700"
-                      >
-                        {isLoading ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                    <p className="text-xs text-center text-muted-foreground mt-2">
-                      PDF Analysis may produce inaccurate information about people, places, or facts.
-                    </p>
+                  <div className="flex gap-2">
+                    <Input
+                      value={inputMessage}
+                      onChange={(e) => setInputMessage(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      placeholder="Type your message..."
+                      disabled={!selectedPDF || isLoading}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleSendMessage}
+                      disabled={!selectedPDF || !inputMessage.trim() || isLoading}
+                    >
+                      <Send className="h-4 w-4" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -693,8 +473,6 @@ const ChatInterface: React.FC = () => {
           </Tabs>
         </div>
       </div>
-    </main>
-  </div>
     </div>
   );
 };
