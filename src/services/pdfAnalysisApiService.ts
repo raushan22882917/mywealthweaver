@@ -34,11 +34,23 @@ export interface ChatRequest {
   pdf_name?: string;
 }
 
+export interface HighlightedContent {
+  page_number: number;
+  text: string;
+  coordinates?: {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  };
+}
+
 export interface ChatResponse {
   response: string;
   pdf_name: string;
   timestamp: string;
   message?: string; // For backward compatibility
+  highlights?: HighlightedContent[]; // For highlighted content
 }
 
 export interface ApiHealthResponse {
@@ -193,11 +205,44 @@ export class PDFAnalysisApiService {
         response: data.response,
         pdf_name: data.pdf_name,
         timestamp: data.timestamp,
-        message: data.response // For backward compatibility
+        message: data.response, // For backward compatibility
+        highlights: data.highlights || []
       };
     } catch (error) {
       console.error('Error chatting with PDF:', error);
       throw error;
     }
   }
-} 
+
+  // Chat with a specific PDF with highlighted content
+  static async chatWithPDFHighlighted(pdfName: string, message: string): Promise<ChatResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/pdfs/${encodeURIComponent(pdfName)}/chat-highlighted`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: message,
+          pdf_name: pdfName
+        }),
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      // Transform the response to match our interface
+      return {
+        response: data.response,
+        pdf_name: data.pdf_name,
+        timestamp: data.timestamp,
+        message: data.response, // For backward compatibility
+        highlights: data.highlights || []
+      };
+    } catch (error) {
+      console.error('Error chatting with PDF with highlights:', error);
+      throw error;
+    }
+  }
+}

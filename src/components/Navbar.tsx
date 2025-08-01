@@ -293,10 +293,7 @@ const Navbar = () => {
                 Top Stocks
               </a>
 
-              <a href="/chatinterface" className="nav-item text-sm flex items-center gap-1">
-                <MessageSquare className="w-4 h-4" />
-                Chat
-              </a>
+              
             </div>
           </div>
           

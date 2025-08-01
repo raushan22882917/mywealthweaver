@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PDFAnalysisApiService, PDFInfo, PDFAnalysis, ChatMessage, ChatResponse } from '../services/pdfAnalysisApiService';
+import { PDFAnalysisApiService, PDFInfo, PDFAnalysis, ChatMessage, ChatResponse, HighlightedContent } from '../services/pdfAnalysisApiService';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,17 +8,39 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Separator } from '../components/ui/separator';
-import { Loader2, Send, FileText, MessageSquare, AlertCircle, CheckCircle, RefreshCw, ArrowLeft, Eye, Maximize2, X } from 'lucide-react';
+import { Loader2, Send, FileText, MessageSquare, AlertCircle, CheckCircle, RefreshCw, ArrowLeft, Eye, Maximize2, X, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '../components/ui/resizable';
 import PDFApiTest from '../components/PDFApiTest';
+import { Viewer, Worker } from '@react-pdf-viewer/core';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
+import '@react-pdf-viewer/core/lib/styles/index.css';
+import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import { Document, Page, pdfjs } from 'react-pdf';
+import 'react-pdf/dist/Page/AnnotationLayer.css';
+import 'react-pdf/dist/Page/TextLayer.css';
+
+// Custom styles for highlighted text
+const highlightStyle = document.createElement('style');
+highlightStyle.textContent = `
+  .highlighted-text {
+    background-color: rgba(255, 255, 0, 0.5);
+    border-radius: 2px;
+    padding: 0 2px;
+    transition: background-color 0.3s ease;
+  }
+`;
+document.head.appendChild(highlightStyle);
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
 const ChatInterface: React.FC = () => {
   const navigate = useNavigate();
   const [pdfs, setPdfs] = useState<PDFInfo[]>([]);
-  const [selectedPDF, setSelectedPDF] = useState<string>('');
+  const [selectedPDF, setSelectedPDF] = useState<PDFInfo | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +50,19 @@ const ChatInterface: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPDFPreview, setShowPDFPreview] = useState(false);
   const [showFullscreenPDF, setShowFullscreenPDF] = useState(false);
+  const [highlights, setHighlights] = useState<HighlightedContent[]>([]);
+  const [currentHighlightIndex, setCurrentHighlightIndex] = useState<number>(-1);
+  const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
+  const viewerRef = useRef<any>(null);
+  
+  // Filter PDFs based on search term (case-insensitive and removes .pdf extension)
+  const filteredPDFs = pdfs.filter(pdf => {
+    const pdfName = pdf.name.toLowerCase().replace(/\.pdf$/i, '');
+    const search = searchTerm.toLowerCase();
+    return pdfName.includes(search);
+  });
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -65,8 +99,11 @@ const ChatInterface: React.FC = () => {
       setIsLoading(true);
       setError(null);
       const pdfList = await PDFAnalysisApiService.listPDFs();
-      // Ensure pdfList is an array
-      setPdfs(Array.isArray(pdfList) ? pdfList : []);
+      // Ensure pdfList is an array and has the required URL field
+      const validPDFs = Array.isArray(pdfList) 
+        ? pdfList.filter(pdf => pdf.url) 
+        : [];
+      setPdfs(validPDFs);
     } catch (error) {
       console.error('Error loading PDFs:', error);
       setError('Failed to load PDFs');
@@ -76,8 +113,46 @@ const ChatInterface: React.FC = () => {
     }
   };
 
+  // Function to scroll to highlight in PDF
+  const scrollToHighlight = useCallback((highlight: HighlightedContent) => {
+    if (!viewerRef.current) return;
+    
+    // Get the page element
+    const pageElement = document.querySelector(`.rpv-core__page[data-page-number="${highlight.page_number}"]`);
+    if (!pageElement) return;
+    
+    // Scroll to the page
+    pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Highlight the text (this is a simple implementation - you might need to enhance it)
+    const textLayer = pageElement.querySelector('.rpv-core__text-layer');
+    if (!textLayer) return;
+    
+    // Find the text node containing the highlight text
+    const textNodes = Array.from(textLayer.querySelectorAll('span'));
+    const targetNode = textNodes.find(node => node.textContent?.includes(highlight.text));
+    
+    if (targetNode) {
+      // Add highlight class
+      targetNode.classList.add('highlighted-text');
+      
+      // Remove highlight after 5 seconds
+      setTimeout(() => {
+        targetNode.classList.remove('highlighted-text');
+      }, 10000);
+    }
+  }, []);
+
+  // Effect to handle highlight changes
+  useEffect(() => {
+    if (highlights.length > 0 && currentHighlightIndex >= 0) {
+      const highlight = highlights[currentHighlightIndex];
+      scrollToHighlight(highlight);
+    }
+  }, [highlights, currentHighlightIndex, scrollToHighlight]);
+
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || !selectedPDF || isLoading) return;
+    if (!inputMessage.trim() || !selectedPDF?.name || isLoading) return;
 
     const userMessage: ChatMessage = {
       role: 'user',
@@ -88,9 +163,12 @@ const ChatInterface: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
+    setHighlights([]);
+    setCurrentHighlightIndex(-1);
 
     try {
-      const response = await PDFAnalysisApiService.chatWithPDF(selectedPDF, inputMessage);
+      // Use the new chatWithPDFHighlighted method
+      const response = await PDFAnalysisApiService.chatWithPDFHighlighted(selectedPDF.name, inputMessage);
       
       const assistantMessage: ChatMessage = {
         role: 'assistant',
@@ -99,6 +177,12 @@ const ChatInterface: React.FC = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Set highlights if available
+      if (response.highlights && response.highlights.length > 0) {
+        setHighlights(response.highlights);
+        setCurrentHighlightIndex(0);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: ChatMessage = {
@@ -113,11 +197,11 @@ const ChatInterface: React.FC = () => {
   };
 
   const handleAnalyzePDF = async () => {
-    if (!selectedPDF || isAnalyzing) return;
+    if (!selectedPDF?.name || isAnalyzing) return;
 
     setIsAnalyzing(true);
     try {
-      const analysisResult = await PDFAnalysisApiService.analyzePDF(selectedPDF);
+      const analysisResult = await PDFAnalysisApiService.analyzePDF(selectedPDF.name);
       setAnalysis(analysisResult);
     } catch (error) {
       console.error('Error analyzing PDF:', error);
@@ -158,7 +242,28 @@ const ChatInterface: React.FC = () => {
     });
   };
 
-  return (
+  // Get the URL for the selected PDF
+  const getPDFUrl = (pdf: PDFInfo | null): string => {
+    if (!pdf) return '';
+    // Ensure the URL is properly formatted
+    return pdf.url.startsWith('http') ? pdf.url : `http://${pdf.url}`;
+  };
+
+  // Navigate to next highlight
+  const nextHighlight = () => {
+    if (currentHighlightIndex < highlights.length - 1) {
+      setCurrentHighlightIndex(prev => prev + 1);
+    }
+  };
+
+  // Navigate to previous highlight
+  const prevHighlight = () => {
+    if (currentHighlightIndex > 0) {
+      setCurrentHighlightIndex(prev => prev - 1);
+    }
+  };
+
+return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
       {/* Header with Website Name and Back Button */}
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -185,7 +290,7 @@ const ChatInterface: React.FC = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             {apiHealth !== null && (
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50">
                 {apiHealth ? (
@@ -202,7 +307,7 @@ const ChatInterface: React.FC = () => {
               </div>
             )}
             <PDFApiTest />
-          </div>
+          </div> */}
         </div>
       </header>
 
@@ -231,149 +336,169 @@ const ChatInterface: React.FC = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={loadPDFs}
-                    disabled={isLoading}
-                  >
-                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearChat}
-                    disabled={messages.length === 0}
-                  >
-                    Clear Chat
-                  </Button>
-                </div>
-
-                <Select value={selectedPDF} onValueChange={(value) => {
-                  setSelectedPDF(value);
-                  setShowPDFPreview(true);
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a PDF" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Array.isArray(pdfs) && pdfs.length > 0 ? (
-                      pdfs.map((pdf) => (
-                        <SelectItem key={pdf.name} value={pdf.name}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{pdf.name}</span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatFileSize(pdf.size)} • {formatDate(pdf.created_at)}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))
+                <div className="space-y-4">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search PDFs..."
+                      className="w-full bg-background pl-8"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadPDFs}
+                      disabled={isLoading}
+                      className="flex-1"
+                    >
+                      <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                      Refresh
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearChat}
+                      disabled={messages.length === 0}
+                      className="flex-1"
+                    >
+                      Clear Chat
+                    </Button>
+                  </div>
+                  
+                  <div className="h-[250px] overflow-auto border rounded-lg">
+                    {isLoading ? (
+                      <div className="h-full flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : filteredPDFs.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-muted-foreground p-4 text-center">
+                        {searchTerm ? 'No matching PDFs found' : 'No PDFs found. Upload some PDFs to get started.'}
+                      </div>
                     ) : (
-                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                        {isLoading ? 'Loading PDFs...' : 'No PDFs available'}
+                      <div className="divide-y">
+                        {filteredPDFs.map((pdf) => {
+                          // Remove .pdf extension for display
+                          const displayName = pdf.name.replace(/\.pdf$/i, '');
+                          return (
+                            <div
+                              key={pdf.name}
+                              className={`p-3 hover:bg-muted/50 cursor-pointer transition-colors ${
+                                selectedPDF?.name === pdf.name ? 'bg-muted' : ''
+                              }`}
+                              onClick={() => setSelectedPDF(pdf)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <FileText className="h-5 w-5 flex-shrink-0 text-muted-foreground" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{displayName}</p>
+                                  {pdf.size && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {formatFileSize(pdf.size)}
+                                      {pdf.created_at && ` • ${formatDate(pdf.created_at)}`}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
-                  </SelectContent>
-                </Select>
-
-                {selectedPDF && (
-                  <div className="space-y-2">
-                    <Button
-                      onClick={() => setShowPDFPreview(!showPDFPreview)}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      {showPDFPreview ? 'Hide Preview' : 'Show Preview'}
-                    </Button>
-                    <Button
-                      onClick={handleAnalyzePDF}
-                      disabled={isAnalyzing}
-                      className="w-full"
-                    >
-                      {isAnalyzing ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      ) : (
-                        <FileText className="h-4 w-4 mr-2" />
-                      )}
-                      {isAnalyzing ? 'Analyzing...' : 'Analyze PDF'}
-                    </Button>
                   </div>
-                )}
-
-                {isLoading && (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  </div>
-                )}
+                </div>
               </CardContent>
             </Card>
-          </ResizablePanel>
+        </ResizablePanel>
 
-          <ResizableHandle withHandle />
+        <ResizableHandle withHandle />
 
-          {/* Middle Panel - PDF Preview */}
-          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
-            <Card className="h-full mx-3">
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    PDF Preview
-                  </div>
-                  {selectedPDF && showPDFPreview && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowFullscreenPDF(true)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Maximize2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </CardTitle>
-                <CardDescription>
-                  {selectedPDF ? `Viewing: ${selectedPDF}` : 'Select a PDF to preview'}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="h-[calc(100%-5rem)]">
-                {selectedPDF && showPDFPreview ? (
-                  <div className="w-full h-full border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center bg-muted/30 relative">
-                    <div className="text-center space-y-4">
-                      <div className="w-16 h-16 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
-                        <FileText className="h-8 w-8 text-primary" />
+        {/* Middle Panel - PDF Preview */}
+        <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+          <Card className="h-full mx-3 flex flex-col">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">PDF Preview</CardTitle>
+              <CardDescription>
+                {selectedPDF ? selectedPDF.name : 'Select a PDF to preview'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-1 min-h-0">
+              {selectedPDF ? (
+                <div className="w-full h-full border-2 border-dashed border-muted-foreground/25 rounded-lg overflow-hidden bg-muted/30 relative">
+                  <div className="w-full h-full">
+                    <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
+                      <div className="relative h-full">
+                        <Viewer
+                          fileUrl={getPDFUrl(selectedPDF)}
+                          plugins={[defaultLayoutPluginInstance]}
+                          ref={viewerRef}
+                          renderError={() => (
+                            <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                              <AlertCircle className="h-8 w-8 text-red-500 mb-2" />
+                              <p className="text-sm text-muted-foreground">
+                                Failed to load PDF preview. Please try again.
+                              </p>
+                            </div>
+                          )}
+                          renderLoader={() => (
+                            <div className="flex items-center justify-center h-full">
+                              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            </div>
+                          )}
+                        />
+                        {highlights.length > 0 && (
+                          <div className="absolute bottom-4 right-4 flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-md">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={prevHighlight}
+                              disabled={currentHighlightIndex <= 0}
+                              className="h-8 w-8 p-0"
+                            >
+                              <ChevronLeft className="h-4 w-4" />
+                            </Button>
+                            <div className="flex items-center text-xs text-muted-foreground">
+                              {currentHighlightIndex + 1} / {highlights.length}
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={nextHighlight}
+                              disabled={currentHighlightIndex >= highlights.length - 1}
+                              className="h-8 w-8 p-0"
+                            >
+                              <ChevronRight className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-lg">{selectedPDF}</h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          PDF preview will be implemented here
-                        </p>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setShowFullscreenPDF(true)}
-                          className="mt-3"
-                        >
-                          <Maximize2 className="h-4 w-4 mr-2" />
-                          View Fullscreen
-                        </Button>
-                      </div>
-                    </div>
+                    </Worker>
                   </div>
-                ) : (
-                  <div className="w-full h-full border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
-                    <div className="text-center text-muted-foreground">
-                      <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>Select a PDF to preview</p>
-                    </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowFullscreenPDF(true)}
+                    className="absolute bottom-4 right-4 bg-background/80 backdrop-blur-sm z-10"
+                  >
+                    <Maximize2 className="h-4 w-4 mr-2" />
+                    View Fullscreen
+                  </Button>
+                </div>
+              ) : (
+                <div className="w-full h-full border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Select a PDF to preview</p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </ResizablePanel>
-
-          <ResizableHandle withHandle />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </ResizablePanel>
 
           {/* Right Panel - Chat Interface */}
           <ResizablePanel defaultSize={40} minSize={30} maxSize={55}>
@@ -384,8 +509,8 @@ const ChatInterface: React.FC = () => {
                   Chat Interface
                 </CardTitle>
                 <CardDescription>
-                  {selectedPDF ? `Analyzing: ${selectedPDF}` : 'Select a PDF to start chatting'}
-                </CardDescription>
+                {selectedPDF ? `Analyzing: ${selectedPDF.name}` : 'Select a PDF to start chatting'}
+              </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col min-h-0">
                 <ScrollArea className="flex-1 mb-4 pr-3">
@@ -459,7 +584,7 @@ const ChatInterface: React.FC = () => {
             <CardHeader>
               <CardTitle>Analysis Results</CardTitle>
               <CardDescription>
-                Detailed analysis of {selectedPDF}
+                Detailed analysis of {selectedPDF?.name || 'selected document'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -508,7 +633,7 @@ const ChatInterface: React.FC = () => {
                   <div>
                     <h3 className="text-lg font-semibold mb-2">Risk Factors</h3>
                     <div className="space-y-2">
-                      {analysis.risk_factors.map((risk, index) => (
+                      {analysis.risk_factors?.map((risk, index) => (
                         <Badge key={index} variant="destructive">
                           {risk}
                         </Badge>
@@ -547,41 +672,52 @@ const ChatInterface: React.FC = () => {
         )}
       </div>
 
-      {/* Fullscreen PDF Dialog */}
+      {/* Fullscreen PDF Viewer Dialog */}
       <Dialog open={showFullscreenPDF} onOpenChange={setShowFullscreenPDF}>
-        <DialogContent className="max-w-6xl w-[95vw] h-[90vh] p-0">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                {selectedPDF}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFullscreenPDF(false)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 p-6 pt-2">
-            <div className="w-full h-full border-2 border-dashed border-muted-foreground/25 rounded-lg flex items-center justify-center bg-muted/30">
-              <div className="text-center space-y-4">
-                <div className="w-20 h-20 mx-auto rounded-lg bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-10 w-10 text-primary" />
+        <DialogContent className="w-[95vw] h-[95vh] max-w-none max-h-none p-0">
+          <div className="flex flex-col h-full">
+            <DialogHeader className="p-4 border-b">
+              <DialogTitle className="flex items-center justify-between">
+                <span>{selectedPDF?.name || 'PDF Viewer'}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowFullscreenPDF(false)}
+                  className="h-8 w-8 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex-1 overflow-hidden">
+              {selectedPDF ? (
+                <div className="w-full h-full">
+                  <Worker workerUrl={`https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js`}>
+                    <Viewer
+                      fileUrl={getPDFUrl(selectedPDF)}
+                      plugins={[defaultLayoutPluginInstance]}
+                      renderError={() => (
+                        <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                          <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+                          <p className="text-lg font-medium mb-2">Failed to load PDF</p>
+                          <p className="text-sm text-muted-foreground">
+                            The PDF could not be loaded. Please try again later.
+                          </p>
+                        </div>
+                      )}
+                      renderLoader={() => (
+                        <div className="flex items-center justify-center h-full">
+                          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+                        </div>
+                      )}
+                    />
+                  </Worker>
                 </div>
-                <div>
-                  <h3 className="font-semibold text-xl">{selectedPDF}</h3>
-                  <p className="text-muted-foreground mt-2">
-                    Full PDF viewer will be implemented here
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    This will show the complete PDF document in fullscreen mode
-                  </p>
+              ) : (
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  No PDF selected for preview
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </DialogContent>
