@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PDFAnalysisApiService, PDFInfo, PDFAnalysis, ChatMessage, ChatResponse, HighlightedContent } from '../services/pdfAnalysisApiService';
+import { PDFAnalysisApiService, PDFInfo, PDFAnalysis, ChatMessage, ChatResponse } from '../services/pdfAnalysisApiService';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Badge } from '../components/ui/badge';
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Separator } from '../components/ui/separator';
-import { Loader2, Send, FileText, MessageSquare, AlertCircle, CheckCircle, RefreshCw, ArrowLeft, Eye, Maximize2, X, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { Loader2, Send, FileText, MessageSquare, AlertCircle, CheckCircle, RefreshCw, ArrowLeft, Eye, Maximize2, X, Search } from 'lucide-react';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
@@ -22,17 +22,7 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 
-// Custom styles for highlighted text
-const highlightStyle = document.createElement('style');
-highlightStyle.textContent = `
-  .highlighted-text {
-    background-color: rgba(255, 255, 0, 0.5);
-    border-radius: 2px;
-    padding: 0 2px;
-    transition: background-color 0.3s ease;
-  }
-`;
-document.head.appendChild(highlightStyle);
+
 
 // Configure PDF.js worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -50,8 +40,7 @@ const ChatInterface: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPDFPreview, setShowPDFPreview] = useState(false);
   const [showFullscreenPDF, setShowFullscreenPDF] = useState(false);
-  const [highlights, setHighlights] = useState<HighlightedContent[]>([]);
-  const [currentHighlightIndex, setCurrentHighlightIndex] = useState<number>(-1);
+
   const [searchTerm, setSearchTerm] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const defaultLayoutPluginInstance = defaultLayoutPlugin();
@@ -114,42 +103,7 @@ const ChatInterface: React.FC = () => {
   };
 
   // Function to scroll to highlight in PDF
-  const scrollToHighlight = useCallback((highlight: HighlightedContent) => {
-    if (!viewerRef.current) return;
-    
-    // Get the page element
-    const pageElement = document.querySelector(`.rpv-core__page[data-page-number="${highlight.page_number}"]`);
-    if (!pageElement) return;
-    
-    // Scroll to the page
-    pageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
-    // Highlight the text (this is a simple implementation - you might need to enhance it)
-    const textLayer = pageElement.querySelector('.rpv-core__text-layer');
-    if (!textLayer) return;
-    
-    // Find the text node containing the highlight text
-    const textNodes = Array.from(textLayer.querySelectorAll('span'));
-    const targetNode = textNodes.find(node => node.textContent?.includes(highlight.text));
-    
-    if (targetNode) {
-      // Add highlight class
-      targetNode.classList.add('highlighted-text');
-      
-      // Remove highlight after 5 seconds
-      setTimeout(() => {
-        targetNode.classList.remove('highlighted-text');
-      }, 10000);
-    }
-  }, []);
 
-  // Effect to handle highlight changes
-  useEffect(() => {
-    if (highlights.length > 0 && currentHighlightIndex >= 0) {
-      const highlight = highlights[currentHighlightIndex];
-      scrollToHighlight(highlight);
-    }
-  }, [highlights, currentHighlightIndex, scrollToHighlight]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !selectedPDF?.name || isLoading) return;
@@ -163,12 +117,10 @@ const ChatInterface: React.FC = () => {
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
     setIsLoading(true);
-    setHighlights([]);
-    setCurrentHighlightIndex(-1);
 
     try {
-      // Use the new chatWithPDFHighlighted method
-      const response = await PDFAnalysisApiService.chatWithPDFHighlighted(selectedPDF.name, inputMessage);
+      // Use the standard chat method
+      const response = await PDFAnalysisApiService.chatWithPDFStandard(selectedPDF.name, inputMessage);
       
       const assistantMessage: ChatMessage = {
         role: 'assistant',
@@ -177,12 +129,6 @@ const ChatInterface: React.FC = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
-      
-      // Set highlights if available
-      if (response.highlights && response.highlights.length > 0) {
-        setHighlights(response.highlights);
-        setCurrentHighlightIndex(0);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: ChatMessage = {
@@ -249,19 +195,7 @@ const ChatInterface: React.FC = () => {
     return pdf.url.startsWith('http') ? pdf.url : `http://${pdf.url}`;
   };
 
-  // Navigate to next highlight
-  const nextHighlight = () => {
-    if (currentHighlightIndex < highlights.length - 1) {
-      setCurrentHighlightIndex(prev => prev + 1);
-    }
-  };
 
-  // Navigate to previous highlight
-  const prevHighlight = () => {
-    if (currentHighlightIndex > 0) {
-      setCurrentHighlightIndex(prev => prev - 1);
-    }
-  };
 
 return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
@@ -450,31 +384,6 @@ return (
                             </div>
                           )}
                         />
-                        {highlights.length > 0 && (
-                          <div className="absolute bottom-4 right-4 flex gap-2 bg-background/80 backdrop-blur-sm p-2 rounded-lg shadow-md">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={prevHighlight}
-                              disabled={currentHighlightIndex <= 0}
-                              className="h-8 w-8 p-0"
-                            >
-                              <ChevronLeft className="h-4 w-4" />
-                            </Button>
-                            <div className="flex items-center text-xs text-muted-foreground">
-                              {currentHighlightIndex + 1} / {highlights.length}
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={nextHighlight}
-                              disabled={currentHighlightIndex >= highlights.length - 1}
-                              className="h-8 w-8 p-0"
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     </Worker>
                   </div>
