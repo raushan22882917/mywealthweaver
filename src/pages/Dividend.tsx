@@ -127,8 +127,6 @@ const Dividend: React.FC = () => {
   const [dividendData, setDividendData] = useState<DividendData[]>([]);
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
   const [hoveredStock, setHoveredStock] = useState<DividendData | null>(null);
-  const [expandedCells, setExpandedCells] = useState<Set<string>>(new Set());
-  const [expandedStock, setExpandedStock] = useState<DividendData | null>(null);
   const [hoveredStockDetails, setHoveredStockDetails] = useState<HoveredStockDetails | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number>(currentYear);
@@ -155,6 +153,12 @@ const Dividend: React.FC = () => {
   const [isHoveringSymbol, setIsHoveringSymbol] = useState(false);
 
   const [csvLogoUrls, setCsvLogoUrls] = useState<Map<string, string>>(new Map());
+  const [commentaryPopup, setCommentaryPopup] = useState<{ isOpen: boolean; symbol: string; commentary: string | null }>({
+    isOpen: false,
+    symbol: '',
+    commentary: null
+  });
+  const [loadingCommentary, setLoadingCommentary] = useState(false);
 
   useEffect(() => {
     // Load logo URLs from CSV file
@@ -481,23 +485,14 @@ const Dividend: React.FC = () => {
     // Only close if not clicking
     if (!hoveredStockDetails) {
       setHoveredStockDetails(null);
-      setExpandedStock(null);
     }
   };
 
   const handleCloseHover = () => {
     setHoveredStockDetails(null);
-    setExpandedStock(null);
   };
 
-  const handleSeeMoreClick = (e: React.MouseEvent, stock: DividendData) => {
-    e.stopPropagation();
-    setExpandedStock(stock);
-  };
 
-  const handleCloseExpanded = () => {
-    setExpandedStock(null);
-  };
 
   const getMarketTiming = (time: string) => {
     const hour = parseInt(time.split(':')[0]);
@@ -505,15 +500,7 @@ const Dividend: React.FC = () => {
     return 'After Close';
   };
 
-  const toggleCellExpansion = (dateString: string) => {
-    const newExpandedCells = new Set(expandedCells);
-    if (newExpandedCells.has(dateString)) {
-      newExpandedCells.delete(dateString);
-    } else {
-      newExpandedCells.add(dateString);
-    }
-    setExpandedCells(newExpandedCells);
-  };
+
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value.toLowerCase());
@@ -627,6 +614,15 @@ const Dividend: React.FC = () => {
         </div>
       </div>
 
+      {/* Information Icon */}
+      <button
+        className="absolute -top-1 -left-1 text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors z-10"
+        onClick={(e) => handleCommentaryClick(stock.Symbol, e)}
+        title="View dividend commentary"
+      >
+        <Info className="w-3 h-3" />
+      </button>
+
       {(stock.status === 'This stock may have a risky dividend.' ||
         stock.status === 'This stock does not pay a dividend.') && (
         <div className="absolute -top-1 -right-1 text-red-500 dark:text-red-400">
@@ -664,7 +660,6 @@ const Dividend: React.FC = () => {
 
   const renderCalendarCell = (date: Date) => {
     const dateString = formatDate(date);
-    const isExpanded = expandedCells.has(dateString);
 
     const holiday = holidayData.find(h => h.date === dateString);
 
@@ -685,9 +680,7 @@ const Dividend: React.FC = () => {
     return (
       <div
         key={dateString}
-        className={`relative p-3 min-h-[200px] transition-all duration-300 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden ${
-          isExpanded ? 'row-span-2 col-span-2' : ''
-        }`}
+        className="relative p-3 min-h-[200px] transition-all duration-300 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
         onClick={() => {
           if (stocksForDate.length > 0) {
             togglePopup(dateString);
@@ -922,6 +915,54 @@ const Dividend: React.FC = () => {
   const handleMoreClick = (stocks: DividendData[], event: React.MouseEvent) => {
     event.stopPropagation();
     setExpandedPopup({ stocks });
+  };
+
+  const fetchDividendCommentary = async (symbol: string) => {
+    try {
+      setLoadingCommentary(true);
+      const { data, error } = await supabase
+        .from('dividend_metrics')
+        .select('dividend_commentary')
+        .eq('ticker', symbol.toUpperCase())
+        .single();
+
+      if (error) {
+        console.error('Error fetching commentary:', error);
+        setCommentaryPopup({
+          isOpen: true,
+          symbol,
+          commentary: null
+        });
+      } else {
+        setCommentaryPopup({
+          isOpen: true,
+          symbol,
+          commentary: data?.dividend_commentary || null
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching commentary:', error);
+      setCommentaryPopup({
+        isOpen: true,
+        symbol,
+        commentary: null
+      });
+    } finally {
+      setLoadingCommentary(false);
+    }
+  };
+
+  const handleCommentaryClick = (symbol: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    fetchDividendCommentary(symbol);
+  };
+
+  const closeCommentaryPopup = () => {
+    setCommentaryPopup({
+      isOpen: false,
+      symbol: '',
+      commentary: null
+    });
   };
 
   return (
@@ -1234,6 +1275,129 @@ const Dividend: React.FC = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Commentary Popup */}
+      {commentaryPopup.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            className="bg-black/60 backdrop-blur-md absolute inset-0 transition-opacity duration-300"
+            onClick={closeCommentaryPopup}
+          />
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 w-full max-w-[900px] mx-4 relative z-10 transform transition-all duration-300 scale-100 animate-in fade-in-0 zoom-in-95 max-h-[90vh] flex flex-col">
+            {/* Header with gradient */}
+            <div className="relative overflow-hidden rounded-t-2xl flex-shrink-0">
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 opacity-10"></div>
+              <div className="relative p-6 pb-4">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-200 bg-clip-text text-transparent">
+                        Dividend Commentary
+                      </h3>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-sm font-medium rounded-full">
+                          {commentaryPopup.symbol}
+                        </span>
+                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={closeCommentaryPopup}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all duration-200 group"
+                  >
+                    <X className="h-5 w-5 text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Content - Scrollable */}
+            <div className="p-6 pt-4 flex-1 overflow-y-auto min-h-0">
+              {loadingCommentary ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="relative">
+                    <div className="w-12 h-12 border-4 border-blue-200 dark:border-blue-800 rounded-full animate-spin"></div>
+                    <div className="absolute top-0 left-0 w-12 h-12 border-4 border-transparent border-t-blue-500 rounded-full animate-spin"></div>
+                  </div>
+                  <div className="mt-6 text-center">
+                    <p className="text-gray-600 dark:text-gray-400 font-medium">Analyzing dividend data...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">This may take a few moments</p>
+                  </div>
+                </div>
+              ) : commentaryPopup.commentary ? (
+                <div className="space-y-4">
+                  <div className="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800 dark:to-blue-900/20 rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Analysis Summary</span>
+                    </div>
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <p className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap text-base">
+                        {commentaryPopup.commentary}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Additional info cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200/50 dark:border-green-700/50">
+                      <div className="flex items-center space-x-2">
+                        <div className="p-1.5 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                          </svg>
+                        </div>
+                        <span className="text-sm font-medium text-green-700 dark:text-green-300">Growth Potential</span>
+                      </div>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200/50 dark:border-blue-700/50">
+                      <div className="flex items-center space-x-2">
+                        <div className="p-1.5 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                          <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                          </svg>
+                        </div>
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">Dividend Yield</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <div className="relative">
+                    <div className="w-16 h-16 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Info className="h-8 w-8 text-gray-400" />
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">No Commentary Available</h3>
+                  <p className="text-gray-600 dark:text-gray-400 max-w-sm mx-auto">
+                    We couldn't find any dividend commentary for <span className="font-medium text-gray-700 dark:text-gray-300">{commentaryPopup.symbol}</span>. This could be due to insufficient data or the stock not being covered yet.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {/* Footer */}
+            <div className="px-6 pb-6 flex-shrink-0">
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span>Data provided by WealthWeaver AI</span>
+                <span>Last updated: {new Date().toLocaleDateString()}</span>
+              </div>
             </div>
           </div>
         </div>

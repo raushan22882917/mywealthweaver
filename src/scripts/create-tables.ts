@@ -147,6 +147,10 @@ async function createTables() {
           similar_symbol TEXT NOT NULL,
           company_name TEXT,
           description TEXT,
+          revenue_2025 TEXT NULL,
+          dividend_yield TEXT NULL,
+          risks TEXT NULL,
+          as_of_date TEXT NULL,
           created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()),
           UNIQUE(symbol, similar_symbol)
         );

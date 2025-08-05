@@ -9,16 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import Footer from "@/components/Footer";
-import { LineChart, TrendingUp, BookOpen, DollarSign, Target, Search, BarChart, PieChart, Star, Users, CheckCircle, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
+import { LineChart, TrendingUp, BookOpen, DollarSign, Target, Search, BarChart, PieChart, Star, Users, CheckCircle, MessageSquare, ChevronLeft, ChevronRight, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import TradingAnimation from "@/components/TradingAnimation";
 import { motion, AnimatePresence } from "framer-motion";
+import { fetchStockData, StockData } from "@/services/stockService";
 
 const Index = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [featureStocks, setFeatureStocks] = useState<StockData[]>([]);
+  const [loadingStocks, setLoadingStocks] = useState(true);
   
   const testimonials = [
     {
@@ -68,6 +71,26 @@ const Index = () => {
     return () => clearInterval(interval);
   }, [isAutoPlaying, galleryImages.length]);
 
+  // Fetch feature stocks data
+  useEffect(() => {
+    const fetchFeatureStocks = async () => {
+      try {
+        setLoadingStocks(true);
+        const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA'];
+        const stocksData = await Promise.all(
+          stockSymbols.map(symbol => fetchStockData(symbol))
+        );
+        setFeatureStocks(stocksData);
+      } catch (error) {
+        console.error('Error fetching feature stocks:', error);
+      } finally {
+        setLoadingStocks(false);
+      }
+    };
+
+    fetchFeatureStocks();
+  }, []);
+
   const nextImage = () => {
     setDirection(1);
     setCurrentImageIndex((prev) => (prev + 1) % galleryImages.length);
@@ -107,6 +130,7 @@ const Index = () => {
       <main>
         {/* Hero Section with 3D Animation */}
         <div className="relative min-h-[600px] md:min-h-[700px] overflow-hidden">
+          
           {/* 3D Trading Animation Background */}
           <div className="absolute inset-0 z-0">
             <TradingAnimation />
@@ -115,141 +139,261 @@ const Index = () => {
           {/* Gradient Overlay */}
           <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 via-gray-900/80 to-gray-900/95 z-10"></div>
 
-          {/* Split Content */}
-          <div className="relative z-20 container mx-auto px-4 h-full flex flex-col lg:flex-row items-center justify-between pt-16 md:pt-24 lg:pt-32">
-            {/* Left Content */}
-            <div className="w-full lg:w-1/2 space-y-6 md:space-y-8 text-center lg:text-left lg:pr-10 mb-8 lg:mb-0">
-              
-              
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
-                <span className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  Globalstockinsights
-                </span>
-                <br />
-                <span className="text-white">
-                  Shape Your Financial Future
-                </span>
-              </h1>
-              
-              <p className="text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                Harness the power of AI-driven analytics and real-time market data to make 
-                informed investment decisions that transform your portfolio performance.
-              </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-               
-                <Link to="/education">
-                  <Button 
-                    variant="outline"
-                    size="lg"
-                    className="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400/10 px-6 md:px-8 py-4 md:py-6 rounded-xl text-base md:text-lg font-semibold transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
-                  >
-                    <BookOpen className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                    Learn More
-                  </Button>
-                </Link>
+          {/* Hero Content */}
+          <div className="relative z-20 container mx-auto px-4 pt-8 md:pt-12 lg:pt-16">
+            
+            {/* Top Section - Stock Cards Row */}
+            <div className="mb-6">
+              {loadingStocks ? (
+                <div className="grid grid-cols-4 gap-6">
+                  {[...Array(4)].map((_, index) => (
+                    <div key={index} className="animate-pulse">
+                      <div className="h-24 bg-white/10 rounded-xl border border-white/20"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-4 gap-6">
+                  {featureStocks.slice(0, 4).map((stock, index) => {
+                    const isPositive = stock.regularMarketChange >= 0;
+                    const changeColor = isPositive ? 'text-green-400' : 'text-red-400';
+                    const ChangeIcon = isPositive ? ArrowUpRight : ArrowDownRight;
+                    
+                    return (
+                      <motion.div
+                        key={stock.symbol}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="group"
+                      >
+                        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-3 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+                          {/* Stock Header */}
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-2">
+                              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+                                <span className="text-white font-bold text-xs">{stock.symbol}</span>
+                              </div>
+                              <div>
+                                <h3 className="text-white font-semibold text-xs">{stock.symbol}</h3>
+                                <p className="text-gray-300 text-xs truncate max-w-32">{stock.longName}</p>
+                              </div>
+                            </div>
+                            <div className={`flex items-center space-x-1 ${changeColor}`}>
+                              {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                            </div>
+                          </div>
 
-                <Link to="/chatinterface">
-                  <Button 
-                    size="lg"
-                    className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 md:px-8 py-4 md:py-6 rounded-xl text-base md:text-lg font-semibold transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
-                  >
-                    <MessageSquare className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                    Chat with AI
-                  </Button>
-                </Link>
-              </div>
+                          {/* Price Information */}
+                          <div className="mb-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-lg font-bold text-white">
+                                ${stock.regularMarketPrice?.toFixed(2) || '0.00'}
+                              </span>
+                              <div className={`flex items-center space-x-1 ${changeColor}`}>
+                                <ChangeIcon className="h-3 w-3" />
+                                <span className="text-xs font-medium">
+                                  {stock.regularMarketChangePercent?.toFixed(2) || '0.00'}%
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2 text-xs text-gray-300">
+                              <span>Change: ${stock.regularMarketChange?.toFixed(2) || '0.00'}</span>
+                              <span>•</span>
+                              <span>Vol: {(stock.regularMarketVolume / 1000000).toFixed(1)}M</span>
+                            </div>
+                          </div>
+
+                          {/* Stock Details */}
+                          <div className="grid grid-cols-2 gap-1 text-xs text-gray-300">
+                            <div className="flex justify-between">
+                              <span>Market Cap:</span>
+                              <span className="text-white font-medium">
+                                ${(stock.marketCap / 1000000000).toFixed(1)}B
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>P/E:</span>
+                              <span className="text-white font-medium">
+                                {stock.trailingPE?.toFixed(1) || 'N/A'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Div Yield:</span>
+                              <span className="text-white font-medium">
+                                {stock.dividendYield ? `${(stock.dividendYield * 100).toFixed(2)}%` : 'N/A'}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Sector:</span>
+                              <span className="text-white font-medium truncate max-w-16">
+                                {stock.sector || 'N/A'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Action Links */}
+                          <div className="mt-1 pt-1 border-t border-white/20">
+                            <div className="flex justify-between text-xs">
+                              <Link to={`/stock/${stock.symbol}`} className="text-blue-300 hover:text-blue-200 font-medium">
+                                Details
+                              </Link>
+                              <Link to="/dividend" className="text-blue-300 hover:text-blue-200 font-medium">
+                                Dividend
+                              </Link>
+                              <Link to="/education" className="text-blue-300 hover:text-blue-200 font-medium">
+                                Analysis
+                              </Link>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            {/* Right Content - Gallery */}
-            <div className="w-full lg:w-1/2 relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-1 h-[420px]">
-                <div className="relative rounded-xl overflow-hidden h-full flex items-center justify-center bg-black/20">
-                  <AnimatePresence initial={false} custom={direction} mode="wait">
-                    <motion.div
-                      key={currentImageIndex}
-                      className="absolute inset-0 flex items-center justify-center"
-                      custom={direction}
-                      variants={slideVariants}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                      transition={{
-                        x: { type: "spring", stiffness: 300, damping: 30 },
-                        opacity: { duration: 0.2 }
-                      }}
+            {/* Horizontal Divider */}
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mb-6"></div>
+
+            {/* Bottom Section - Left and Right Content */}
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+              {/* Left Content */}
+              <div className="w-full lg:w-1/2 space-y-6 md:space-y-8 text-center lg:text-left">
+                
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight">
+                  <span className="bg-gradient-to-r from-green-400 via-blue-500 to-purple-600 bg-clip-text text-transparent">
+                    Globalstockinsights
+                  </span>
+                  <br />
+                  <span className="text-white">
+                    Shape Your Financial Future
+                  </span>
+                </h1>
+                
+                <p className="text-base sm:text-lg md:text-xl text-gray-300 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                  Harness the power of AI-driven analytics and real-time market data to make 
+                  informed investment decisions that transform your portfolio performance.
+                </p>
+                
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                 
+                  <Link to="/education">
+                    <Button 
+                      variant="outline"
+                      size="lg"
+                      className="bg-transparent border-2 border-blue-400 text-blue-400 hover:bg-blue-400/10 px-6 md:px-8 py-4 md:py-6 rounded-xl text-base md:text-lg font-semibold transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
                     >
-                      <div className="relative w-full h-full">
-                        <img 
-                          src={galleryImages[currentImageIndex]} 
-                          alt="Gallery Image" 
-                          className="w-full h-full object-contain"
-                          draggable="false"
-                        />
-                      </div>
-                    </motion.div>
-                  </AnimatePresence>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
-                  
-                  {/* Navigation Buttons */}
-                  <motion.button 
-                    onClick={previousImage}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all backdrop-blur-sm border border-white/20 z-10"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <ChevronLeft className="h-6 w-6" />
-                  </motion.button>
-                  <motion.button 
-                    onClick={nextImage}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all backdrop-blur-sm border border-white/20 z-10"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <ChevronRight className="h-6 w-6" />
-                  </motion.button>
+                      <BookOpen className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                      Learn More
+                    </Button>
+                  </Link>
 
-                  {/* Auto-play Toggle */}
-                  <motion.button
-                    onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                    className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all backdrop-blur-sm border border-white/20 z-10"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {isAutoPlaying ? (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    ) : (
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    )}
-                  </motion.button>
+                  <Link to="/chatinterface">
+                    <Button 
+                      size="lg"
+                      className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white px-6 md:px-8 py-4 md:py-6 rounded-xl text-base md:text-lg font-semibold transition-all transform hover:scale-105 shadow-lg w-full sm:w-auto"
+                    >
+                      <MessageSquare className="h-4 w-4 md:h-5 md:w-5 mr-2" />
+                      Chat with AI
+                    </Button>
+                  </Link>
+                </div>
+              </div>
 
-                  {/* Image Indicators */}
-                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-                    {galleryImages.map((_, index) => (
-                      <motion.button
-                        key={index}
-                        onClick={() => {
-                          setDirection(index > currentImageIndex ? 1 : -1);
-                          setCurrentImageIndex(index);
+              {/* Right Content - Gallery */}
+              <div className="w-full lg:w-1/2 relative">
+                <div className="relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white/20 bg-gradient-to-br from-blue-500/20 to-purple-500/20 p-1 h-[420px]">
+                  <div className="relative rounded-xl overflow-hidden h-full flex items-center justify-center bg-black/20">
+                    <AnimatePresence initial={false} custom={direction} mode="wait">
+                      <motion.div
+                        key={currentImageIndex}
+                        className="absolute inset-0 flex items-center justify-center"
+                        custom={direction}
+                        variants={slideVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{
+                          x: { type: "spring", stiffness: 300, damping: 30 },
+                          opacity: { duration: 0.2 }
                         }}
-                        className={`w-2 h-2 rounded-full transition-all ${
-                          index === currentImageIndex ? 'bg-white w-4' : 'bg-white/50'
-                        }`}
-                        whileHover={{ scale: 1.2 }}
-                        whileTap={{ scale: 0.9 }}
-                      />
-                    ))}
+                      >
+                        <div className="relative w-full h-full">
+                          <img 
+                            src={galleryImages[currentImageIndex]} 
+                            alt="Gallery Image" 
+                            className="w-full h-full object-contain"
+                            draggable="false"
+                          />
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent"></div>
+                    
+                    {/* Navigation Buttons */}
+                    <motion.button 
+                      onClick={previousImage}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all backdrop-blur-sm border border-white/20 z-10"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <ChevronLeft className="h-6 w-6" />
+                    </motion.button>
+                    <motion.button 
+                      onClick={nextImage}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all backdrop-blur-sm border border-white/20 z-10"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <ChevronRight className="h-6 w-6" />
+                    </motion.button>
+
+                    {/* Auto-play Toggle */}
+                    <motion.button
+                      onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+                      className="absolute top-4 right-4 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all backdrop-blur-sm border border-white/20 z-10"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      {isAutoPlaying ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                    </motion.button>
+
+                    {/* Image Indicators */}
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                      {galleryImages.map((_, index) => (
+                        <motion.button
+                          key={index}
+                          onClick={() => {
+                            setDirection(index > currentImageIndex ? 1 : -1);
+                            setCurrentImageIndex(index);
+                          }}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            index === currentImageIndex ? 'bg-white w-4' : 'bg-white/50'
+                          }`}
+                          whileHover={{ scale: 1.2 }}
+                          whileTap={{ scale: 0.9 }}
+                        />
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+
 
         {/* Factor Benchmarking Analysis Section */}
 

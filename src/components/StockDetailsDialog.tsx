@@ -202,15 +202,39 @@ interface SavedStock {
 interface DividendSymbol {
   buy_date: string;
   symbol: string;
-  dividend: string;
-  dividendrate: string;
-  payoutdate?: string;
-  exdividenddate?: string;
+  dividend: number | null;
+  dividendrate: number | null;
+  payoutdate?: string | null;
+  exdividenddate?: string | null;
+  currentprice?: number | null;
+  dividendyield?: number | null;
+  payoutratio?: number | null;
+  as_of_date?: string | null;
+  earningsdate?: string | null;
+  previousclose?: number | null;
+  quotetype?: string | null;
+  recovery_period?: string | null;
+  shortname?: string | null;
+  yearly_change?: string | null;
+  hist?: string | null;
+  insight?: string | null;
+  message?: string | null;
 }
 
 interface DividendCountdownProps {
   symbol: string;
 }
+
+// Interface for div_frequency table
+type DivFrequency = {
+  id: number;
+  as_of_date: string;
+  symbol: string | null;
+  frequency: number | null;
+  special_dividend: string | null;
+  frequency_tx: string | null;
+  days: number | null;
+};
 
 const DividendCountdown: React.FC<DividendCountdownProps> = ({ symbol }) => {
   const [timeLeft, setTimeLeft] = useState<{
@@ -383,6 +407,13 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   const [showMessage, setShowMessage] = useState(false);
   const [isUserLoggedIn, setIsUserLoggedIn] = useState(true); // Replace with actual auth check
   const [showNewsDialog, setShowNewsDialog] = useState(false);
+  
+  // Add state for dividend frequency availability
+  const [dividendFrequencyAvailable, setDividendFrequencyAvailable] = useState<boolean | null>(null);
+  const [dividendFrequencyData, setDividendFrequencyData] = useState<any>(null);
+
+  // Add state for all dividend data
+  const [allDividendData, setAllDividendData] = useState<DividendSymbol[]>([]);
 
   const handleToggle = () => {
     if (!isUserLoggedIn) {
@@ -443,6 +474,43 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
   // Add state for AI Analysis popover
   const [aiAnalysisPopoverOpen, setAIAnalysisPopoverOpen] = useState(false);
 
+  // Function to check dividend frequency availability
+  const checkDividendFrequency = async (symbol: string) => {
+    if (!symbol) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('div_frequency')
+        .select('*')
+        .eq('symbol', symbol.toUpperCase())
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') { // No rows returned
+          setDividendFrequencyAvailable(false);
+          setDividendFrequencyData(null);
+        } else {
+          console.error('Error checking dividend frequency:', error);
+          setDividendFrequencyAvailable(false);
+          setDividendFrequencyData(null);
+        }
+        return;
+      }
+
+      if (data) {
+        setDividendFrequencyAvailable(true);
+        setDividendFrequencyData(data);
+      } else {
+        setDividendFrequencyAvailable(false);
+        setDividendFrequencyData(null);
+      }
+    } catch (error) {
+      console.error('Exception checking dividend frequency:', error);
+      setDividendFrequencyAvailable(false);
+      setDividendFrequencyData(null);
+    }
+  };
+
   // Function to fetch logos from CSV file
   const fetchLogosFromCSV = async () => {
     try {
@@ -486,7 +554,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         .from('dividendsymbol') // Updated to use correct table name from schema
         .select('*')
         .eq('symbol', symbol.toUpperCase())
-        .order('buy_date', { ascending: true });
+        .order('buy_date', { ascending: false }); // Changed to descending to get latest first
 
       if (error) {
         console.error('Database error:', error);
@@ -498,19 +566,25 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
         return null;
       }
 
+      // Store all dividend data with proper type casting
+      setAllDividendData(data as DividendSymbol[]);
+
+      // Get the latest record for summary
+      const latestRecord = data[0];
+      
       // Calculate dividend yield
-      const dividendYield = data[0].currentprice ? ((data[0].dividendrate / data[0].currentprice) * 100).toFixed(2) : '';
+      const dividendYield = latestRecord.currentprice ? ((latestRecord.dividendrate / latestRecord.currentprice) * 100).toFixed(2) : '';
 
       // Transform data to match expected format
       return {
-        dividend: data[0].dividend?.toString() || '',
-        dividendrate: data[0].dividendrate?.toString() || '',
-        quarterly: data[0].dividend?.toString() || '',
-        annualDate: data[0].buy_date || null,
-        quarterlyDate: data[0].payoutdate || '',
-        annual: data[0].dividendrate?.toString() || '',
-        exDividendDate: data[0].exdividenddate || '',
-        dividendyield: data[0].dividendyield.toString() || ''
+        dividend: latestRecord.dividend?.toString() || '',
+        dividendrate: latestRecord.dividendrate?.toString() || '',
+        quarterly: latestRecord.dividend?.toString() || '',
+        annualDate: latestRecord.buy_date || null,
+        quarterlyDate: latestRecord.payoutdate || '',
+        annual: latestRecord.dividendrate?.toString() || '',
+        exDividendDate: latestRecord.exdividenddate || '',
+        dividendyield: latestRecord.dividendyield?.toString() || dividendYield
       };
     } catch (error) {
       console.error('Exception fetching dividend data:', error);
@@ -559,6 +633,9 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
             }
           }
         });
+
+        // Check dividend frequency availability
+        checkDividendFrequency(stock.Symbol);
       }
     }
   }, [isOpen, stock?.Symbol]);
@@ -1345,6 +1422,116 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
       case 'AI Analysis':
         // Do not render inline content for AI Analysis tab, as it is now a popover
         return null;
+      case 'Dividend Data':
+        return (
+          <div className="p-4 max-h-[calc(100vh-250px)] overflow-y-auto">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Complete Dividend Information</h3>
+                <div className="text-sm text-gray-500">
+                  Total Records: {allDividendData.length}
+                </div>
+              </div>
+              
+              {allDividendData.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse border border-gray-300 dark:border-gray-600">
+                    <thead>
+                      <tr className="bg-gray-50 dark:bg-gray-800">
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Date</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Symbol</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Dividend</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Annual Rate</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Dividend Yield</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Current Price</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Payout Ratio</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Ex-Dividend Date</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Payout Date</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Earnings Date</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Previous Close</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-left text-sm font-medium">Yearly Change</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allDividendData.map((record, index) => (
+                        <tr key={index} className={index % 2 === 0 ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800'}>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.buy_date ? new Date(record.buy_date).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm font-medium">
+                            {record.symbol || 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.dividend ? `$${Number(record.dividend).toFixed(2)}` : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.dividendrate ? `$${Number(record.dividendrate).toFixed(2)}` : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.dividendyield ? `${Number(record.dividendyield).toFixed(2)}%` : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.currentprice ? `$${Number(record.currentprice).toFixed(2)}` : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.payoutratio ? `${Number(record.payoutratio).toFixed(2)}%` : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.exdividenddate ? new Date(record.exdividenddate).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.payoutdate ? new Date(record.payoutdate).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.earningsdate ? new Date(record.earningsdate).toLocaleDateString() : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.previousclose ? `$${Number(record.previousclose).toFixed(2)}` : 'N/A'}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm">
+                            {record.yearly_change || 'N/A'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <div className="text-lg font-medium mb-2">No Dividend Data Available</div>
+                  <div className="text-sm">No dividend information found for {stock.Symbol}</div>
+                </div>
+              )}
+              
+              {/* Additional Insights Section */}
+              {allDividendData.length > 0 && (
+                <div className="mt-6 space-y-4">
+                  <h4 className="text-md font-semibold">Dividend Insights</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {allDividendData[0]?.insight && (
+                      <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
+                        <h5 className="font-medium text-blue-800 dark:text-blue-200 mb-2">Latest Insight</h5>
+                        <p className="text-sm text-blue-700 dark:text-blue-300">{allDividendData[0].insight}</p>
+                      </div>
+                    )}
+                    {allDividendData[0]?.message && (
+                      <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                        <h5 className="font-medium text-green-800 dark:text-green-200 mb-2">Message</h5>
+                        <p className="text-sm text-green-700 dark:text-green-300">{allDividendData[0].message}</p>
+                      </div>
+                    )}
+                    {allDividendData[0]?.recovery_period && (
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
+                        <h5 className="font-medium text-yellow-800 dark:text-yellow-200 mb-2">Recovery Period</h5>
+                        <p className="text-sm text-yellow-700 dark:text-yellow-300">{allDividendData[0].recovery_period}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
       default:
         return null;
     }
@@ -1484,6 +1671,27 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
           {stock && (
             <DividendCountdown symbol={stock.Symbol} />
           )}
+          
+          {/* Dividend Frequency Availability Message */}
+          {dividendFrequencyAvailable === false && (
+            <div className="flex items-center justify-center p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+              <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" />
+              <span className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+                Payout not available for {stock.Symbol}
+              </span>
+            </div>
+          )}
+          
+          {dividendFrequencyAvailable === true && dividendFrequencyData && (
+            <div className="flex items-center justify-center p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <Calendar className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
+              <span className="text-sm text-green-800 dark:text-green-200 font-medium">
+                Dividend Frequency: {dividendFrequencyData.frequency_tx || 'N/A'} 
+                {dividendFrequencyData.days && ` (${dividendFrequencyData.days} days)`}
+              </span>
+            </div>
+          )}
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-1 mb-1">
             {/* Dividend Information Card */}
           </div>
@@ -1491,7 +1699,7 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
             {/* Tabs in a single row */}
             <div className="flex gap-1 mt-1 overflow-x-auto pb-1">
-              {["Company", "Dividend History", "Dividend Yield", "Payout", "Analyst Ratings", "AI Analysis", "News", "Overall"].map((tab) => {
+              {["Company", "Dividend History", "Dividend Yield", "Payout", "Dividend Data", "Analyst Ratings", "AI Analysis", "News", "Overall"].map((tab) => {
                 return (
                   <div
                     key={tab}

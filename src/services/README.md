@@ -21,6 +21,7 @@ create table public.similar_companies (
   similar_symbol text null,
   dividend_yield text null,
   risks text null,
+  as_of_date text null,
   constraint similar_companies_pkey primary key (id)
 );
 ```

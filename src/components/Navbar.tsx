@@ -26,6 +26,7 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [insightDropdownOpen, setInsightDropdownOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -293,6 +294,82 @@ const Navbar = () => {
                 Top Stocks
               </a>
 
+              <div className="relative">
+                <button
+                  onClick={() => setInsightDropdownOpen(!insightDropdownOpen)}
+                  className="nav-item flex items-center text-sm"
+                  aria-expanded={insightDropdownOpen}
+                >
+                  <span>Insight</span>
+                  <ChevronDown
+                    className={`ml-1 w-3 h-3 transition-transform duration-300 ${
+                      insightDropdownOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {insightDropdownOpen && (
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 w-64 opacity-100 scale-100 translate-y-0 transition-all duration-300">
+                    <div className="p-1 rounded-xl bg-gradient-to-br from-green-600 to-blue-600 shadow-xl">
+                      <div className="bg-gray-900 rounded-lg">
+                        <div className="p-2 space-y-1">
+                          <a
+                            href="/comparison"
+                            className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                          >
+                            <div className="p-2 rounded-full bg-green-900/30 text-green-400 group-hover:bg-green-900/50 transition-colors">
+                              <LayoutDashboard className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-100">
+                                Comparison
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                Compare stocks side by side
+                              </span>
+                            </div>
+                          </a>
+
+                          <a
+                            href="/chatinterface"
+                            className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                          >
+                            <div className="p-2 rounded-full bg-blue-900/30 text-blue-400 group-hover:bg-blue-900/50 transition-colors">
+                              <MessageSquare className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-100">
+                                Analysis with AI
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                Get AI-powered insights
+                              </span>
+                            </div>
+                          </a>
+
+                          {/* <a
+                            href="/dividend-frequency"
+                            className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                          >
+                            <div className="p-2 rounded-full bg-green-900/30 text-green-400 group-hover:bg-green-900/50 transition-colors">
+                              <CalendarDays className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-100">
+                                Dividend Frequency
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                Analyze payment schedules
+                              </span>
+                            </div>
+                          </a> */}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               
             </div>
           </div>
@@ -532,11 +609,22 @@ const Navbar = () => {
               <a href="/dividend" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 Dividend
               </a>
+              {/* <a href="/dividend-frequency" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
+                Dividend Frequency
+              </a> */}
               <a href="/reporting" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 Reporting
               </a>
               <a href="/top-stocks" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg">
                 Top Stocks
+              </a>
+              <a href="/comparison" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg flex items-center gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                Comparison
+              </a>
+              <a href="/chatinterface" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg flex items-center gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Analysis stock pdf AI
               </a>
               <a href="/chatinterface" className="block py-3 px-4 text-gray-300 hover:bg-gray-800 rounded-lg flex items-center gap-2">
                 <MessageSquare className="w-4 h-4" />
