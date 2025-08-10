@@ -11,7 +11,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import Footer from "@/components/Footer";
 import { LineChart, TrendingUp, BookOpen, DollarSign, Target, Search, BarChart, PieChart, Star, Users, CheckCircle, MessageSquare, ChevronLeft, ChevronRight, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import TradingAnimation from "@/components/TradingAnimation";
 import { motion, AnimatePresence } from "framer-motion";
 import { fetchStockData, StockData } from "@/services/stockService";
@@ -20,7 +20,64 @@ const Index = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [direction, setDirection] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [featureStocks, setFeatureStocks] = useState<StockData[]>([]);
+  const [featureStocks, setFeatureStocks] = useState<StockData[]>([
+    {
+      symbol: 'AAPL',
+      longName: 'Apple Inc.',
+      regularMarketPrice: 182.52,
+      regularMarketChange: 1.23,
+      regularMarketChangePercent: 0.68,
+      marketCap: 2800000000000,
+      regularMarketVolume: 58000000,
+      trailingPE: 28.5,
+      dividendYield: 0.0065,
+      sector: 'Technology',
+      industry: 'Consumer Electronics',
+      exchange: 'NASDAQ'
+    },
+    {
+      symbol: 'MSFT',
+      longName: 'Microsoft Corporation',
+      regularMarketPrice: 411.65,
+      regularMarketChange: 2.54,
+      regularMarketChangePercent: 0.62,
+      marketCap: 3100000000000,
+      regularMarketVolume: 22000000,
+      trailingPE: 35.2,
+      dividendYield: 0.0073,
+      sector: 'Technology',
+      industry: 'Software',
+      exchange: 'NASDAQ'
+    },
+    {
+      symbol: 'GOOGL',
+      longName: 'Alphabet Inc.',
+      regularMarketPrice: 142.56,
+      regularMarketChange: -0.87,
+      regularMarketChangePercent: -0.61,
+      marketCap: 1800000000000,
+      regularMarketVolume: 25000000,
+      trailingPE: 25.8,
+      dividendYield: 0,
+      sector: 'Technology',
+      industry: 'Internet Services',
+      exchange: 'NASDAQ'
+    },
+    {
+      symbol: 'TSLA',
+      longName: 'Tesla, Inc.',
+      regularMarketPrice: 248.42,
+      regularMarketChange: 5.67,
+      regularMarketChangePercent: 2.34,
+      marketCap: 790000000000,
+      regularMarketVolume: 85000000,
+      trailingPE: 78.9,
+      dividendYield: 0,
+      sector: 'Consumer Discretionary',
+      industry: 'Automobiles',
+      exchange: 'NASDAQ'
+    }
+  ]);
   const [loadingStocks, setLoadingStocks] = useState(true);
   
   const testimonials = [
@@ -77,19 +134,343 @@ const Index = () => {
       try {
         setLoadingStocks(true);
         const stockSymbols = ['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'NVDA'];
-        const stocksData = await Promise.all(
+        
+        // Fetch stock data with better error handling
+        const stocksData = await Promise.allSettled(
           stockSymbols.map(symbol => fetchStockData(symbol))
         );
-        setFeatureStocks(stocksData);
+        
+        // Filter out failed requests and use successful ones
+        const successfulStocks = stocksData
+          .filter((result): result is PromiseFulfilledResult<StockData> => 
+            result.status === 'fulfilled' && result.value !== null
+          )
+          .map(result => result.value);
+        
+        // If we have successful stocks, set them
+        if (successfulStocks.length > 0) {
+          console.log('Successfully fetched stocks:', successfulStocks);
+          setFeatureStocks(successfulStocks);
+        } else {
+          // Fallback to mock data if all API calls fail
+          console.warn('All stock API calls failed, using fallback data');
+          const fallbackStocks = stockSymbols.map(symbol => ({
+            symbol,
+            longName: `${symbol} Corporation`,
+            regularMarketPrice: 100 + Math.random() * 200,
+            regularMarketChange: (Math.random() - 0.5) * 10,
+            regularMarketChangePercent: (Math.random() - 0.5) * 5,
+            marketCap: 100000000000 + Math.random() * 900000000000,
+            regularMarketVolume: 10000000 + Math.random() * 50000000,
+            trailingPE: 15 + Math.random() * 30,
+            dividendYield: Math.random() * 0.05,
+            sector: 'Technology',
+            industry: 'Software',
+            exchange: 'NASDAQ'
+          }));
+          console.log('Setting fallback stocks:', fallbackStocks);
+          setFeatureStocks(fallbackStocks);
+        }
       } catch (error) {
         console.error('Error fetching feature stocks:', error);
+        // Set fallback data on error
+        const fallbackStocks = ['AAPL', 'MSFT', 'GOOGL', 'TSLA'].map(symbol => ({
+          symbol,
+          longName: `${symbol} Corporation`,
+          regularMarketPrice: 100 + Math.random() * 200,
+          regularMarketChange: (Math.random() - 0.5) * 10,
+          regularMarketChangePercent: (Math.random() - 0.5) * 5,
+          marketCap: 100000000000 + Math.random() * 900000000000,
+          regularMarketVolume: 10000000 + Math.random() * 50000000,
+          trailingPE: 15 + Math.random() * 30,
+          dividendYield: Math.random() * 0.05,
+          sector: 'Technology',
+          industry: 'Software',
+          exchange: 'NASDAQ'
+        }));
+        console.log('Setting fallback stocks due to error:', fallbackStocks);
+        setFeatureStocks(fallbackStocks);
       } finally {
-        setLoadingStocks(false);
+        // Only set loading to false if we have stock data
+        if (featureStocks.length > 0) {
+          setLoadingStocks(false);
+        }
       }
     };
 
     fetchFeatureStocks();
   }, []);
+
+  // Debug effect to monitor stock data changes
+  useEffect(() => {
+    console.log('Feature stocks updated:', featureStocks);
+    console.log('Loading state:', loadingStocks);
+  }, [featureStocks, loadingStocks]);
+
+  // Ensure loading state is properly managed
+  useEffect(() => {
+    if (featureStocks.length > 0 && loadingStocks) {
+      setLoadingStocks(false);
+    }
+  }, [featureStocks, loadingStocks]);
+
+  // Memoize the stock cards to prevent unnecessary re-renders
+  const stockCards = useMemo(() => {
+    // Always return stock cards if we have data, even if it's the initial data
+    if (featureStocks.length === 0) {
+      // Return initial stock cards if no data is available
+      return [
+        {
+          symbol: 'AAPL',
+          longName: 'Apple Inc.',
+          regularMarketPrice: 182.52,
+          regularMarketChange: 1.23,
+          regularMarketChangePercent: 0.68,
+          marketCap: 2800000000000,
+          regularMarketVolume: 58000000,
+          trailingPE: 28.5,
+          dividendYield: 0.0065,
+          sector: 'Technology',
+          industry: 'Consumer Electronics',
+          exchange: 'NASDAQ'
+        },
+        {
+          symbol: 'MSFT',
+          longName: 'Microsoft Corporation',
+          regularMarketPrice: 411.65,
+          regularMarketChange: 2.54,
+          regularMarketChangePercent: 0.62,
+          marketCap: 3100000000000,
+          regularMarketVolume: 22000000,
+          trailingPE: 35.2,
+          dividendYield: 0.0073,
+          sector: 'Technology',
+          industry: 'Software',
+          exchange: 'NASDAQ'
+        },
+        {
+          symbol: 'GOOGL',
+          longName: 'Alphabet Inc.',
+          regularMarketPrice: 142.56,
+          regularMarketChange: -0.87,
+          regularMarketChangePercent: -0.61,
+          marketCap: 1800000000000,
+          regularMarketVolume: 25000000,
+          trailingPE: 25.8,
+          dividendYield: 0,
+          sector: 'Technology',
+          industry: 'Internet Services',
+          exchange: 'NASDAQ'
+        },
+        {
+          symbol: 'TSLA',
+          longName: 'Tesla, Inc.',
+          regularMarketPrice: 248.42,
+          regularMarketChange: 5.67,
+          regularMarketChangePercent: 2.34,
+          marketCap: 790000000000,
+          regularMarketVolume: 85000000,
+          trailingPE: 78.9,
+          dividendYield: 0,
+          sector: 'Consumer Discretionary',
+          industry: 'Automobiles',
+          exchange: 'NASDAQ'
+        }
+      ].map((stock, index) => {
+        const isPositive = stock.regularMarketChange >= 0;
+        const changeColor = isPositive ? 'text-green-400' : 'text-red-400';
+        const ChangeIcon = isPositive ? ArrowUpRight : ArrowDownRight;
+        
+        return (
+          <motion.div
+            key={stock.symbol}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1 }}
+            className="group"
+          >
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-3 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+              {/* Stock Header */}
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+                    <span className="text-white font-bold text-xs">{stock.symbol}</span>
+                  </div>
+                  <div>
+                    <h3 className="text-white font-semibold text-xs">{stock.symbol}</h3>
+                    <p className="text-gray-300 text-xs truncate max-w-32">{stock.longName}</p>
+                  </div>
+                </div>
+                <div className={`flex items-center space-x-1 ${changeColor}`}>
+                  {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                </div>
+              </div>
+
+              {/* Price Information */}
+              <div className="mb-1">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-lg font-bold text-white">
+                    ${stock.regularMarketPrice?.toFixed(2) || '0.00'}
+                  </span>
+                  <div className={`flex items-center space-x-1 ${changeColor}`}>
+                    <ChangeIcon className="h-3 w-3" />
+                    <span className="text-xs font-medium">
+                      {stock.regularMarketChangePercent?.toFixed(2) || '0.00'}%
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2 text-xs text-gray-300">
+                  <span>Change: ${stock.regularMarketChange?.toFixed(2) || '0.00'}</span>
+                  <span>•</span>
+                  <span>Vol: {(stock.regularMarketVolume / 1000000).toFixed(1)}M</span>
+                </div>
+              </div>
+
+              {/* Stock Details */}
+              <div className="grid grid-cols-2 gap-1 text-xs text-gray-300">
+                <div className="flex justify-between">
+                  <span>Market Cap:</span>
+                  <span className="text-white font-medium">
+                    ${(stock.marketCap / 1000000000).toFixed(1)}B
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>P/E:</span>
+                  <span className="text-white font-medium">
+                    {stock.trailingPE?.toFixed(1) || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Div Yield:</span>
+                  <span className="text-white font-medium">
+                    {stock.dividendYield ? `${(stock.dividendYield * 100).toFixed(2)}%` : 'N/A'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Sector:</span>
+                  <span className="text-white font-medium truncate max-w-16">
+                    {stock.sector || 'N/A'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Links */}
+              <div className="mt-1 pt-1 border-t border-white/20">
+                <div className="flex justify-between text-xs">
+                  <Link to={`/stock/${stock.symbol}`} className="text-blue-300 hover:text-blue-200 font-medium">
+                    Details
+                  </Link>
+                  <Link to="/dividend" className="text-blue-300 hover:text-blue-200 font-medium">
+                    Dividend
+                  </Link>
+                  <Link to="/education" className="text-blue-300 hover:text-blue-200 font-medium">
+                    Analysis
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        );
+      });
+    }
+    
+    return featureStocks.slice(0, 4).map((stock, index) => {
+      const isPositive = stock.regularMarketChange >= 0;
+      const changeColor = isPositive ? 'text-green-400' : 'text-red-400';
+      const ChangeIcon = isPositive ? ArrowUpRight : ArrowDownRight;
+      
+      return (
+        <motion.div
+          key={stock.symbol}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: index * 0.1 }}
+          className="group"
+        >
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-3 hover:bg-white/20 transition-all duration-300 cursor-pointer">
+            {/* Stock Header */}
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center space-x-2">
+                <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+                  <span className="text-white font-bold text-xs">{stock.symbol}</span>
+                </div>
+                <div>
+                  <h3 className="text-white font-semibold text-xs">{stock.symbol}</h3>
+                  <p className="text-gray-300 text-xs truncate max-w-32">{stock.longName}</p>
+                </div>
+              </div>
+              <div className={`flex items-center space-x-1 ${changeColor}`}>
+                {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+              </div>
+            </div>
+
+            {/* Price Information */}
+            <div className="mb-1">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-lg font-bold text-white">
+                  ${stock.regularMarketPrice?.toFixed(2) || '0.00'}
+                </span>
+                <div className={`flex items-center space-x-1 ${changeColor}`}>
+                  <ChangeIcon className="h-3 w-3" />
+                  <span className="text-xs font-medium">
+                    {stock.regularMarketChangePercent?.toFixed(2) || '0.00'}%
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 text-xs text-gray-300">
+                <span>Change: ${stock.regularMarketChange?.toFixed(2) || '0.00'}</span>
+                <span>•</span>
+                <span>Vol: {(stock.regularMarketVolume / 1000000).toFixed(1)}M</span>
+              </div>
+            </div>
+
+            {/* Stock Details */}
+            <div className="grid grid-cols-2 gap-1 text-xs text-gray-300">
+              <div className="flex justify-between">
+                <span>Market Cap:</span>
+                <span className="text-white font-medium">
+                  ${(stock.marketCap / 1000000000).toFixed(1)}B
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>P/E:</span>
+                <span className="text-white font-medium">
+                  {stock.trailingPE?.toFixed(1) || 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Div Yield:</span>
+                <span className="text-white font-medium">
+                  {stock.dividendYield ? `${(stock.dividendYield * 100).toFixed(2)}%` : 'N/A'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Sector:</span>
+                <span className="text-white font-medium truncate max-w-16">
+                  {stock.sector || 'N/A'}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Links */}
+            <div className="mt-1 pt-1 border-t border-white/20">
+              <div className="flex justify-between text-xs">
+                <Link to={`/stock/${stock.symbol}`} className="text-blue-300 hover:text-blue-200 font-medium">
+                  Details
+                </Link>
+                <Link to="/dividend" className="text-blue-300 hover:text-blue-200 font-medium">
+                  Dividend
+                </Link>
+                <Link to="/education" className="text-blue-300 hover:text-blue-200 font-medium">
+                  Analysis
+                </Link>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      );
+    });
+  }, [featureStocks]);
 
   const nextImage = () => {
     setDirection(1);
@@ -144,114 +525,9 @@ const Index = () => {
             
             {/* Top Section - Stock Cards Row */}
             <div className="mb-6">
-              {loadingStocks ? (
-                <div className="grid grid-cols-4 gap-6">
-                  {[...Array(4)].map((_, index) => (
-                    <div key={index} className="animate-pulse">
-                      <div className="h-24 bg-white/10 rounded-xl border border-white/20"></div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-4 gap-6">
-                  {featureStocks.slice(0, 4).map((stock, index) => {
-                    const isPositive = stock.regularMarketChange >= 0;
-                    const changeColor = isPositive ? 'text-green-400' : 'text-red-400';
-                    const ChangeIcon = isPositive ? ArrowUpRight : ArrowDownRight;
-                    
-                    return (
-                      <motion.div
-                        key={stock.symbol}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="group"
-                      >
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 p-3 hover:bg-white/20 transition-all duration-300 cursor-pointer">
-                          {/* Stock Header */}
-                          <div className="flex items-center justify-between mb-1">
-                            <div className="flex items-center space-x-2">
-                              <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
-                                <span className="text-white font-bold text-xs">{stock.symbol}</span>
-                              </div>
-                              <div>
-                                <h3 className="text-white font-semibold text-xs">{stock.symbol}</h3>
-                                <p className="text-gray-300 text-xs truncate max-w-32">{stock.longName}</p>
-                              </div>
-                            </div>
-                            <div className={`flex items-center space-x-1 ${changeColor}`}>
-                              {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                            </div>
-                          </div>
-
-                          {/* Price Information */}
-                          <div className="mb-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-lg font-bold text-white">
-                                ${stock.regularMarketPrice?.toFixed(2) || '0.00'}
-                              </span>
-                              <div className={`flex items-center space-x-1 ${changeColor}`}>
-                                <ChangeIcon className="h-3 w-3" />
-                                <span className="text-xs font-medium">
-                                  {stock.regularMarketChangePercent?.toFixed(2) || '0.00'}%
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-2 text-xs text-gray-300">
-                              <span>Change: ${stock.regularMarketChange?.toFixed(2) || '0.00'}</span>
-                              <span>•</span>
-                              <span>Vol: {(stock.regularMarketVolume / 1000000).toFixed(1)}M</span>
-                            </div>
-                          </div>
-
-                          {/* Stock Details */}
-                          <div className="grid grid-cols-2 gap-1 text-xs text-gray-300">
-                            <div className="flex justify-between">
-                              <span>Market Cap:</span>
-                              <span className="text-white font-medium">
-                                ${(stock.marketCap / 1000000000).toFixed(1)}B
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>P/E:</span>
-                              <span className="text-white font-medium">
-                                {stock.trailingPE?.toFixed(1) || 'N/A'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Div Yield:</span>
-                              <span className="text-white font-medium">
-                                {stock.dividendYield ? `${(stock.dividendYield * 100).toFixed(2)}%` : 'N/A'}
-                              </span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Sector:</span>
-                              <span className="text-white font-medium truncate max-w-16">
-                                {stock.sector || 'N/A'}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Action Links */}
-                          <div className="mt-1 pt-1 border-t border-white/20">
-                            <div className="flex justify-between text-xs">
-                              <Link to={`/stock/${stock.symbol}`} className="text-blue-300 hover:text-blue-200 font-medium">
-                                Details
-                              </Link>
-                              <Link to="/dividend" className="text-blue-300 hover:text-blue-200 font-medium">
-                                Dividend
-                              </Link>
-                              <Link to="/education" className="text-blue-300 hover:text-blue-200 font-medium">
-                                Analysis
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
+              <div className="grid grid-cols-4 gap-6">
+                {stockCards}
+              </div>
             </div>
 
             {/* Horizontal Divider */}
