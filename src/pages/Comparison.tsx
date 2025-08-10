@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, TrendingUp, TrendingDown, Minus, BarChart3, DollarSign, Percent, Activity, PieChart, Target, Users, Building2, FileText, ChartBar, Info, X, Calendar } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Minus, BarChart3, DollarSign, Percent, Activity, PieChart, Target, Users, Building2, FileText, ChartBar, Info, X, Calendar, Zap, Sword, Shield, Crown, Star, Trophy, Flame } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -51,7 +51,7 @@ interface StockData {
   recommendation_mean?: number;
   founded?: number;
   as_of_date?: string;
-  LogoURL?: string; // Added for new UI
+  LogoURL?: string;
 }
 
 interface ComparisonData {
@@ -76,9 +76,6 @@ const Comparison = () => {
   const [comparisonData, setComparisonData] = useState<ComparisonData | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingStocks, setLoadingStocks] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [showDetailedInsights, setShowDetailedInsights] = useState(false);
-  const [showAllTabs, setShowAllTabs] = useState(false);
   const [logoMap, setLogoMap] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
@@ -94,17 +91,12 @@ const Comparison = () => {
       const lines = csvText.split('\n');
       const logoData = new Map<string, string>();
       
-      // Skip header line
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i];
         if (line.trim()) {
-          // Parse CSV line properly, handling quoted values
           const columns = line.match(/(".*?"|[^,]+)/g) || [];
           if (columns.length >= 5) {
-            const id = columns[0].replace(/"/g, '');
             const symbol = columns[1].replace(/"/g, '');
-            const company_name = columns[2].replace(/"/g, '');
-            const domain = columns[3].replace(/"/g, '');
             const logoUrl = columns[4].replace(/"/g, '');
             
             if (symbol && logoUrl) {
@@ -124,7 +116,6 @@ const Comparison = () => {
     try {
       setLoadingStocks(true);
       
-      // Try backend API first, fallback to Supabase
       try {
         const response = await fetch('/api/stocks');
         if (response.ok) {
@@ -140,7 +131,6 @@ const Comparison = () => {
         console.log('Backend API not available, using Supabase fallback');
       }
 
-      // Fallback to Supabase
       const supabaseAny = supabase as any;
       const { data, error } = await supabaseAny
         .from('stock_comparison')
@@ -171,52 +161,6 @@ const Comparison = () => {
 
   const fetchStockDataForComparison = async (symbol: string): Promise<StockData> => {
     try {
-      // Try backend API first
-      try {
-        const response = await fetch(`/api/stocks/${symbol}`);
-        if (response.ok) {
-          const data = await response.json();
-          return {
-            symbol: data.symbol,
-            name: data.name,
-            price: data.price,
-            change: 0,
-            changePercent: 0,
-            marketCap: data.market_capitalization,
-            volume: 0,
-            peRatio: data.trailing_pe_ratio || 0,
-            dividendYield: 0,
-            sector: data.sector,
-            industry: data.industry,
-            exchange: data.exchange,
-            employees: data.employees,
-            description: data.description,
-            trailing_pe_ratio: data.trailing_pe_ratio,
-            forward_pe_ratio: data.forward_pe_ratio,
-            ps_ratio: data.ps_ratio,
-            shares_outstanding: data.shares_outstanding,
-            average_analyst_rating: data.average_analyst_rating,
-            number_of_analyst_opinions: data.number_of_analyst_opinions,
-            recommendation_key: data.recommendation_key,
-            average_price_target: data.average_price_target,
-            upside_percentage: data.upside_percentage,
-            annual_revenue_growth_percent: data.annual_revenue_growth_percent,
-            qoq_revenue_growth_percent: data.qoq_revenue_growth_percent,
-            net_income_margin_percent: data.net_income_margin_percent,
-            debt_status: data.debt_status,
-            cash_position: data.cash_position,
-            short_ratio: data.short_ratio,
-            recommendation_mean: data.recommendation_mean,
-            founded: data.founded,
-            as_of_date: data.as_of_date,
-            LogoURL: data.logo_url, // Assuming logo_url is available in the backend response
-          };
-        }
-      } catch (error) {
-        console.log('Backend API not available, using Supabase fallback');
-      }
-
-      // Fallback to Supabase
       const supabaseAny = supabase as any;
       const { data: comparisonData, error: comparisonError } = await supabaseAny
         .from('stock_comparison')
@@ -264,7 +208,7 @@ const Comparison = () => {
         recommendation_mean: comparisonDataAny?.recommendation_mean,
         founded: comparisonDataAny?.founded,
         as_of_date: comparisonDataAny?.as_of_date,
-        LogoURL: comparisonDataAny?.logo_url, // Assuming logo_url is available in Supabase
+        LogoURL: comparisonDataAny?.logo_url,
       };
     } catch (error) {
       console.error(`Error fetching data for ${symbol}:`, error);
@@ -284,57 +228,7 @@ const Comparison = () => {
     }
   };
 
-  const generateComparisonInsights = (stock1: StockData, stock2: StockData): string => {
-    const formatMarketCap = (marketCap: number) => {
-      if (marketCap >= 1e12) return `$${(marketCap / 1e12).toFixed(0)}T`;
-      if (marketCap >= 1e9) return `$${(marketCap / 1e9).toFixed(0)}B`;
-      if (marketCap >= 1e6) return `$${(marketCap / 1e6).toFixed(0)}M`;
-      return `$${marketCap.toLocaleString()}`;
-    };
-
-    const formatCash = (cash: number) => {
-      return cash.toLocaleString();
-    };
-
-    const insights = `📊 Company Comparison: ${stock1.name} vs ${stock2.name}
-${stock1.name}, founded in ${stock1.founded || 'N/A'}, has a market cap of ${formatMarketCap(stock1.marketCap)} compared to ${stock2.name}, founded in ${stock2.founded || 'N/A'}, with a market cap of ${formatMarketCap(stock2.marketCap)}.
-
-📈 Growth
-${stock1.name} leads in annual revenue growth at ${stock1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}% vs ${stock2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%.
-${stock2.name} also shows better quarter-over-quarter growth at ${stock2.qoq_revenue_growth_percent?.toFixed(1) || 'N/A'}% vs ${stock1.qoq_revenue_growth_percent?.toFixed(1) || 'N/A'}%.
-
-💰 Profitability
-${stock1.name} has a higher net income margin of ${stock1.net_income_margin_percent?.toFixed(1) || 'N/A'}% compared to ${stock2.name}'s ${stock2.net_income_margin_percent?.toFixed(1) || 'N/A'}%.
-${stock1.name} employs ${stock1.employees?.toLocaleString() || 'N/A'} people, while ${stock2.name} employs ${stock2.employees?.toLocaleString() || 'N/A'}.
-
-💹 Valuation
-${stock1.name} trades at $${stock1.price?.toFixed(1) || 'N/A'} (P/E TTM: ${stock1.trailing_pe_ratio?.toFixed(1) || 'N/A'}, FTM: ${stock1.forward_pe_ratio?.toFixed(1) || 'N/A'}), while ${stock2.name} trades at $${stock2.price?.toFixed(1) || 'N/A'} (P/E TTM: ${stock2.trailing_pe_ratio?.toFixed(1) || 'N/A'}, FTM: ${stock2.forward_pe_ratio?.toFixed(1) || 'N/A'}).
-${stock1.trailing_pe_ratio && stock2.trailing_pe_ratio ? (stock1.trailing_pe_ratio < stock2.trailing_pe_ratio ? `${stock1.name} has a more attractive trailing P/E ratio` : `${stock2.name} has a more attractive trailing P/E ratio`) : ''}, and ${stock1.forward_pe_ratio && stock2.forward_pe_ratio ? (stock1.forward_pe_ratio < stock2.forward_pe_ratio ? `${stock1.name} also has a better forward P/E` : `${stock2.name} also has a better forward P/E`) : ''}.
-In terms of price-to-sales, ${stock1.ps_ratio && stock2.ps_ratio ? (stock1.ps_ratio < stock2.ps_ratio ? `${stock1.name} is slightly cheaper with a P/S ratio of ${stock1.ps_ratio.toFixed(1)} vs ${stock2.ps_ratio.toFixed(1)}` : `${stock2.name} is slightly cheaper with a P/S ratio of ${stock2.ps_ratio.toFixed(1)} vs ${stock1.ps_ratio.toFixed(1)}`) : ''}.
-
-🧾 Balance Sheet
-${stock1.name} holds $${formatCash(stock1.cash_position || 0)} in cash and $${formatCash(stock1.debt_status || 0)} in debt, while ${stock2.name} has $${formatCash(stock2.cash_position || 0)} in cash and $${formatCash(stock2.debt_status || 0)} in debt.
-
-🧠 Analyst Outlook
-${stock1.name} is rated ${stock1.average_analyst_rating || 'N/A'}, ${stock2.name} is rated ${stock2.average_analyst_rating || 'N/A'}.
-${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percentage > stock2.upside_percentage ? `${stock1.name} offers a slightly higher upside potential of ${stock1.upside_percentage.toFixed(1)}% vs ${stock2.upside_percentage.toFixed(1)}%` : `${stock2.name} offers a slightly higher upside potential of ${stock2.upside_percentage.toFixed(1)}% vs ${stock1.upside_percentage.toFixed(1)}%`) : ''}.
-
-📉 Investor Sentiment
-${stock1.name}'s short ratio is ${stock1.short_ratio?.toFixed(1) || 'N/A'}, while ${stock2.name}'s is ${stock2.short_ratio?.toFixed(1) || 'N/A'}, indicating relatively similar investor sentiment.
-
-✅ Final Verdict
-${stock1.annual_revenue_growth_percent && stock2.annual_revenue_growth_percent ? (stock1.annual_revenue_growth_percent > stock2.annual_revenue_growth_percent ? `${stock1.name} is the growth leader` : `${stock2.name} is the growth leader`) : ''}, but ${stock1.net_income_margin_percent && stock2.net_income_margin_percent ? (stock1.net_income_margin_percent > stock2.net_income_margin_percent ? `${stock1.name} wins on profitability` : `${stock2.name} wins on profitability`) : ''}.
-${stock1.trailing_pe_ratio && stock2.trailing_pe_ratio ? (stock1.trailing_pe_ratio < stock2.trailing_pe_ratio ? `${stock1.name} appears better valued` : `${stock2.name} appears better valued`) : ''}, and ${stock1.cash_position && stock2.cash_position ? (stock1.cash_position > stock2.cash_position ? `${stock1.name} has the stronger balance sheet` : `${stock2.name} has the stronger balance sheet`) : ''}.
-${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percentage > stock2.upside_percentage ? `Analysts see more upside in ${stock1.name}` : `Analysts see more upside in ${stock2.name}`) : ''}.`;
-
-    return insights;
-  };
-
   const handleCompare = async () => {
-    // Reset detailed insights view when starting a new comparison
-    setShowDetailedInsights(false);
-    setShowAllTabs(false);
-    
     if (!selectedStock1 || !selectedStock2) {
       toast({
         title: "Selection Required",
@@ -355,125 +249,7 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
 
     try {
       setLoading(true);
-      
-      // Try backend API first, fallback to individual stock fetching
-      try {
-        const response = await fetch('/api/stocks/compare', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            symbol1: selectedStock1,
-            symbol2: selectedStock2,
-          }),
-        });
 
-        if (response.ok) {
-          const data = await response.json();
-          
-          // Calculate comparison metrics
-          const priceDifference = data.symbol2.price - data.symbol1.price;
-          const priceDifferencePercent = ((priceDifference / data.symbol1.price) * 100);
-          const marketCapDifference = data.symbol2.market_capitalization - data.symbol1.market_capitalization;
-          const marketCapDifferencePercent = ((marketCapDifference / data.symbol1.market_capitalization) * 100);
-          const peRatioDifference = (data.symbol2.trailing_pe_ratio || 0) - (data.symbol1.trailing_pe_ratio || 0);
-          const dividendYieldDifference = (data.symbol2.dividendYield || 0) - (data.symbol1.dividendYield || 0);
-
-          setComparisonData({
-            symbol1: {
-              symbol: data.symbol1.symbol,
-              name: data.symbol1.name,
-              price: data.symbol1.price,
-              change: 0,
-              changePercent: 0,
-              marketCap: data.symbol1.market_capitalization,
-              volume: 0,
-              peRatio: data.symbol1.trailing_pe_ratio || 0,
-              dividendYield: 0,
-              sector: data.symbol1.sector,
-              industry: data.symbol1.industry,
-              exchange: data.symbol1.exchange,
-              employees: data.symbol1.employees,
-              description: data.symbol1.description,
-              trailing_pe_ratio: data.symbol1.trailing_pe_ratio,
-              forward_pe_ratio: data.symbol1.forward_pe_ratio,
-              ps_ratio: data.symbol1.ps_ratio,
-              shares_outstanding: data.symbol1.shares_outstanding,
-              average_analyst_rating: data.symbol1.average_analyst_rating,
-              number_of_analyst_opinions: data.symbol1.number_of_analyst_opinions,
-              recommendation_key: data.symbol1.recommendation_key,
-              average_price_target: data.symbol1.average_price_target,
-              upside_percentage: data.symbol1.upside_percentage,
-              annual_revenue_growth_percent: data.symbol1.annual_revenue_growth_percent,
-              qoq_revenue_growth_percent: data.symbol1.qoq_revenue_growth_percent,
-              net_income_margin_percent: data.symbol1.net_income_margin_percent,
-              debt_status: data.symbol1.debt_status,
-              cash_position: data.symbol1.cash_position,
-              short_ratio: data.symbol1.short_ratio,
-              recommendation_mean: data.symbol1.recommendation_mean,
-              founded: data.symbol1.founded,
-              as_of_date: data.symbol1.as_of_date,
-              LogoURL: data.symbol1.logo_url, // Assuming logo_url is available in the backend response
-            },
-            symbol2: {
-              symbol: data.symbol2.symbol,
-              name: data.symbol2.name,
-              price: data.symbol2.price,
-              change: 0,
-              changePercent: 0,
-              marketCap: data.symbol2.market_capitalization,
-              volume: 0,
-              peRatio: data.symbol2.trailing_pe_ratio || 0,
-              dividendYield: 0,
-              sector: data.symbol2.sector,
-              industry: data.symbol2.industry,
-              exchange: data.symbol2.exchange,
-              employees: data.symbol2.employees,
-              description: data.symbol2.description,
-              trailing_pe_ratio: data.symbol2.trailing_pe_ratio,
-              forward_pe_ratio: data.symbol2.forward_pe_ratio,
-              ps_ratio: data.symbol2.ps_ratio,
-              shares_outstanding: data.symbol2.shares_outstanding,
-              average_analyst_rating: data.symbol2.average_analyst_rating,
-              number_of_analyst_opinions: data.symbol2.number_of_analyst_opinions,
-              recommendation_key: data.symbol2.recommendation_key,
-              average_price_target: data.symbol2.average_price_target,
-              upside_percentage: data.symbol2.upside_percentage,
-              annual_revenue_growth_percent: data.symbol2.annual_revenue_growth_percent,
-              qoq_revenue_growth_percent: data.symbol2.qoq_revenue_growth_percent,
-              net_income_margin_percent: data.symbol2.net_income_margin_percent,
-              debt_status: data.symbol2.debt_status,
-              cash_position: data.symbol2.cash_position,
-              short_ratio: data.symbol2.short_ratio,
-              recommendation_mean: data.symbol2.recommendation_mean,
-              founded: data.symbol2.founded,
-              as_of_date: data.symbol2.as_of_date,
-              LogoURL: data.symbol2.logo_url, // Assuming logo_url is available in Supabase
-            },
-            comparison: {
-              priceDifference,
-              priceDifferencePercent,
-              marketCapDifference,
-              marketCapDifferencePercent,
-              peRatioDifference,
-              dividendYieldDifference,
-            },
-            comparison_insights: data.comparison_insights,
-            timestamp: data.timestamp,
-          });
-
-          toast({
-            title: "Comparison Complete",
-            description: `Successfully compared ${selectedStock1} and ${selectedStock2}`,
-          });
-          return;
-        }
-      } catch (error) {
-        console.log('Backend API not available, using Supabase fallback');
-      }
-
-      // Fallback to individual stock fetching
       const [stock1Data, stock2Data] = await Promise.all([
         fetchStockDataForComparison(selectedStock1),
         fetchStockDataForComparison(selectedStock2),
@@ -483,10 +259,9 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
       const priceDifferencePercent = ((priceDifference / stock1Data.price) * 100);
       const marketCapDifference = stock2Data.marketCap - stock1Data.marketCap;
       const marketCapDifferencePercent = ((marketCapDifference / stock1Data.marketCap) * 100);
-      const peRatioDifference = stock2Data.peRatio - stock1Data.peRatio;
-      const dividendYieldDifference = stock2Data.dividendYield - stock1Data.dividendYield;
+      const peRatioDifference = (stock2Data.trailing_pe_ratio || 0) - (stock1Data.trailing_pe_ratio || 0);
+      const dividendYieldDifference = (stock2Data.dividendYield || 0) - (stock1Data.dividendYield || 0);
 
-      // Generate comparison insights
       const comparisonInsights = generateComparisonInsights(stock1Data, stock2Data);
 
       setComparisonData({
@@ -505,8 +280,8 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
       });
 
       toast({
-        title: "Comparison Complete",
-        description: `Successfully compared ${selectedStock1} and ${selectedStock2}`,
+        title: "Battle Complete!",
+        description: `Successfully compared ${selectedStock1} vs ${selectedStock2}`,
       });
 
     } catch (error) {
@@ -519,6 +294,36 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
     } finally {
       setLoading(false);
     }
+  };
+
+  const generateComparisonInsights = (stock1: StockData, stock2: StockData): string => {
+    const formatMarketCap = (marketCap: number) => {
+      if (marketCap >= 1e12) return `$${(marketCap / 1e12).toFixed(0)}T`;
+      if (marketCap >= 1e9) return `$${(marketCap / 1e9).toFixed(0)}B`;
+      if (marketCap >= 1e6) return `$${(marketCap / 1e6).toFixed(0)}M`;
+      return `$${marketCap.toLocaleString()}`;
+    };
+
+    return `⚔️ BATTLE ANALYSIS: ${stock1.name} vs ${stock2.name}
+
+🏆 Market Cap Showdown:
+${stock1.name}: ${formatMarketCap(stock1.marketCap)}
+${stock2.name}: ${formatMarketCap(stock2.marketCap)}
+
+💰 Stock Price Battle:
+${stock1.name}: $${stock1.price?.toFixed(2) || 'N/A'}
+${stock2.name}: $${stock2.price?.toFixed(2) || 'N/A'}
+
+📊 Valuation War:
+${stock1.name} P/E: ${stock1.trailing_pe_ratio?.toFixed(1) || 'N/A'}
+${stock2.name} P/E: ${stock2.trailing_pe_ratio?.toFixed(1) || 'N/A'}
+
+🏢 Sector Division:
+${stock1.name}: ${stock1.sector}
+${stock2.name}: ${stock2.sector}
+
+🎯 The Winner:
+${stock1.marketCap > stock2.marketCap ? `${stock1.name} dominates with superior market cap!` : `${stock2.name} leads the market cap battle!`}`;
   };
 
   const formatCurrency = (value: number) => {
@@ -537,18 +342,6 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
     return value.toFixed(2);
   };
 
-  const getChangeIcon = (change: number) => {
-    if (change > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;
-    if (change < 0) return <TrendingDown className="w-4 h-4 text-red-500" />;
-    return <Minus className="w-4 h-4 text-gray-500" />;
-  };
-
-  const getChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-500';
-    if (change < 0) return 'text-red-500';
-    return 'text-gray-500';
-  };
-
   const truncateToWords = (text: string, maxWords: number = 50) => {
     if (!text) return '';
     const words = text.split(' ');
@@ -556,617 +349,321 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
     return words.slice(0, maxWords).join(' ') + '...';
   };
 
-  const handleReadInDetail = () => {
-    setShowDetailedInsights(true);
-    setShowAllTabs(true);
-    // Switch to charts tab to show the detailed view
-    setActiveTab('charts');
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 via-purple-500/10 to-red-500/10 animate-pulse"></div>
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-float-delayed"></div>
+      </div>
+      
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-white mb-2">Stock Comparison</h1>
-            <p className="text-gray-400">Compare two stocks side by side to make informed investment decisions</p>
+          {/* Epic Header */}
+          <div className="text-center mb-12">
+            <div className="flex items-center justify-center mb-6">
+              <Sword className="w-12 h-12 text-blue-400 animate-pulse mr-4" />
+              <h1 className="text-6xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-red-400 bg-clip-text text-transparent animate-fade-in">
+                STOCK BATTLE
+              </h1>
+              <Sword className="w-12 h-12 text-red-400 animate-pulse ml-4 scale-x-[-1]" />
+            </div>
+            <p className="text-xl text-gray-300 animate-fade-in">
+              ⚔️ Choose your fighters and witness the ultimate financial showdown! ⚔️
+            </p>
+            <div className="flex items-center justify-center mt-4 space-x-2">
+              <Flame className="w-6 h-6 text-orange-400 animate-bounce" />
+              <span className="text-orange-300 font-semibold">Epic Comparison Mode</span>
+              <Flame className="w-6 h-6 text-orange-400 animate-bounce" />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Side - Input Controls */}
-            <div className="lg:col-span-1">
-              <Card className="bg-gray-800/50 border-gray-700 sticky top-4">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center space-x-2">
-                    <Target className="w-5 h-5" />
-                    <span>Select Stocks</span>
+          {!comparisonData ? (
+            /* Selection Arena */
+            <div className="max-w-4xl mx-auto">
+              <Card className="bg-black/40 border-2 border-purple-500/50 backdrop-blur-lg shadow-2xl">
+                <CardHeader className="text-center border-b border-purple-500/30">
+                  <CardTitle className="text-3xl font-bold text-white flex items-center justify-center space-x-3">
+                    <Crown className="w-8 h-8 text-yellow-400 animate-pulse" />
+                    <span>Select Your Champions</span>
+                    <Crown className="w-8 h-8 text-yellow-400 animate-pulse" />
                   </CardTitle>
-                  <CardDescription className="text-gray-400">
-                    Choose two different stocks to analyze
+                  <CardDescription className="text-lg text-gray-300">
+                    Choose two worthy opponents for the ultimate financial duel
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Stock Selection */}
-                  <div className="space-y-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">First Stock</label>
+                <CardContent className="p-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
+                    {/* Fighter 1 */}
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-800 px-4 py-2 rounded-full">
+                          <Shield className="w-5 h-5 text-white" />
+                          <span className="text-white font-bold">FIGHTER 1</span>
+                        </div>
+                      </div>
                       <Select value={selectedStock1} onValueChange={setSelectedStock1}>
-                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                          <SelectValue placeholder="Select first stock" />
+                        <SelectTrigger className="h-16 bg-gradient-to-r from-blue-900/50 to-blue-800/50 border-2 border-blue-500/50 text-white text-lg font-semibold hover:border-blue-400 transition-all duration-300">
+                          <SelectValue placeholder="🥊 Choose Fighter 1" />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-700 border-gray-600">
+                        <SelectContent className="bg-gray-900 border-blue-500/50">
                           {loadingStocks ? (
-                            <div className="flex items-center justify-center p-4">
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              <span>Loading stocks...</span>
+                            <div className="flex items-center justify-center p-6">
+                              <Loader2 className="w-6 h-6 animate-spin mr-3 text-blue-400" />
+                              <span className="text-white">Loading warriors...</span>
                             </div>
                           ) : (
                             stocks.map((stock) => (
-                              <SelectItem key={stock.symbol} value={stock.symbol} className="text-white">
-                                <div className="flex items-center space-x-2">
+                              <SelectItem key={stock.symbol} value={stock.symbol} className="text-white hover:bg-blue-900/50 p-3">
+                                <div className="flex items-center space-x-3">
                                   <img
                                     src={logoMap.get(stock.symbol.toUpperCase()) || '/stock.avif'}
                                     alt={stock.symbol}
-                                    className="w-4 h-4 object-contain"
+                                    className="w-8 h-8 object-contain rounded"
                                     onError={(e) => {
                                       (e.target as HTMLImageElement).src = '/stock.avif';
                                     }}
                                   />
-                                  <span>{stock.symbol} - {stock.name}</span>
+                                  <div>
+                                    <div className="font-bold text-lg">{stock.symbol}</div>
+                                    <div className="text-sm text-gray-400">{stock.name}</div>
+                                  </div>
                                 </div>
                               </SelectItem>
                             ))
                           )}
                         </SelectContent>
                       </Select>
+                      {selectedStock1 && (
+                        <div className="text-center p-4 bg-blue-900/30 rounded-lg border border-blue-500/30">
+                          <Star className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                          <p className="text-blue-300 font-semibold">Fighter 1 Ready!</p>
+                        </div>
+                      )}
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">Second Stock</label>
+                    {/* VS Divider */}
+                    <div className="hidden md:block absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                      <div className="bg-gradient-to-r from-purple-600 to-red-600 text-white px-6 py-3 rounded-full border-4 border-white shadow-2xl">
+                        <span className="text-2xl font-bold">VS</span>
+                      </div>
+                    </div>
+
+                    {/* Fighter 2 */}
+                    <div className="space-y-4">
+                      <div className="text-center">
+                        <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-red-600 to-red-800 px-4 py-2 rounded-full">
+                          <Shield className="w-5 h-5 text-white" />
+                          <span className="text-white font-bold">FIGHTER 2</span>
+                        </div>
+                      </div>
                       <Select value={selectedStock2} onValueChange={setSelectedStock2}>
-                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                          <SelectValue placeholder="Select second stock" />
+                        <SelectTrigger className="h-16 bg-gradient-to-r from-red-900/50 to-red-800/50 border-2 border-red-500/50 text-white text-lg font-semibold hover:border-red-400 transition-all duration-300">
+                          <SelectValue placeholder="🥊 Choose Fighter 2" />
                         </SelectTrigger>
-                        <SelectContent className="bg-gray-700 border-gray-600">
+                        <SelectContent className="bg-gray-900 border-red-500/50">
                           {loadingStocks ? (
-                            <div className="flex items-center justify-center p-4">
-                              <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              <span>Loading stocks...</span>
+                            <div className="flex items-center justify-center p-6">
+                              <Loader2 className="w-6 h-6 animate-spin mr-3 text-red-400" />
+                              <span className="text-white">Loading warriors...</span>
                             </div>
                           ) : (
                             stocks.map((stock) => (
-                              <SelectItem key={stock.symbol} value={stock.symbol} className="text-white">
-                                <div className="flex items-center space-x-2">
+                              <SelectItem key={stock.symbol} value={stock.symbol} className="text-white hover:bg-red-900/50 p-3">
+                                <div className="flex items-center space-x-3">
                                   <img
                                     src={logoMap.get(stock.symbol.toUpperCase()) || '/stock.avif'}
                                     alt={stock.symbol}
-                                    className="w-4 h-4 object-contain"
+                                    className="w-8 h-8 object-contain rounded"
                                     onError={(e) => {
                                       (e.target as HTMLImageElement).src = '/stock.avif';
                                     }}
                                   />
-                                  <span>{stock.symbol} - {stock.name}</span>
+                                  <div>
+                                    <div className="font-bold text-lg">{stock.symbol}</div>
+                                    <div className="text-sm text-gray-400">{stock.name}</div>
+                                  </div>
                                 </div>
                               </SelectItem>
                             ))
                           )}
                         </SelectContent>
                       </Select>
+                      {selectedStock2 && (
+                        <div className="text-center p-4 bg-red-900/30 rounded-lg border border-red-500/30">
+                          <Star className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+                          <p className="text-red-300 font-semibold">Fighter 2 Ready!</p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Compare Button */}
-                  <Button 
-                    onClick={handleCompare} 
-                    disabled={loading || !selectedStock1 || !selectedStock2}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        Comparing...
-                      </>
-                    ) : (
-                      <>
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Compare Stocks
-                      </>
-                    )}
-                  </Button>
-
-                  {/* Quick Stats (if comparison exists) */}
-                  {comparisonData && (
-                    <div className="space-y-3 pt-4 border-t border-gray-700">
-                      <h4 className="text-sm font-medium text-gray-300">Quick Stats</h4>
-                      <div className="space-y-2 text-xs">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Price Difference:</span>
-                          <span className={`font-medium ${comparisonData.comparison.priceDifference > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {formatCurrency(Math.abs(comparisonData.comparison.priceDifference))}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Market Cap Diff:</span>
-                          <span className="text-white font-medium">
-                            {formatNumber(Math.abs(comparisonData.comparison.marketCapDifference))}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">P/E Difference:</span>
-                          <span className="text-white font-medium">
-                            {comparisonData.comparison.peRatioDifference.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  {/* Battle Button */}
+                  <div className="text-center mt-8">
+                    <Button 
+                      onClick={handleCompare} 
+                      disabled={loading || !selectedStock1 || !selectedStock2}
+                      className="px-12 py-6 text-xl font-bold bg-gradient-to-r from-purple-600 via-red-600 to-orange-600 hover:from-purple-700 hover:via-red-700 hover:to-orange-700 text-white border-0 shadow-2xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-6 h-6 animate-spin mr-3" />
+                          ⚔️ BATTLE IN PROGRESS... ⚔️
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="w-6 h-6 mr-3" />
+                          🔥 START EPIC BATTLE! 🔥
+                          <Zap className="w-6 h-6 ml-3" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             </div>
+          ) : (
+            /* Battle Results */
+            <div className="space-y-8">
+              {/* Battle Header */}
+              <div className="text-center">
+                <div className="flex items-center justify-center space-x-4 mb-4">
+                  <Trophy className="w-12 h-12 text-yellow-400 animate-bounce" />
+                  <h2 className="text-4xl font-bold text-white">BATTLE RESULTS</h2>
+                  <Trophy className="w-12 h-12 text-yellow-400 animate-bounce" />
+                </div>
+                <p className="text-xl text-gray-300">The financial duel has concluded! Here are the results...</p>
+              </div>
 
-            {/* Right Side - Comparison Results */}
-            <div className="lg:col-span-2">
-              {comparisonData ? (
-                <>
-                  {!showAllTabs ? (
-                    /* Quick Summary View - Side by Side Comparison */
-                    <div className="space-y-6">
-                      {/* Header with Comparison Mode */}
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center space-x-4">
-                          <span className="text-white font-semibold">Comparison mode:</span>
-                          <div className="flex space-x-1 bg-gray-700 rounded-lg p-1">
-                            <button className="px-3 py-1 bg-blue-500 text-white rounded text-sm font-medium">
-                              Specs
-                            </button>
-                            <button className="px-3 py-1 text-gray-300 rounded text-sm">
-                              Size
-                            </button>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-white text-sm">Differences only</span>
-                          <div className="w-10 h-6 bg-gray-600 rounded-full relative">
-                            <div className="w-4 h-4 bg-gray-400 rounded-full absolute top-1 left-1"></div>
-                          </div>
-                        </div>
+              {/* Fighter Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Fighter 1 Card */}
+                <Card className="bg-gradient-to-br from-blue-900/50 to-blue-800/30 border-2 border-blue-500/50 backdrop-blur-lg shadow-2xl transform hover:scale-105 transition-all duration-300">
+                  <CardHeader className="text-center border-b border-blue-500/30">
+                    <div className="flex items-center justify-center space-x-3 mb-2">
+                      <img
+                        src={logoMap.get(comparisonData.symbol1.symbol) || '/stock.avif'}
+                        alt={comparisonData.symbol1.symbol}
+                        className="w-16 h-16 object-contain rounded-full border-4 border-blue-400"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/stock.avif';
+                        }}
+                      />
+                      <div>
+                        <CardTitle className="text-3xl font-bold text-blue-300">{comparisonData.symbol1.symbol}</CardTitle>
+                        <CardDescription className="text-blue-200 text-lg">{comparisonData.symbol1.name}</CardDescription>
                       </div>
-
-                    
-
-                      {/* Truncated Insights with Read in Detail Button */}
-                      {comparisonData.comparison_insights && (
-                        <Card className="bg-gray-800/50 border-gray-700">
-                          <CardHeader>
-                            <CardTitle className="text-white flex items-center space-x-2">
-                              <Activity className="w-5 h-5" />
-                              <span>Quick Analysis Preview</span>
-                            </CardTitle>
-                            <CardDescription className="text-gray-400">
-                              Brief overview of the comparison analysis
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="bg-gray-700/30 rounded-lg p-6 mb-4">
-                              <div className="whitespace-pre-wrap text-gray-300 text-sm leading-relaxed">
-                                {truncateToWords(comparisonData.comparison_insights, 50)}
-                              </div>
-                            </div>
-                            <Button 
-                              onClick={handleReadInDetail}
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-                            >
-                              <FileText className="w-4 h-4 mr-2" />
-                              Read in Detail
-                            </Button>
-                          </CardContent>
-                        </Card>
-                      )}
                     </div>
-                  ) : (
-                    /* Detailed View with Tabs */
-                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                      <TabsList className="grid w-full grid-cols-4 bg-gray-800/50 border-gray-700">
-                        <TabsTrigger value="charts" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                          <ChartBar className="w-4 h-4 mr-2" />
-                          Charts
-                        </TabsTrigger>
-                        <TabsTrigger value="financials" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                          <DollarSign className="w-4 h-4 mr-2" />
-                          Financials
-                        </TabsTrigger>
-                        <TabsTrigger value="analysis" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                          <Activity className="w-4 h-4 mr-2" />
-                          Analysis
-                        </TabsTrigger>
-                        <TabsTrigger value="details" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                          <Info className="w-4 h-4 mr-2" />
-                          Details
-                        </TabsTrigger>
-                      </TabsList>
+                    <div className="inline-flex items-center space-x-2 bg-blue-600 px-4 py-2 rounded-full">
+                      <Shield className="w-5 h-5 text-white" />
+                      <span className="text-white font-bold">BLUE CORNER</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-blue-800/30 p-4 rounded-lg border border-blue-500/30">
+                        <div className="text-blue-300 text-sm">Stock Price</div>
+                        <div className="text-2xl font-bold text-white">{formatCurrency(comparisonData.symbol1.price)}</div>
+                      </div>
+                      <div className="bg-blue-800/30 p-4 rounded-lg border border-blue-500/30">
+                        <div className="text-blue-300 text-sm">Market Cap</div>
+                        <div className="text-2xl font-bold text-white">{formatNumber(comparisonData.symbol1.marketCap)}</div>
+                      </div>
+                      <div className="bg-blue-800/30 p-4 rounded-lg border border-blue-500/30">
+                        <div className="text-blue-300 text-sm">P/E Ratio</div>
+                        <div className="text-2xl font-bold text-white">{comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</div>
+                      </div>
+                      <div className="bg-blue-800/30 p-4 rounded-lg border border-blue-500/30">
+                        <div className="text-blue-300 text-sm">Sector</div>
+                        <div className="text-lg font-bold text-white">{comparisonData.symbol1.sector}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                      {/* Charts Tab */}
-                      <TabsContent value="charts" className="space-y-6 mt-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {/* Valuation Comparison Chart */}
-                          <Card className="bg-gray-800/50 border-gray-700">
-                            <CardHeader>
-                              <CardTitle className="text-white flex items-center space-x-2">
-                                <BarChart3 className="w-5 h-5" />
-                                <span>Valuation Metrics</span>
-                              </CardTitle>
-                              <CardDescription className="text-gray-400">
-                                P/E, P/S, and Forward P/E comparison
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <ChartContainer
-                                config={{
-                                  [comparisonData.symbol1.symbol]: {
-                                    label: comparisonData.symbol1.symbol,
-                                    color: "#3B82F6",
-                                  },
-                                  [comparisonData.symbol2.symbol]: {
-                                    label: comparisonData.symbol2.symbol,
-                                    color: "#EF4444",
-                                  },
-                                }}
-                              >
-                                <BarChart data={[
-                                  {
-                                    metric: 'Trailing P/E',
-                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.trailing_pe_ratio || 0,
-                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.trailing_pe_ratio || 0,
-                                  },
-                                  {
-                                    metric: 'Forward P/E',
-                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.forward_pe_ratio || 0,
-                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.forward_pe_ratio || 0,
-                                  },
-                                  {
-                                    metric: 'P/S Ratio',
-                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.ps_ratio || 0,
-                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.ps_ratio || 0,
-                                  },
-                                ]}>
-                                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                  <XAxis dataKey="metric" stroke="#9CA3AF" />
-                                  <YAxis stroke="#9CA3AF" />
-                                  <ChartTooltip content={<ChartTooltipContent />} />
-                                  <Bar dataKey={comparisonData.symbol1.symbol} fill="#3B82F6" />
-                                  <Bar dataKey={comparisonData.symbol2.symbol} fill="#EF4444" />
-                                </BarChart>
-                              </ChartContainer>
-                            </CardContent>
-                          </Card>
+                {/* Fighter 2 Card */}
+                <Card className="bg-gradient-to-br from-red-900/50 to-red-800/30 border-2 border-red-500/50 backdrop-blur-lg shadow-2xl transform hover:scale-105 transition-all duration-300">
+                  <CardHeader className="text-center border-b border-red-500/30">
+                    <div className="flex items-center justify-center space-x-3 mb-2">
+                      <img
+                        src={logoMap.get(comparisonData.symbol2.symbol) || '/stock.avif'}
+                        alt={comparisonData.symbol2.symbol}
+                        className="w-16 h-16 object-contain rounded-full border-4 border-red-400"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = '/stock.avif';
+                        }}
+                      />
+                      <div>
+                        <CardTitle className="text-3xl font-bold text-red-300">{comparisonData.symbol2.symbol}</CardTitle>
+                        <CardDescription className="text-red-200 text-lg">{comparisonData.symbol2.name}</CardDescription>
+                      </div>
+                    </div>
+                    <div className="inline-flex items-center space-x-2 bg-red-600 px-4 py-2 rounded-full">
+                      <Shield className="w-5 h-5 text-white" />
+                      <span className="text-white font-bold">RED CORNER</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-red-800/30 p-4 rounded-lg border border-red-500/30">
+                        <div className="text-red-300 text-sm">Stock Price</div>
+                        <div className="text-2xl font-bold text-white">{formatCurrency(comparisonData.symbol2.price)}</div>
+                      </div>
+                      <div className="bg-red-800/30 p-4 rounded-lg border border-red-500/30">
+                        <div className="text-red-300 text-sm">Market Cap</div>
+                        <div className="text-2xl font-bold text-white">{formatNumber(comparisonData.symbol2.marketCap)}</div>
+                      </div>
+                      <div className="bg-red-800/30 p-4 rounded-lg border border-red-500/30">
+                        <div className="text-red-300 text-sm">P/E Ratio</div>
+                        <div className="text-2xl font-bold text-white">{comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</div>
+                      </div>
+                      <div className="bg-red-800/30 p-4 rounded-lg border border-red-500/30">
+                        <div className="text-red-300 text-sm">Sector</div>
+                        <div className="text-lg font-bold text-white">{comparisonData.symbol2.sector}</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
 
-                          {/* Growth Metrics Chart */}
-                          <Card className="bg-gray-800/50 border-gray-700">
-                            <CardHeader>
-                              <CardTitle className="text-white flex items-center space-x-2">
-                                <TrendingUp className="w-5 h-5" />
-                                <span>Growth Metrics</span>
-                              </CardTitle>
-                              <CardDescription className="text-gray-400">
-                                Revenue growth and profitability comparison
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <ChartContainer
-                                config={{
-                                  [comparisonData.symbol1.symbol]: {
-                                    label: comparisonData.symbol1.symbol,
-                                    color: "#10B981",
-                                  },
-                                  [comparisonData.symbol2.symbol]: {
-                                    label: comparisonData.symbol2.symbol,
-                                    color: "#F59E0B",
-                                  },
-                                }}
-                              >
-                                <BarChart data={[
-                                  {
-                                    metric: 'Revenue Growth',
-                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.annual_revenue_growth_percent || 0,
-                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.annual_revenue_growth_percent || 0,
-                                  },
-                                  {
-                                    metric: 'Net Income Margin',
-                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.net_income_margin_percent || 0,
-                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.net_income_margin_percent || 0,
-                                  },
-                                  {
-                                    metric: 'Upside Potential',
-                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.upside_percentage || 0,
-                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.upside_percentage || 0,
-                                  },
-                                ]}>
-                                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                  <XAxis dataKey="metric" stroke="#9CA3AF" />
-                                  <YAxis stroke="#9CA3AF" />
-                                  <ChartTooltip content={<ChartTooltipContent />} />
-                                  <Bar dataKey={comparisonData.symbol1.symbol} fill="#10B981" />
-                                  <Bar dataKey={comparisonData.symbol2.symbol} fill="#F59E0B" />
-                                </BarChart>
-                              </ChartContainer>
-                            </CardContent>
-                          </Card>
-                        </div>
-                      </TabsContent>
-
-                      {/* Financials Tab */}
-                      <TabsContent value="financials" className="space-y-8 mt-6">
-                        {/* Header */}
-                        <div className="mb-8">
-                          <h2 className="text-2xl font-bold text-white flex items-center space-x-3 mb-2">
-                            <DollarSign className="w-7 h-7 text-blue-400" />
-                            <span>Financial Metrics</span>
-                          </h2>
-                          <p className="text-muted-foreground">Detailed financial comparison</p>
-                        </div>
-
-                        {/* Enhanced Side by Side Financial Comparison */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                          {/* Left Stock */}
-                          <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 shadow-2xl">
-                            {/* Score and Close Button */}
-                            <div className="flex items-center justify-between mb-6">
-                              <div className="w-14 h-14 bg-gradient-to-br from-slate-900 to-black rounded-full flex items-center justify-center border border-slate-600 shadow-lg">
-                                <span className="text-white font-bold text-lg">
-                                  {comparisonData.symbol1.trailing_pe_ratio ? 
-                                    (comparisonData.symbol1.trailing_pe_ratio / 20).toFixed(1) : 'N/A'}
-                                </span>
-                              </div>
-                              <button className="text-pink-400 hover:text-pink-300 transition-colors p-2 hover:bg-pink-400/10 rounded-full">
-                                <X className="w-5 h-5" />
-                              </button>
-                            </div>
-
-                            {/* Stock Logo/Image */}
-                            <div className="w-36 h-36 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                              <div className="w-28 h-28 bg-white rounded-xl flex items-center justify-center shadow-inner">
-                                <img
-                                  src={logoMap.get(comparisonData.symbol1.symbol.toUpperCase()) || '/stock.avif'}
-                                  alt={comparisonData.symbol1.symbol}
-                                  className="w-20 h-20 object-contain"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = '/stock.avif';
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Stock Name */}
-                            <div className="text-center mb-6">
-                              <h3 className="text-white font-bold text-xl mb-1 underline decoration-blue-400">
-                                {comparisonData.symbol1.symbol} - {comparisonData.symbol1.name.split(' ').slice(0, 3).join(' ')}
-                              </h3>
-                            </div>
-
-                            {/* Financial Specifications */}
-                            <div className="space-y-4 mb-6">
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <BarChart3 className="w-4 h-4 text-blue-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Market Cap</span>
-                                </div>
-                                <span className="text-white font-semibold">{formatCurrency(comparisonData.symbol1.marketCap)}</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <DollarSign className="w-4 h-4 text-green-400" />
-                                  <span className="text-slate-300 text-sm font-medium">P/E</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Growth</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <Percent className="w-4 h-4 text-purple-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Margin</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol1.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <Building2 className="w-4 h-4 text-cyan-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Cash</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol1.cash_position ? formatNumber(comparisonData.symbol1.cash_position) : 'N/A'}</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <Target className="w-4 h-4 text-red-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Debt</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol1.debt_status ? formatNumber(comparisonData.symbol1.debt_status) : 'N/A'}</span>
-                              </div>
-                            </div>
-
-                            {/* Check Prices Button */}
-                            <button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                              Check Prices
-                            </button>
-                          </div>
-
-                          {/* VS Center */}
-                          <div className="flex items-center justify-center">
-                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-2xl px-8 py-6 rounded-2xl shadow-2xl border border-blue-500/50 backdrop-blur-sm">
-                              VS
-                            </div>
-                          </div>
-
-                          {/* Right Stock */}
-                          <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-red-500/50 transition-all duration-300 shadow-2xl">
-                            {/* Score and Close Button */}
-                            <div className="flex items-center justify-between mb-6">
-                              <button className="text-pink-400 hover:text-pink-300 transition-colors p-2 hover:bg-pink-400/10 rounded-full">
-                                <X className="w-5 h-5" />
-                              </button>
-                              <div className="w-14 h-14 bg-gradient-to-br from-slate-900 to-black rounded-full flex items-center justify-center border border-slate-600 shadow-lg">
-                                <span className="text-white font-bold text-lg">
-                                  {comparisonData.symbol2.trailing_pe_ratio ? 
-                                    (comparisonData.symbol2.trailing_pe_ratio / 20).toFixed(1) : 'N/A'}
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Stock Logo/Image */}
-                            <div className="w-36 h-36 mx-auto mb-6 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
-                              <div className="w-28 h-28 bg-white rounded-xl flex items-center justify-center shadow-inner">
-                                <img
-                                  src={logoMap.get(comparisonData.symbol2.symbol.toUpperCase()) || '/stock.avif'}
-                                  alt={comparisonData.symbol2.symbol}
-                                  className="w-20 h-20 object-contain"
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = '/stock.avif';
-                                  }}
-                                />
-                              </div>
-                            </div>
-
-                            {/* Stock Name */}
-                            <div className="text-center mb-6">
-                              <h3 className="text-white font-bold text-xl mb-1 underline decoration-red-400">
-                                {comparisonData.symbol2.symbol} - {comparisonData.symbol2.name.split(' ').slice(0, 3).join(' ')}
-                              </h3>
-                            </div>
-
-                            {/* Financial Specifications */}
-                            <div className="space-y-4 mb-6">
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <BarChart3 className="w-4 h-4 text-blue-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Market Cap</span>
-                                </div>
-                                <span className="text-white font-semibold">{formatCurrency(comparisonData.symbol2.marketCap)}</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <DollarSign className="w-4 h-4 text-green-400" />
-                                  <span className="text-slate-300 text-sm font-medium">P/E</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <TrendingUp className="w-4 h-4 text-emerald-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Growth</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <Percent className="w-4 h-4 text-purple-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Margin</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol2.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <Building2 className="w-4 h-4 text-cyan-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Cash</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol2.cash_position ? formatNumber(comparisonData.symbol2.cash_position) : 'N/A'}</span>
-                              </div>
-                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
-                                <div className="flex items-center space-x-3">
-                                  <Target className="w-4 h-4 text-red-400" />
-                                  <span className="text-slate-300 text-sm font-medium">Debt</span>
-                                </div>
-                                <span className="text-white font-semibold">{comparisonData.symbol2.debt_status ? formatNumber(comparisonData.symbol2.debt_status) : 'N/A'}</span>
-                              </div>
-                            </div>
-
-                            {/* Check Prices Button */}
-                            <button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                              Check Prices
-                            </button>
-                          </div>
-                        </div>
-                      </TabsContent>
-
-                      {/* Analysis Tab */}
-                      <TabsContent value="analysis" className="space-y-6 mt-6">
-                        {comparisonData.comparison_insights && (
-                          <Card className="bg-gray-800/50 border-gray-700">
-                            <CardHeader>
-                              <CardTitle className="text-white flex items-center space-x-2">
-                                <Activity className="w-5 h-5" />
-                                <span>AI Analysis & Insights</span>
-                              </CardTitle>
-                              <CardDescription className="text-gray-400">
-                                Comprehensive analysis and investment recommendations
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="bg-gray-700/30 rounded-lg p-6">
-                                <div className="whitespace-pre-wrap text-gray-300 text-sm leading-relaxed">
-                                  {comparisonData.comparison_insights}
-                                </div>
-                                {comparisonData.timestamp && (
-                                  <div className="mt-4 text-xs text-gray-500">
-                                    Analysis generated on: {new Date(comparisonData.timestamp).toLocaleString()}
-                                  </div>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </TabsContent>
-
-                      {/* Details Tab */}
-                      <TabsContent value="details" className="space-y-6 mt-6">
-                        <Card className="bg-gray-800/50 border-gray-700">
-                          <CardHeader>
-                            <CardTitle className="text-white flex items-center space-x-2">
-                              <FileText className="w-5 h-5" />
-                              <span>Company Information</span>
-                            </CardTitle>
-                            <CardDescription className="text-gray-400">
-                              Business descriptions and key information
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                              <div>
-                                <h3 className="text-lg font-semibold text-white mb-3">{comparisonData.symbol1.symbol} - {comparisonData.symbol1.name}</h3>
-                                <p className="text-gray-300 text-sm leading-relaxed">
-                                  {comparisonData.symbol1.description || 'No description available.'}
-                                </p>
-                              </div>
-                              <div>
-                                <h3 className="text-lg font-semibold text-white mb-3">{comparisonData.symbol2.symbol} - {comparisonData.symbol2.name}</h3>
-                                <p className="text-gray-300 text-sm leading-relaxed">
-                                  {comparisonData.symbol2.description || 'No description available.'}
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </TabsContent>
-                    </Tabs>
-                  )}
-                </>
-              ) : (
-                <Card className="bg-gray-800/50 border-gray-700">
-                  <CardContent className="flex items-center justify-center h-64">
-                    <div className="text-center">
-                      <BarChart3 className="w-12 h-12 text-gray-500 mx-auto mb-4" />
-                      <p className="text-gray-400">Select two stocks and click "Compare Stocks" to see the analysis</p>
+              {/* Analysis Preview */}
+              {comparisonData.comparison_insights && (
+                <Card className="bg-black/40 border-2 border-purple-500/50 backdrop-blur-lg">
+                  <CardHeader>
+                    <CardTitle className="text-white flex items-center justify-center space-x-3 text-2xl">
+                      <Activity className="w-8 h-8 text-purple-400" />
+                      <span>⚡ BATTLE ANALYSIS ⚡</span>
+                      <Activity className="w-8 h-8 text-purple-400" />
+                    </CardTitle>
+                    <CardDescription className="text-center text-lg text-gray-300">
+                      AI-powered analysis of the financial showdown
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-6 border border-purple-500/30">
+                      <div className="whitespace-pre-wrap text-gray-200 text-base leading-relaxed">
+                        {comparisonData.comparison_insights}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
+
+              {/* Return to Selection Button */}
+              <div className="text-center">
+                <Button 
+                  onClick={() => {
+                    setComparisonData(null);
+                  }}
+                  className="px-8 py-4 text-lg font-bold bg-gradient-to-r from-gray-700 to-gray-900 hover:from-gray-600 hover:to-gray-800 text-white transform hover:scale-105 transition-all duration-300"
+                >
+                  🔄 NEW BATTLE
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
       <Footer />
@@ -1174,4 +671,4 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
   );
 };
 
-export default Comparison; 
+export default Comparison;
