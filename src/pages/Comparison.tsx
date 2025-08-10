@@ -896,227 +896,201 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
                       </TabsContent>
 
                       {/* Financials Tab */}
-                      <TabsContent value="financials" className="space-y-6 mt-6">
-                        <Card className="bg-gray-800/50 border-gray-700">
-                          <CardHeader>
-                            <CardTitle className="text-white flex items-center space-x-2">
-                              <DollarSign className="w-5 h-5" />
-                              <span>Financial Metrics</span>
-                            </CardTitle>
-                            <CardDescription className="text-gray-400">
-                              Detailed financial comparison
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            {/* Side by Side Financial Comparison */}
-                            <div className="grid grid-cols-3 gap-4 mb-6">
-                              {/* Left Stock */}
-                              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 text-center">
-                                {/* Score and Close Button */}
-                                <div className="flex items-center justify-between mb-4">
-                                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold text-lg">
-                                      {comparisonData.symbol1.trailing_pe_ratio ? 
-                                        Math.round((comparisonData.symbol1.trailing_pe_ratio / 20) * 10) / 10 : 'N/A'}
-                                    </span>
-                                  </div>
-                                  <button className="text-pink-400 hover:text-pink-300">
-                                    <X className="w-5 h-5" />
-                                  </button>
-                                </div>
+                      <TabsContent value="financials" className="space-y-8 mt-6">
+                        {/* Header */}
+                        <div className="mb-8">
+                          <h2 className="text-2xl font-bold text-white flex items-center space-x-3 mb-2">
+                            <DollarSign className="w-7 h-7 text-blue-400" />
+                            <span>Financial Metrics</span>
+                          </h2>
+                          <p className="text-muted-foreground">Detailed financial comparison</p>
+                        </div>
 
-                                {/* Stock Logo/Image */}
-                                <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                  <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center">
-                                    <img
-                                      src={logoMap.get(comparisonData.symbol1.symbol.toUpperCase()) || 'stock.avif'}
-                                      alt={comparisonData.symbol1.symbol}
-                                      className="w-16 h-16 object-contain"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'stock.avif';
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-
-                                {/* Stock Name */}
-                                <h3 className="text-white font-semibold text-lg mb-4 underline">
-                                  {comparisonData.symbol1.symbol} - {comparisonData.symbol1.name}
-                                </h3>
-
-                                {/* Financial Specifications */}
-                                <div className="space-y-3 text-left">
-                                  <div className="flex items-center space-x-3">
-                                    <BarChart3 className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Market Cap · {formatCurrency(comparisonData.symbol1.marketCap)}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <DollarSign className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">P/E · {comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <TrendingUp className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Growth · {comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <Percent className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Margin · {comparisonData.symbol1.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <Building2 className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Cash · {comparisonData.symbol1.cash_position ? formatNumber(comparisonData.symbol1.cash_position) : 'N/A'}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <Target className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Debt · {comparisonData.symbol1.debt_status ? formatNumber(comparisonData.symbol1.debt_status) : 'N/A'}</span>
-                                  </div>
-                                </div>
-
-                                {/* Check Prices Button */}
-                                <button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-                                  Check Prices
-                                </button>
+                        {/* Enhanced Side by Side Financial Comparison */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Left Stock */}
+                          <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-blue-500/50 transition-all duration-300 shadow-2xl">
+                            {/* Score and Close Button */}
+                            <div className="flex items-center justify-between mb-6">
+                              <div className="w-14 h-14 bg-gradient-to-br from-slate-900 to-black rounded-full flex items-center justify-center border border-slate-600 shadow-lg">
+                                <span className="text-white font-bold text-lg">
+                                  {comparisonData.symbol1.trailing_pe_ratio ? 
+                                    (comparisonData.symbol1.trailing_pe_ratio / 20).toFixed(1) : 'N/A'}
+                                </span>
                               </div>
+                              <button className="text-pink-400 hover:text-pink-300 transition-colors p-2 hover:bg-pink-400/10 rounded-full">
+                                <X className="w-5 h-5" />
+                              </button>
+                            </div>
 
-                              {/* VS Center */}
-                              <div className="flex items-center justify-center">
-                                <div className="bg-blue-600 text-white font-bold text-xl px-6 py-4 rounded-lg">
-                                  VS
-                                </div>
-                              </div>
-
-                              {/* Right Stock */}
-                              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 text-center">
-                                {/* Score and Close Button */}
-                                <div className="flex items-center justify-between mb-4">
-                                  <button className="text-pink-400 hover:text-pink-300">
-                                    <X className="w-5 h-5" />
-                                  </button>
-                                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
-                                    <span className="text-white font-bold text-lg">
-                                      {comparisonData.symbol2.trailing_pe_ratio ? 
-                                        Math.round((comparisonData.symbol2.trailing_pe_ratio / 20) * 10) / 10 : 'N/A'}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Stock Logo/Image */}
-                                <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
-                                  <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center">
-                                    <img
-                                      src={logoMap.get(comparisonData.symbol2.symbol.toUpperCase()) || 'stock.avif'}
-                                      alt={comparisonData.symbol2.symbol}
-                                      className="w-16 h-16 object-contain"
-                                      onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'stock.avif';
-                                      }}
-                                    />
-                                  </div>
-                                </div>
-
-                                {/* Stock Name */}
-                                <h3 className="text-white font-semibold text-lg mb-4 underline">
-                                  {comparisonData.symbol2.symbol} - {comparisonData.symbol2.name}
-                                </h3>
-
-                                {/* Financial Specifications */}
-                                <div className="space-y-3 text-left">
-                                  <div className="flex items-center space-x-3">
-                                    <BarChart3 className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Market Cap · {formatCurrency(comparisonData.symbol2.marketCap)}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <DollarSign className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">P/E · {comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <TrendingUp className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Growth · {comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <Percent className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Margin · {comparisonData.symbol2.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <Building2 className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Cash · {comparisonData.symbol2.cash_position ? formatNumber(comparisonData.symbol2.cash_position) : 'N/A'}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-3">
-                                    <Target className="w-4 h-4 text-gray-400" />
-                                    <span className="text-gray-300 text-sm">Debt · {comparisonData.symbol2.debt_status ? formatNumber(comparisonData.symbol2.debt_status) : 'N/A'}</span>
-                                  </div>
-                                </div>
-
-                                {/* Check Prices Button */}
-                                <button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
-                                  Check Prices
-                                </button>
+                            {/* Stock Logo/Image */}
+                            <div className="w-36 h-36 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                              <div className="w-28 h-28 bg-white rounded-xl flex items-center justify-center shadow-inner">
+                                <img
+                                  src={logoMap.get(comparisonData.symbol1.symbol.toUpperCase()) || '/stock.avif'}
+                                  alt={comparisonData.symbol1.symbol}
+                                  className="w-20 h-20 object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = '/stock.avif';
+                                  }}
+                                />
                               </div>
                             </div>
 
-                            {/* Detailed Financial Metrics Table */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                              <div>
-                                <h4 className="text-white font-semibold mb-3">{comparisonData.symbol1.symbol} Detailed Financials</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <p className="text-gray-400">Market Cap</p>
-                                    <p className="text-white">{formatCurrency(comparisonData.symbol1.marketCap)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">P/E Ratio</p>
-                                    <p className="text-white">{comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Revenue Growth</p>
-                                    <p className="text-white">{comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Net Income Margin</p>
-                                    <p className="text-white">{comparisonData.symbol1.net_income_margin_percent?.toFixed(1) || 'N/A'}%</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Cash Position</p>
-                                    <p className="text-white">{comparisonData.symbol1.cash_position ? formatNumber(comparisonData.symbol1.cash_position) : 'N/A'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Total Debt</p>
-                                    <p className="text-white">{comparisonData.symbol1.debt_status ? formatNumber(comparisonData.symbol1.debt_status) : 'N/A'}</p>
-                                  </div>
+                            {/* Stock Name */}
+                            <div className="text-center mb-6">
+                              <h3 className="text-white font-bold text-xl mb-1 underline decoration-blue-400">
+                                {comparisonData.symbol1.symbol} - {comparisonData.symbol1.name.split(' ').slice(0, 3).join(' ')}
+                              </h3>
+                            </div>
+
+                            {/* Financial Specifications */}
+                            <div className="space-y-4 mb-6">
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <BarChart3 className="w-4 h-4 text-blue-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Market Cap</span>
                                 </div>
+                                <span className="text-white font-semibold">{formatCurrency(comparisonData.symbol1.marketCap)}</span>
                               </div>
-                              <div>
-                                <h4 className="text-white font-semibold mb-3">{comparisonData.symbol2.symbol} Detailed Financials</h4>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <p className="text-gray-400">Market Cap</p>
-                                    <p className="text-white">{formatCurrency(comparisonData.symbol2.marketCap)}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">P/E Ratio</p>
-                                    <p className="text-white">{comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Revenue Growth</p>
-                                    <p className="text-white">{comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Net Income Margin</p>
-                                    <p className="text-white">{comparisonData.symbol2.net_income_margin_percent?.toFixed(1) || 'N/A'}%</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Cash Position</p>
-                                    <p className="text-white">{comparisonData.symbol2.cash_position ? formatNumber(comparisonData.symbol2.cash_position) : 'N/A'}</p>
-                                  </div>
-                                  <div>
-                                    <p className="text-gray-400">Total Debt</p>
-                                    <p className="text-white">{comparisonData.symbol2.debt_status ? formatNumber(comparisonData.symbol2.debt_status) : 'N/A'}</p>
-                                  </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <DollarSign className="w-4 h-4 text-green-400" />
+                                  <span className="text-slate-300 text-sm font-medium">P/E</span>
                                 </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Growth</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <Percent className="w-4 h-4 text-purple-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Margin</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol1.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <Building2 className="w-4 h-4 text-cyan-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Cash</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol1.cash_position ? formatNumber(comparisonData.symbol1.cash_position) : 'N/A'}</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <Target className="w-4 h-4 text-red-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Debt</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol1.debt_status ? formatNumber(comparisonData.symbol1.debt_status) : 'N/A'}</span>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
+
+                            {/* Check Prices Button */}
+                            <button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                              Check Prices
+                            </button>
+                          </div>
+
+                          {/* VS Center */}
+                          <div className="flex items-center justify-center">
+                            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold text-2xl px-8 py-6 rounded-2xl shadow-2xl border border-blue-500/50 backdrop-blur-sm">
+                              VS
+                            </div>
+                          </div>
+
+                          {/* Right Stock */}
+                          <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border border-slate-700/50 rounded-2xl p-6 hover:border-red-500/50 transition-all duration-300 shadow-2xl">
+                            {/* Score and Close Button */}
+                            <div className="flex items-center justify-between mb-6">
+                              <button className="text-pink-400 hover:text-pink-300 transition-colors p-2 hover:bg-pink-400/10 rounded-full">
+                                <X className="w-5 h-5" />
+                              </button>
+                              <div className="w-14 h-14 bg-gradient-to-br from-slate-900 to-black rounded-full flex items-center justify-center border border-slate-600 shadow-lg">
+                                <span className="text-white font-bold text-lg">
+                                  {comparisonData.symbol2.trailing_pe_ratio ? 
+                                    (comparisonData.symbol2.trailing_pe_ratio / 20).toFixed(1) : 'N/A'}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Stock Logo/Image */}
+                            <div className="w-36 h-36 mx-auto mb-6 bg-gradient-to-br from-red-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                              <div className="w-28 h-28 bg-white rounded-xl flex items-center justify-center shadow-inner">
+                                <img
+                                  src={logoMap.get(comparisonData.symbol2.symbol.toUpperCase()) || '/stock.avif'}
+                                  alt={comparisonData.symbol2.symbol}
+                                  className="w-20 h-20 object-contain"
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = '/stock.avif';
+                                  }}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Stock Name */}
+                            <div className="text-center mb-6">
+                              <h3 className="text-white font-bold text-xl mb-1 underline decoration-red-400">
+                                {comparisonData.symbol2.symbol} - {comparisonData.symbol2.name.split(' ').slice(0, 3).join(' ')}
+                              </h3>
+                            </div>
+
+                            {/* Financial Specifications */}
+                            <div className="space-y-4 mb-6">
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <BarChart3 className="w-4 h-4 text-blue-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Market Cap</span>
+                                </div>
+                                <span className="text-white font-semibold">{formatCurrency(comparisonData.symbol2.marketCap)}</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <DollarSign className="w-4 h-4 text-green-400" />
+                                  <span className="text-slate-300 text-sm font-medium">P/E</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <TrendingUp className="w-4 h-4 text-emerald-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Growth</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <Percent className="w-4 h-4 text-purple-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Margin</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol2.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <Building2 className="w-4 h-4 text-cyan-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Cash</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol2.cash_position ? formatNumber(comparisonData.symbol2.cash_position) : 'N/A'}</span>
+                              </div>
+                              <div className="flex items-center justify-between bg-slate-800/50 rounded-lg p-3">
+                                <div className="flex items-center space-x-3">
+                                  <Target className="w-4 h-4 text-red-400" />
+                                  <span className="text-slate-300 text-sm font-medium">Debt</span>
+                                </div>
+                                <span className="text-white font-semibold">{comparisonData.symbol2.debt_status ? formatNumber(comparisonData.symbol2.debt_status) : 'N/A'}</span>
+                              </div>
+                            </div>
+
+                            {/* Check Prices Button */}
+                            <button className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                              Check Prices
+                            </button>
+                          </div>
+                        </div>
                       </TabsContent>
 
                       {/* Analysis Tab */}
