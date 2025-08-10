@@ -279,6 +279,23 @@ const Navbar = () => {
                               </span>
                             </div>
                           </a>
+
+                          <a
+                            href="/dividend-frequency"
+                            className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-800 transition-colors group"
+                          >
+                            <div className="p-2 rounded-full bg-green-900/30 text-green-400 group-hover:bg-green-900/50 transition-colors">
+                              <CalendarDays className="w-4 h-4" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium text-gray-100">
+                                Dividend Frequency
+                              </span>
+                              <span className="text-xs text-gray-400">
+                                Analyze payment schedules
+                              </span>
+                            </div>
+                          </a>
                         </div>
                       </div>
                     </div>
@@ -347,22 +364,7 @@ const Navbar = () => {
                             </div>
                           </a>
 
-                          {/* <a
-                            href="/dividend-frequency"
-                            className="flex items-center px-4 py-3 space-x-3 rounded-lg hover:bg-gray-800 transition-colors group"
-                          >
-                            <div className="p-2 rounded-full bg-green-900/30 text-green-400 group-hover:bg-green-900/50 transition-colors">
-                              <CalendarDays className="w-4 h-4" />
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-100">
-                                Dividend Frequency
-                              </span>
-                              <span className="text-xs text-gray-400">
-                                Analyze payment schedules
-                              </span>
-                            </div>
-                          </a> */}
+                         
                         </div>
                       </div>
                     </div>

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, TrendingUp, TrendingDown, Minus, BarChart3, DollarSign, Percent, Activity, PieChart, Target, Users, Building2, FileText, ChartBar, Info } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Minus, BarChart3, DollarSign, Percent, Activity, PieChart, Target, Users, Building2, FileText, ChartBar, Info, X, Calendar } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
@@ -51,6 +51,7 @@ interface StockData {
   recommendation_mean?: number;
   founded?: number;
   as_of_date?: string;
+  LogoURL?: string; // Added for new UI
 }
 
 interface ComparisonData {
@@ -76,11 +77,48 @@ const Comparison = () => {
   const [loading, setLoading] = useState(false);
   const [loadingStocks, setLoadingStocks] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [showDetailedInsights, setShowDetailedInsights] = useState(false);
+  const [showAllTabs, setShowAllTabs] = useState(false);
+  const [logoMap, setLogoMap] = useState<Map<string, string>>(new Map());
   const { toast } = useToast();
 
   useEffect(() => {
     fetchStocks();
+    loadLogos();
   }, []);
+
+  const loadLogos = async () => {
+    try {
+      const response = await fetch('/logos.csv');
+      const csvText = await response.text();
+      const lines = csvText.split('\n');
+      const logoData = new Map<string, string>();
+      
+      // Skip header line
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim()) {
+          // Parse CSV line properly, handling quoted values
+          const columns = line.match(/(".*?"|[^,]+)/g) || [];
+          if (columns.length >= 5) {
+            const id = columns[0].replace(/"/g, '');
+            const symbol = columns[1].replace(/"/g, '');
+            const company_name = columns[2].replace(/"/g, '');
+            const domain = columns[3].replace(/"/g, '');
+            const logoUrl = columns[4].replace(/"/g, '');
+            
+            if (symbol && logoUrl) {
+              logoData.set(symbol.toUpperCase(), logoUrl);
+            }
+          }
+        }
+      }
+      
+      setLogoMap(logoData);
+    } catch (error) {
+      console.error('Error loading logos:', error);
+    }
+  };
 
   const fetchStocks = async () => {
     try {
@@ -107,8 +145,7 @@ const Comparison = () => {
       const { data, error } = await supabaseAny
         .from('stock_comparison')
         .select('symbol, name, sector, industry')
-        .order('symbol', { ascending: true })
-        .limit(100);
+        .order('symbol', { ascending: true });
 
       if (error) {
         throw error;
@@ -172,6 +209,7 @@ const Comparison = () => {
             recommendation_mean: data.recommendation_mean,
             founded: data.founded,
             as_of_date: data.as_of_date,
+            LogoURL: data.logo_url, // Assuming logo_url is available in the backend response
           };
         }
       } catch (error) {
@@ -226,6 +264,7 @@ const Comparison = () => {
         recommendation_mean: comparisonDataAny?.recommendation_mean,
         founded: comparisonDataAny?.founded,
         as_of_date: comparisonDataAny?.as_of_date,
+        LogoURL: comparisonDataAny?.logo_url, // Assuming logo_url is available in Supabase
       };
     } catch (error) {
       console.error(`Error fetching data for ${symbol}:`, error);
@@ -292,6 +331,10 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
   };
 
   const handleCompare = async () => {
+    // Reset detailed insights view when starting a new comparison
+    setShowDetailedInsights(false);
+    setShowAllTabs(false);
+    
     if (!selectedStock1 || !selectedStock2) {
       toast({
         title: "Selection Required",
@@ -371,6 +414,7 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
               recommendation_mean: data.symbol1.recommendation_mean,
               founded: data.symbol1.founded,
               as_of_date: data.symbol1.as_of_date,
+              LogoURL: data.symbol1.logo_url, // Assuming logo_url is available in the backend response
             },
             symbol2: {
               symbol: data.symbol2.symbol,
@@ -405,6 +449,7 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
               recommendation_mean: data.symbol2.recommendation_mean,
               founded: data.symbol2.founded,
               as_of_date: data.symbol2.as_of_date,
+              LogoURL: data.symbol2.logo_url, // Assuming logo_url is available in Supabase
             },
             comparison: {
               priceDifference,
@@ -504,6 +549,20 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
     return 'text-gray-500';
   };
 
+  const truncateToWords = (text: string, maxWords: number = 50) => {
+    if (!text) return '';
+    const words = text.split(' ');
+    if (words.length <= maxWords) return text;
+    return words.slice(0, maxWords).join(' ') + '...';
+  };
+
+  const handleReadInDetail = () => {
+    setShowDetailedInsights(true);
+    setShowAllTabs(true);
+    // Switch to charts tab to show the detailed view
+    setActiveTab('charts');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       <Navbar />
@@ -545,7 +604,17 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
                           ) : (
                             stocks.map((stock) => (
                               <SelectItem key={stock.symbol} value={stock.symbol} className="text-white">
-                                {stock.symbol} - {stock.name}
+                                <div className="flex items-center space-x-2">
+                                  <img
+                                    src={logoMap.get(stock.symbol.toUpperCase()) || '/stock.avif'}
+                                    alt={stock.symbol}
+                                    className="w-4 h-4 object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = '/stock.avif';
+                                    }}
+                                  />
+                                  <span>{stock.symbol} - {stock.name}</span>
+                                </div>
                               </SelectItem>
                             ))
                           )}
@@ -568,7 +637,17 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
                           ) : (
                             stocks.map((stock) => (
                               <SelectItem key={stock.symbol} value={stock.symbol} className="text-white">
-                                {stock.symbol} - {stock.name}
+                                <div className="flex items-center space-x-2">
+                                  <img
+                                    src={logoMap.get(stock.symbol.toUpperCase()) || '/stock.avif'}
+                                    alt={stock.symbol}
+                                    className="w-4 h-4 object-contain"
+                                    onError={(e) => {
+                                      (e.target as HTMLImageElement).src = '/stock.avif';
+                                    }}
+                                  />
+                                  <span>{stock.symbol} - {stock.name}</span>
+                                </div>
                               </SelectItem>
                             ))
                           )}
@@ -629,614 +708,479 @@ ${stock1.upside_percentage && stock2.upside_percentage ? (stock1.upside_percenta
             {/* Right Side - Comparison Results */}
             <div className="lg:col-span-2">
               {comparisonData ? (
-                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                  <TabsList className="grid w-full grid-cols-5 bg-gray-800/50 border-gray-700">
-                    <TabsTrigger value="overview" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      Overview
-                    </TabsTrigger>
-                    <TabsTrigger value="charts" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                      <ChartBar className="w-4 h-4 mr-2" />
-                      Charts
-                    </TabsTrigger>
-                    <TabsTrigger value="financials" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Financials
-                    </TabsTrigger>
-                    <TabsTrigger value="analysis" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                      <Activity className="w-4 h-4 mr-2" />
-                      Analysis
-                    </TabsTrigger>
-                    <TabsTrigger value="details" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-                      <Info className="w-4 h-4 mr-2" />
-                      Details
-                    </TabsTrigger>
-                  </TabsList>
-
-                  {/* Overview Tab */}
-                  <TabsContent value="overview" className="space-y-6 mt-6">
-                    {/* Key Metrics Overview */}
-                    <Card className="bg-gray-800/50 border-gray-700">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center space-x-2">
-                          <BarChart3 className="w-5 h-5" />
-                          <span>Key Metrics Overview</span>
-                        </CardTitle>
-                        <CardDescription className="text-gray-400">
-                          Quick comparison of essential financial metrics
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-gray-400 text-sm">Price</p>
-                                <p className="text-white font-semibold">{formatCurrency(comparisonData.symbol1.price)}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-gray-400 text-sm">vs {comparisonData.symbol2.symbol}</p>
-                                <p className="text-white font-semibold">{formatCurrency(comparisonData.symbol2.price)}</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-gray-400 text-sm">Market Cap</p>
-                                <p className="text-white font-semibold">{formatNumber(comparisonData.symbol1.marketCap)}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-gray-400 text-sm">vs {comparisonData.symbol2.symbol}</p>
-                                <p className="text-white font-semibold">{formatNumber(comparisonData.symbol2.marketCap)}</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-gray-400 text-sm">P/E Ratio</p>
-                                <p className="text-white font-semibold">{comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-gray-400 text-sm">vs {comparisonData.symbol2.symbol}</p>
-                                <p className="text-white font-semibold">{comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-gray-400 text-sm">Revenue Growth</p>
-                                <p className={`font-semibold ${comparisonData.symbol1.annual_revenue_growth_percent && comparisonData.symbol1.annual_revenue_growth_percent > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-gray-400 text-sm">vs {comparisonData.symbol2.symbol}</p>
-                                <p className={`font-semibold ${comparisonData.symbol2.annual_revenue_growth_percent && comparisonData.symbol2.annual_revenue_growth_percent > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%
-                                </p>
-                              </div>
-                            </div>
+                <>
+                  {!showAllTabs ? (
+                    /* Quick Summary View - Side by Side Comparison */
+                    <div className="space-y-6">
+                      {/* Header with Comparison Mode */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center space-x-4">
+                          <span className="text-white font-semibold">Comparison mode:</span>
+                          <div className="flex space-x-1 bg-gray-700 rounded-lg p-1">
+                            <button className="px-3 py-1 bg-blue-500 text-white rounded text-sm font-medium">
+                              Specs
+                            </button>
+                            <button className="px-3 py-1 text-gray-300 rounded text-sm">
+                              Size
+                            </button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Quick Comparison Summary */}
-                    <Card className="bg-gray-800/50 border-gray-700">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center space-x-2">
-                          <Activity className="w-5 h-5" />
-                          <span>Quick Comparison Summary</span>
-                        </CardTitle>
-                        <CardDescription className="text-gray-400">
-                          At-a-glance comparison of key metrics
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-gray-400 text-sm">Better Value</span>
-                              <Badge variant={comparisonData.symbol1.trailing_pe_ratio && comparisonData.symbol2.trailing_pe_ratio ? 
-                                (comparisonData.symbol1.trailing_pe_ratio < comparisonData.symbol2.trailing_pe_ratio ? 'default' : 'secondary') : 'outline'}>
-                                {comparisonData.symbol1.trailing_pe_ratio && comparisonData.symbol2.trailing_pe_ratio ? 
-                                  (comparisonData.symbol1.trailing_pe_ratio < comparisonData.symbol2.trailing_pe_ratio ? comparisonData.symbol1.symbol : comparisonData.symbol2.symbol) : 'N/A'}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-500">Lower P/E Ratio</p>
-                          </div>
-
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-gray-400 text-sm">Growth Leader</span>
-                              <Badge variant={comparisonData.symbol1.annual_revenue_growth_percent && comparisonData.symbol2.annual_revenue_growth_percent ? 
-                                (comparisonData.symbol1.annual_revenue_growth_percent > comparisonData.symbol2.annual_revenue_growth_percent ? 'default' : 'secondary') : 'outline'}>
-                                {comparisonData.symbol1.annual_revenue_growth_percent && comparisonData.symbol2.annual_revenue_growth_percent ? 
-                                  (comparisonData.symbol1.annual_revenue_growth_percent > comparisonData.symbol2.annual_revenue_growth_percent ? comparisonData.symbol1.symbol : comparisonData.symbol2.symbol) : 'N/A'}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-500">Higher Revenue Growth</p>
-                          </div>
-
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-gray-400 text-sm">More Profitable</span>
-                              <Badge variant={comparisonData.symbol1.net_income_margin_percent && comparisonData.symbol2.net_income_margin_percent ? 
-                                (comparisonData.symbol1.net_income_margin_percent > comparisonData.symbol2.net_income_margin_percent ? 'default' : 'secondary') : 'outline'}>
-                                {comparisonData.symbol1.net_income_margin_percent && comparisonData.symbol2.net_income_margin_percent ? 
-                                  (comparisonData.symbol1.net_income_margin_percent > comparisonData.symbol2.net_income_margin_percent ? comparisonData.symbol1.symbol : comparisonData.symbol2.symbol) : 'N/A'}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-500">Higher Net Income Margin</p>
-                          </div>
-
-                          <div className="bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-gray-400 text-sm">Analyst Favorite</span>
-                              <Badge variant={comparisonData.symbol1.upside_percentage && comparisonData.symbol2.upside_percentage ? 
-                                (comparisonData.symbol1.upside_percentage > comparisonData.symbol2.upside_percentage ? 'default' : 'secondary') : 'outline'}>
-                                {comparisonData.symbol1.upside_percentage && comparisonData.symbol2.upside_percentage ? 
-                                  (comparisonData.symbol1.upside_percentage > comparisonData.symbol2.upside_percentage ? comparisonData.symbol1.symbol : comparisonData.symbol2.symbol) : 'N/A'}
-                              </Badge>
-                            </div>
-                            <p className="text-xs text-gray-500">Higher Upside Potential</p>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-white text-sm">Differences only</span>
+                          <div className="w-10 h-6 bg-gray-600 rounded-full relative">
+                            <div className="w-4 h-4 bg-gray-400 rounded-full absolute top-1 left-1"></div>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                      </div>
 
-                  {/* Charts Tab */}
-                  <TabsContent value="charts" className="space-y-6 mt-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                      {/* Valuation Comparison Chart */}
-                      <Card className="bg-gray-800/50 border-gray-700">
-                        <CardHeader>
-                          <CardTitle className="text-white flex items-center space-x-2">
-                            <BarChart3 className="w-5 h-5" />
-                            <span>Valuation Metrics</span>
-                          </CardTitle>
-                          <CardDescription className="text-gray-400">
-                            P/E, P/S, and Forward P/E comparison
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ChartContainer
-                            config={{
-                              [comparisonData.symbol1.symbol]: {
-                                label: comparisonData.symbol1.symbol,
-                                color: "#3B82F6",
-                              },
-                              [comparisonData.symbol2.symbol]: {
-                                label: comparisonData.symbol2.symbol,
-                                color: "#EF4444",
-                              },
-                            }}
-                          >
-                            <BarChart data={[
-                              {
-                                metric: 'Trailing P/E',
-                                [comparisonData.symbol1.symbol]: comparisonData.symbol1.trailing_pe_ratio || 0,
-                                [comparisonData.symbol2.symbol]: comparisonData.symbol2.trailing_pe_ratio || 0,
-                              },
-                              {
-                                metric: 'Forward P/E',
-                                [comparisonData.symbol1.symbol]: comparisonData.symbol1.forward_pe_ratio || 0,
-                                [comparisonData.symbol2.symbol]: comparisonData.symbol2.forward_pe_ratio || 0,
-                              },
-                              {
-                                metric: 'P/S Ratio',
-                                [comparisonData.symbol1.symbol]: comparisonData.symbol1.ps_ratio || 0,
-                                [comparisonData.symbol2.symbol]: comparisonData.symbol2.ps_ratio || 0,
-                              },
-                            ]}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                              <XAxis dataKey="metric" stroke="#9CA3AF" />
-                              <YAxis stroke="#9CA3AF" />
-                              <ChartTooltip content={<ChartTooltipContent />} />
-                              <Bar dataKey={comparisonData.symbol1.symbol} fill="#3B82F6" />
-                              <Bar dataKey={comparisonData.symbol2.symbol} fill="#EF4444" />
-                            </BarChart>
-                          </ChartContainer>
-                        </CardContent>
-                      </Card>
+                    
 
-                      {/* Growth Metrics Chart */}
-                      <Card className="bg-gray-800/50 border-gray-700">
-                        <CardHeader>
-                          <CardTitle className="text-white flex items-center space-x-2">
-                            <TrendingUp className="w-5 h-5" />
-                            <span>Growth Metrics</span>
-                          </CardTitle>
-                          <CardDescription className="text-gray-400">
-                            Revenue growth and profitability comparison
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ChartContainer
-                            config={{
-                              [comparisonData.symbol1.symbol]: {
-                                label: comparisonData.symbol1.symbol,
-                                color: "#10B981",
-                              },
-                              [comparisonData.symbol2.symbol]: {
-                                label: comparisonData.symbol2.symbol,
-                                color: "#F59E0B",
-                              },
-                            }}
-                          >
-                            <BarChart data={[
-                              {
-                                metric: 'Revenue Growth',
-                                [comparisonData.symbol1.symbol]: comparisonData.symbol1.annual_revenue_growth_percent || 0,
-                                [comparisonData.symbol2.symbol]: comparisonData.symbol2.annual_revenue_growth_percent || 0,
-                              },
-                              {
-                                metric: 'Net Income Margin',
-                                [comparisonData.symbol1.symbol]: comparisonData.symbol1.net_income_margin_percent || 0,
-                                [comparisonData.symbol2.symbol]: comparisonData.symbol2.net_income_margin_percent || 0,
-                              },
-                              {
-                                metric: 'Upside Potential',
-                                [comparisonData.symbol1.symbol]: comparisonData.symbol1.upside_percentage || 0,
-                                [comparisonData.symbol2.symbol]: comparisonData.symbol2.upside_percentage || 0,
-                              },
-                            ]}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                              <XAxis dataKey="metric" stroke="#9CA3AF" />
-                              <YAxis stroke="#9CA3AF" />
-                              <ChartTooltip content={<ChartTooltipContent />} />
-                              <Bar dataKey={comparisonData.symbol1.symbol} fill="#10B981" />
-                              <Bar dataKey={comparisonData.symbol2.symbol} fill="#F59E0B" />
-                            </BarChart>
-                          </ChartContainer>
-                        </CardContent>
-                      </Card>
-
-                      {/* Financial Strength Radar Chart */}
-                      <Card className="bg-gray-800/50 border-gray-700">
-                        <CardHeader>
-                          <CardTitle className="text-white flex items-center space-x-2">
-                            <Target className="w-5 h-5" />
-                            <span>Financial Strength</span>
-                          </CardTitle>
-                          <CardDescription className="text-gray-400">
-                            Multi-dimensional financial analysis
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ChartContainer
-                            config={{
-                              [comparisonData.symbol1.symbol]: {
-                                label: comparisonData.symbol1.symbol,
-                                color: "#3B82F6",
-                              },
-                              [comparisonData.symbol2.symbol]: {
-                                label: comparisonData.symbol2.symbol,
-                                color: "#EF4444",
-                              },
-                            }}
-                          >
-                            <RadarChart data={[
-                              {
-                                metric: 'Cash Position',
-                                [comparisonData.symbol1.symbol]: Math.min((comparisonData.symbol1.cash_position || 0) / 1000000, 100),
-                                [comparisonData.symbol2.symbol]: Math.min((comparisonData.symbol2.cash_position || 0) / 1000000, 100),
-                              },
-                              {
-                                metric: 'Revenue Growth',
-                                [comparisonData.symbol1.symbol]: Math.min(comparisonData.symbol1.annual_revenue_growth_percent || 0, 100),
-                                [comparisonData.symbol2.symbol]: Math.min(comparisonData.symbol2.annual_revenue_growth_percent || 0, 100),
-                              },
-                              {
-                                metric: 'Profitability',
-                                [comparisonData.symbol1.symbol]: Math.min(comparisonData.symbol1.net_income_margin_percent || 0, 100),
-                                [comparisonData.symbol2.symbol]: Math.min(comparisonData.symbol2.net_income_margin_percent || 0, 100),
-                              },
-                              {
-                                metric: 'Analyst Rating',
-                                [comparisonData.symbol1.symbol]: (comparisonData.symbol1.recommendation_mean || 0) * 20,
-                                [comparisonData.symbol2.symbol]: (comparisonData.symbol2.recommendation_mean || 0) * 20,
-                              },
-                              {
-                                metric: 'Upside Potential',
-                                [comparisonData.symbol1.symbol]: Math.min(comparisonData.symbol1.upside_percentage || 0, 100),
-                                [comparisonData.symbol2.symbol]: Math.min(comparisonData.symbol2.upside_percentage || 0, 100),
-                              },
-                            ]}>
-                              <PolarGrid stroke="#374151" />
-                              <PolarAngleAxis dataKey="metric" stroke="#9CA3AF" />
-                              <PolarRadiusAxis stroke="#9CA3AF" />
-                              <Radar dataKey={comparisonData.symbol1.symbol} stroke="#3B82F6" fill="#3B82F6" fillOpacity={0.3} />
-                              <Radar dataKey={comparisonData.symbol2.symbol} stroke="#EF4444" fill="#EF4444" fillOpacity={0.3} />
-                            </RadarChart>
-                          </ChartContainer>
-                        </CardContent>
-                      </Card>
-
-                      {/* Company Size Comparison */}
-                      <Card className="bg-gray-800/50 border-gray-700">
-                        <CardHeader>
-                          <CardTitle className="text-white flex items-center space-x-2">
-                            <Building2 className="w-5 h-5" />
-                            <span>Company Size Comparison</span>
-                          </CardTitle>
-                          <CardDescription className="text-gray-400">
-                            Market cap and employee count comparison
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <ChartContainer
-                            config={{
-                              [comparisonData.symbol1.symbol]: {
-                                label: comparisonData.symbol1.symbol,
-                                color: "#8B5CF6",
-                              },
-                              [comparisonData.symbol2.symbol]: {
-                                label: comparisonData.symbol2.symbol,
-                                color: "#EC4899",
-                              },
-                            }}
-                          >
-                            <BarChart data={[
-                              {
-                                metric: 'Market Cap (B)',
-                                [comparisonData.symbol1.symbol]: (comparisonData.symbol1.marketCap || 0) / 1000000000,
-                                [comparisonData.symbol2.symbol]: (comparisonData.symbol2.marketCap || 0) / 1000000000,
-                              },
-                              {
-                                metric: 'Employees (K)',
-                                [comparisonData.symbol1.symbol]: (comparisonData.symbol1.employees || 0) / 1000,
-                                [comparisonData.symbol2.symbol]: (comparisonData.symbol2.employees || 0) / 1000,
-                              },
-                            ]}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                              <XAxis dataKey="metric" stroke="#9CA3AF" />
-                              <YAxis stroke="#9CA3AF" />
-                              <ChartTooltip content={<ChartTooltipContent />} />
-                              <Bar dataKey={comparisonData.symbol1.symbol} fill="#8B5CF6" />
-                              <Bar dataKey={comparisonData.symbol2.symbol} fill="#EC4899" />
-                            </BarChart>
-                          </ChartContainer>
-                        </CardContent>
-                      </Card>
+                      {/* Truncated Insights with Read in Detail Button */}
+                      {comparisonData.comparison_insights && (
+                        <Card className="bg-gray-800/50 border-gray-700">
+                          <CardHeader>
+                            <CardTitle className="text-white flex items-center space-x-2">
+                              <Activity className="w-5 h-5" />
+                              <span>Quick Analysis Preview</span>
+                            </CardTitle>
+                            <CardDescription className="text-gray-400">
+                              Brief overview of the comparison analysis
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="bg-gray-700/30 rounded-lg p-6 mb-4">
+                              <div className="whitespace-pre-wrap text-gray-300 text-sm leading-relaxed">
+                                {truncateToWords(comparisonData.comparison_insights, 50)}
+                              </div>
+                            </div>
+                            <Button 
+                              onClick={handleReadInDetail}
+                              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              <FileText className="w-4 h-4 mr-2" />
+                              Read in Detail
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      )}
                     </div>
-                  </TabsContent>
+                  ) : (
+                    /* Detailed View with Tabs */
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                      <TabsList className="grid w-full grid-cols-4 bg-gray-800/50 border-gray-700">
+                        <TabsTrigger value="charts" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                          <ChartBar className="w-4 h-4 mr-2" />
+                          Charts
+                        </TabsTrigger>
+                        <TabsTrigger value="financials" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                          <DollarSign className="w-4 h-4 mr-2" />
+                          Financials
+                        </TabsTrigger>
+                        <TabsTrigger value="analysis" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                          <Activity className="w-4 h-4 mr-2" />
+                          Analysis
+                        </TabsTrigger>
+                        <TabsTrigger value="details" className="text-gray-300 data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+                          <Info className="w-4 h-4 mr-2" />
+                          Details
+                        </TabsTrigger>
+                      </TabsList>
 
-                  {/* Financials Tab */}
-                  <TabsContent value="financials" className="space-y-6 mt-6">
-                    <Card className="bg-gray-800/50 border-gray-700">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center space-x-2">
-                          <DollarSign className="w-5 h-5" />
-                          <span>Detailed Financial Metrics</span>
-                        </CardTitle>
-                        <CardDescription className="text-gray-400">
-                          Comprehensive financial analysis and valuation metrics
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                          {/* Stock 1 Details */}
-                          <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
-                              {comparisonData.symbol1.symbol} - {comparisonData.symbol1.name}
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <p className="text-gray-400">Exchange</p>
-                                <p className="text-white">{comparisonData.symbol1.exchange || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Founded</p>
-                                <p className="text-white">{comparisonData.symbol1.founded || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Employees</p>
-                                <p className="text-white">{comparisonData.symbol1.employees?.toLocaleString() || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Shares Outstanding</p>
-                                <p className="text-white">{comparisonData.symbol1.shares_outstanding?.toLocaleString() || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Trailing P/E</p>
-                                <p className="text-white">{comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Forward P/E</p>
-                                <p className="text-white">{comparisonData.symbol1.forward_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">P/S Ratio</p>
-                                <p className="text-white">{comparisonData.symbol1.ps_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Revenue Growth</p>
-                                <p className={`${comparisonData.symbol1.annual_revenue_growth_percent && comparisonData.symbol1.annual_revenue_growth_percent > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Net Income Margin</p>
-                                <p className={`${comparisonData.symbol1.net_income_margin_percent && comparisonData.symbol1.net_income_margin_percent > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol1.net_income_margin_percent?.toFixed(2) || 'N/A'}%
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Cash Position</p>
-                                <p className="text-white">{comparisonData.symbol1.cash_position ? formatNumber(comparisonData.symbol1.cash_position) : 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Total Debt</p>
-                                <p className="text-white">{comparisonData.symbol1.debt_status ? formatNumber(comparisonData.symbol1.debt_status) : 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Short Ratio</p>
-                                <p className="text-white">{comparisonData.symbol1.short_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Analyst Rating</p>
-                                <p className="text-white">{comparisonData.symbol1.average_analyst_rating || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Price Target</p>
-                                <p className="text-white">{comparisonData.symbol1.average_price_target ? formatCurrency(comparisonData.symbol1.average_price_target) : 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Upside Potential</p>
-                                <p className={`${comparisonData.symbol1.upside_percentage && comparisonData.symbol1.upside_percentage > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol1.upside_percentage?.toFixed(1) || 'N/A'}%
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Stock 2 Details */}
-                          <div className="space-y-4">
-                            <h3 className="text-lg font-semibold text-white border-b border-gray-700 pb-2">
-                              {comparisonData.symbol2.symbol} - {comparisonData.symbol2.name}
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <p className="text-gray-400">Exchange</p>
-                                <p className="text-white">{comparisonData.symbol2.exchange || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Founded</p>
-                                <p className="text-white">{comparisonData.symbol2.founded || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Employees</p>
-                                <p className="text-white">{comparisonData.symbol2.employees?.toLocaleString() || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Shares Outstanding</p>
-                                <p className="text-white">{comparisonData.symbol2.shares_outstanding?.toLocaleString() || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Trailing P/E</p>
-                                <p className="text-white">{comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Forward P/E</p>
-                                <p className="text-white">{comparisonData.symbol2.forward_pe_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">P/S Ratio</p>
-                                <p className="text-white">{comparisonData.symbol2.ps_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Revenue Growth</p>
-                                <p className={`${comparisonData.symbol2.annual_revenue_growth_percent && comparisonData.symbol2.annual_revenue_growth_percent > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Net Income Margin</p>
-                                <p className={`${comparisonData.symbol2.net_income_margin_percent && comparisonData.symbol2.net_income_margin_percent > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol2.net_income_margin_percent?.toFixed(2) || 'N/A'}%
-                                </p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Cash Position</p>
-                                <p className="text-white">{comparisonData.symbol2.cash_position ? formatNumber(comparisonData.symbol2.cash_position) : 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Total Debt</p>
-                                <p className="text-white">{comparisonData.symbol2.debt_status ? formatNumber(comparisonData.symbol2.debt_status) : 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Short Ratio</p>
-                                <p className="text-white">{comparisonData.symbol2.short_ratio?.toFixed(2) || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Analyst Rating</p>
-                                <p className="text-white">{comparisonData.symbol2.average_analyst_rating || 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Price Target</p>
-                                <p className="text-white">{comparisonData.symbol2.average_price_target ? formatCurrency(comparisonData.symbol2.average_price_target) : 'N/A'}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-400">Upside Potential</p>
-                                <p className={`${comparisonData.symbol2.upside_percentage && comparisonData.symbol2.upside_percentage > 0 ? 'text-green-500' : 'text-red-500'}`}>
-                                  {comparisonData.symbol2.upside_percentage?.toFixed(1) || 'N/A'}%
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Analysis Tab */}
-                  <TabsContent value="analysis" className="space-y-6 mt-6">
-                    {comparisonData.comparison_insights && (
-                      <Card className="bg-gray-800/50 border-gray-700">
-                        <CardHeader>
-                          <CardTitle className="text-white flex items-center space-x-2">
-                            <Activity className="w-5 h-5" />
-                            <span>AI Analysis & Insights</span>
-                          </CardTitle>
-                          <CardDescription className="text-gray-400">
-                            Comprehensive analysis and investment recommendations
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="bg-gray-700/30 rounded-lg p-6">
-                            <div className="whitespace-pre-wrap text-gray-300 text-sm leading-relaxed">
-                              {comparisonData.comparison_insights}
-                            </div>
-                            {comparisonData.timestamp && (
-                              <div className="mt-4 text-xs text-gray-500">
-                                Analysis generated on: {new Date(comparisonData.timestamp).toLocaleString()}
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </TabsContent>
-
-                  {/* Details Tab */}
-                  <TabsContent value="details" className="space-y-6 mt-6">
-                    <Card className="bg-gray-800/50 border-gray-700">
-                      <CardHeader>
-                        <CardTitle className="text-white flex items-center space-x-2">
-                          <FileText className="w-5 h-5" />
-                          <span>Company Information</span>
-                        </CardTitle>
-                        <CardDescription className="text-gray-400">
-                          Business descriptions and key information
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
+                      {/* Charts Tab */}
+                      <TabsContent value="charts" className="space-y-6 mt-6">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          <div>
-                            <h3 className="text-lg font-semibold text-white mb-3">{comparisonData.symbol1.symbol} - {comparisonData.symbol1.name}</h3>
-                            <p className="text-gray-300 text-sm leading-relaxed">
-                              {comparisonData.symbol1.description || 'No description available.'}
-                            </p>
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-semibold text-white mb-3">{comparisonData.symbol2.symbol} - {comparisonData.symbol2.name}</h3>
-                            <p className="text-gray-300 text-sm leading-relaxed">
-                              {comparisonData.symbol2.description || 'No description available.'}
-                            </p>
-                          </div>
+                          {/* Valuation Comparison Chart */}
+                          <Card className="bg-gray-800/50 border-gray-700">
+                            <CardHeader>
+                              <CardTitle className="text-white flex items-center space-x-2">
+                                <BarChart3 className="w-5 h-5" />
+                                <span>Valuation Metrics</span>
+                              </CardTitle>
+                              <CardDescription className="text-gray-400">
+                                P/E, P/S, and Forward P/E comparison
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <ChartContainer
+                                config={{
+                                  [comparisonData.symbol1.symbol]: {
+                                    label: comparisonData.symbol1.symbol,
+                                    color: "#3B82F6",
+                                  },
+                                  [comparisonData.symbol2.symbol]: {
+                                    label: comparisonData.symbol2.symbol,
+                                    color: "#EF4444",
+                                  },
+                                }}
+                              >
+                                <BarChart data={[
+                                  {
+                                    metric: 'Trailing P/E',
+                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.trailing_pe_ratio || 0,
+                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.trailing_pe_ratio || 0,
+                                  },
+                                  {
+                                    metric: 'Forward P/E',
+                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.forward_pe_ratio || 0,
+                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.forward_pe_ratio || 0,
+                                  },
+                                  {
+                                    metric: 'P/S Ratio',
+                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.ps_ratio || 0,
+                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.ps_ratio || 0,
+                                  },
+                                ]}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                  <XAxis dataKey="metric" stroke="#9CA3AF" />
+                                  <YAxis stroke="#9CA3AF" />
+                                  <ChartTooltip content={<ChartTooltipContent />} />
+                                  <Bar dataKey={comparisonData.symbol1.symbol} fill="#3B82F6" />
+                                  <Bar dataKey={comparisonData.symbol2.symbol} fill="#EF4444" />
+                                </BarChart>
+                              </ChartContainer>
+                            </CardContent>
+                          </Card>
+
+                          {/* Growth Metrics Chart */}
+                          <Card className="bg-gray-800/50 border-gray-700">
+                            <CardHeader>
+                              <CardTitle className="text-white flex items-center space-x-2">
+                                <TrendingUp className="w-5 h-5" />
+                                <span>Growth Metrics</span>
+                              </CardTitle>
+                              <CardDescription className="text-gray-400">
+                                Revenue growth and profitability comparison
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <ChartContainer
+                                config={{
+                                  [comparisonData.symbol1.symbol]: {
+                                    label: comparisonData.symbol1.symbol,
+                                    color: "#10B981",
+                                  },
+                                  [comparisonData.symbol2.symbol]: {
+                                    label: comparisonData.symbol2.symbol,
+                                    color: "#F59E0B",
+                                  },
+                                }}
+                              >
+                                <BarChart data={[
+                                  {
+                                    metric: 'Revenue Growth',
+                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.annual_revenue_growth_percent || 0,
+                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.annual_revenue_growth_percent || 0,
+                                  },
+                                  {
+                                    metric: 'Net Income Margin',
+                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.net_income_margin_percent || 0,
+                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.net_income_margin_percent || 0,
+                                  },
+                                  {
+                                    metric: 'Upside Potential',
+                                    [comparisonData.symbol1.symbol]: comparisonData.symbol1.upside_percentage || 0,
+                                    [comparisonData.symbol2.symbol]: comparisonData.symbol2.upside_percentage || 0,
+                                  },
+                                ]}>
+                                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                                  <XAxis dataKey="metric" stroke="#9CA3AF" />
+                                  <YAxis stroke="#9CA3AF" />
+                                  <ChartTooltip content={<ChartTooltipContent />} />
+                                  <Bar dataKey={comparisonData.symbol1.symbol} fill="#10B981" />
+                                  <Bar dataKey={comparisonData.symbol2.symbol} fill="#F59E0B" />
+                                </BarChart>
+                              </ChartContainer>
+                            </CardContent>
+                          </Card>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
+                      </TabsContent>
+
+                      {/* Financials Tab */}
+                      <TabsContent value="financials" className="space-y-6 mt-6">
+                        <Card className="bg-gray-800/50 border-gray-700">
+                          <CardHeader>
+                            <CardTitle className="text-white flex items-center space-x-2">
+                              <DollarSign className="w-5 h-5" />
+                              <span>Financial Metrics</span>
+                            </CardTitle>
+                            <CardDescription className="text-gray-400">
+                              Detailed financial comparison
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            {/* Side by Side Financial Comparison */}
+                            <div className="grid grid-cols-3 gap-4 mb-6">
+                              {/* Left Stock */}
+                              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 text-center">
+                                {/* Score and Close Button */}
+                                <div className="flex items-center justify-between mb-4">
+                                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                                    <span className="text-white font-bold text-lg">
+                                      {comparisonData.symbol1.trailing_pe_ratio ? 
+                                        Math.round((comparisonData.symbol1.trailing_pe_ratio / 20) * 10) / 10 : 'N/A'}
+                                    </span>
+                                  </div>
+                                  <button className="text-pink-400 hover:text-pink-300">
+                                    <X className="w-5 h-5" />
+                                  </button>
+                                </div>
+
+                                {/* Stock Logo/Image */}
+                                <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                  <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center">
+                                    <img
+                                      src={logoMap.get(comparisonData.symbol1.symbol.toUpperCase()) || 'stock.avif'}
+                                      alt={comparisonData.symbol1.symbol}
+                                      className="w-16 h-16 object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'stock.avif';
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Stock Name */}
+                                <h3 className="text-white font-semibold text-lg mb-4 underline">
+                                  {comparisonData.symbol1.symbol} - {comparisonData.symbol1.name}
+                                </h3>
+
+                                {/* Financial Specifications */}
+                                <div className="space-y-3 text-left">
+                                  <div className="flex items-center space-x-3">
+                                    <BarChart3 className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Market Cap · {formatCurrency(comparisonData.symbol1.marketCap)}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <DollarSign className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">P/E · {comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <TrendingUp className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Growth · {comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <Percent className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Margin · {comparisonData.symbol1.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <Building2 className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Cash · {comparisonData.symbol1.cash_position ? formatNumber(comparisonData.symbol1.cash_position) : 'N/A'}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <Target className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Debt · {comparisonData.symbol1.debt_status ? formatNumber(comparisonData.symbol1.debt_status) : 'N/A'}</span>
+                                  </div>
+                                </div>
+
+                                {/* Check Prices Button */}
+                                <button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                                  Check Prices
+                                </button>
+                              </div>
+
+                              {/* VS Center */}
+                              <div className="flex items-center justify-center">
+                                <div className="bg-blue-600 text-white font-bold text-xl px-6 py-4 rounded-lg">
+                                  VS
+                                </div>
+                              </div>
+
+                              {/* Right Stock */}
+                              <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-6 text-center">
+                                {/* Score and Close Button */}
+                                <div className="flex items-center justify-between mb-4">
+                                  <button className="text-pink-400 hover:text-pink-300">
+                                    <X className="w-5 h-5" />
+                                  </button>
+                                  <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center">
+                                    <span className="text-white font-bold text-lg">
+                                      {comparisonData.symbol2.trailing_pe_ratio ? 
+                                        Math.round((comparisonData.symbol2.trailing_pe_ratio / 20) * 10) / 10 : 'N/A'}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Stock Logo/Image */}
+                                <div className="w-32 h-32 mx-auto mb-4 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                  <div className="w-24 h-24 bg-white rounded-lg flex items-center justify-center">
+                                    <img
+                                      src={logoMap.get(comparisonData.symbol2.symbol.toUpperCase()) || 'stock.avif'}
+                                      alt={comparisonData.symbol2.symbol}
+                                      className="w-16 h-16 object-contain"
+                                      onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'stock.avif';
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+
+                                {/* Stock Name */}
+                                <h3 className="text-white font-semibold text-lg mb-4 underline">
+                                  {comparisonData.symbol2.symbol} - {comparisonData.symbol2.name}
+                                </h3>
+
+                                {/* Financial Specifications */}
+                                <div className="space-y-3 text-left">
+                                  <div className="flex items-center space-x-3">
+                                    <BarChart3 className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Market Cap · {formatCurrency(comparisonData.symbol2.marketCap)}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <DollarSign className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">P/E · {comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <TrendingUp className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Growth · {comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <Percent className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Margin · {comparisonData.symbol2.net_income_margin_percent?.toFixed(1) || 'N/A'}%</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <Building2 className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Cash · {comparisonData.symbol2.cash_position ? formatNumber(comparisonData.symbol2.cash_position) : 'N/A'}</span>
+                                  </div>
+                                  <div className="flex items-center space-x-3">
+                                    <Target className="w-4 h-4 text-gray-400" />
+                                    <span className="text-gray-300 text-sm">Debt · {comparisonData.symbol2.debt_status ? formatNumber(comparisonData.symbol2.debt_status) : 'N/A'}</span>
+                                  </div>
+                                </div>
+
+                                {/* Check Prices Button */}
+                                <button className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                                  Check Prices
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Detailed Financial Metrics Table */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              <div>
+                                <h4 className="text-white font-semibold mb-3">{comparisonData.symbol1.symbol} Detailed Financials</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <p className="text-gray-400">Market Cap</p>
+                                    <p className="text-white">{formatCurrency(comparisonData.symbol1.marketCap)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">P/E Ratio</p>
+                                    <p className="text-white">{comparisonData.symbol1.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Revenue Growth</p>
+                                    <p className="text-white">{comparisonData.symbol1.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Net Income Margin</p>
+                                    <p className="text-white">{comparisonData.symbol1.net_income_margin_percent?.toFixed(1) || 'N/A'}%</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Cash Position</p>
+                                    <p className="text-white">{comparisonData.symbol1.cash_position ? formatNumber(comparisonData.symbol1.cash_position) : 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Total Debt</p>
+                                    <p className="text-white">{comparisonData.symbol1.debt_status ? formatNumber(comparisonData.symbol1.debt_status) : 'N/A'}</p>
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <h4 className="text-white font-semibold mb-3">{comparisonData.symbol2.symbol} Detailed Financials</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                  <div>
+                                    <p className="text-gray-400">Market Cap</p>
+                                    <p className="text-white">{formatCurrency(comparisonData.symbol2.marketCap)}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">P/E Ratio</p>
+                                    <p className="text-white">{comparisonData.symbol2.trailing_pe_ratio?.toFixed(2) || 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Revenue Growth</p>
+                                    <p className="text-white">{comparisonData.symbol2.annual_revenue_growth_percent?.toFixed(1) || 'N/A'}%</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Net Income Margin</p>
+                                    <p className="text-white">{comparisonData.symbol2.net_income_margin_percent?.toFixed(1) || 'N/A'}%</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Cash Position</p>
+                                    <p className="text-white">{comparisonData.symbol2.cash_position ? formatNumber(comparisonData.symbol2.cash_position) : 'N/A'}</p>
+                                  </div>
+                                  <div>
+                                    <p className="text-gray-400">Total Debt</p>
+                                    <p className="text-white">{comparisonData.symbol2.debt_status ? formatNumber(comparisonData.symbol2.debt_status) : 'N/A'}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+
+                      {/* Analysis Tab */}
+                      <TabsContent value="analysis" className="space-y-6 mt-6">
+                        {comparisonData.comparison_insights && (
+                          <Card className="bg-gray-800/50 border-gray-700">
+                            <CardHeader>
+                              <CardTitle className="text-white flex items-center space-x-2">
+                                <Activity className="w-5 h-5" />
+                                <span>AI Analysis & Insights</span>
+                              </CardTitle>
+                              <CardDescription className="text-gray-400">
+                                Comprehensive analysis and investment recommendations
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="bg-gray-700/30 rounded-lg p-6">
+                                <div className="whitespace-pre-wrap text-gray-300 text-sm leading-relaxed">
+                                  {comparisonData.comparison_insights}
+                                </div>
+                                {comparisonData.timestamp && (
+                                  <div className="mt-4 text-xs text-gray-500">
+                                    Analysis generated on: {new Date(comparisonData.timestamp).toLocaleString()}
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                      </TabsContent>
+
+                      {/* Details Tab */}
+                      <TabsContent value="details" className="space-y-6 mt-6">
+                        <Card className="bg-gray-800/50 border-gray-700">
+                          <CardHeader>
+                            <CardTitle className="text-white flex items-center space-x-2">
+                              <FileText className="w-5 h-5" />
+                              <span>Company Information</span>
+                            </CardTitle>
+                            <CardDescription className="text-gray-400">
+                              Business descriptions and key information
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                              <div>
+                                <h3 className="text-lg font-semibold text-white mb-3">{comparisonData.symbol1.symbol} - {comparisonData.symbol1.name}</h3>
+                                <p className="text-gray-300 text-sm leading-relaxed">
+                                  {comparisonData.symbol1.description || 'No description available.'}
+                                </p>
+                              </div>
+                              <div>
+                                <h3 className="text-lg font-semibold text-white mb-3">{comparisonData.symbol2.symbol} - {comparisonData.symbol2.name}</h3>
+                                <p className="text-gray-300 text-sm leading-relaxed">
+                                  {comparisonData.symbol2.description || 'No description available.'}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+                    </Tabs>
+                  )}
+                </>
               ) : (
                 <Card className="bg-gray-800/50 border-gray-700">
                   <CardContent className="flex items-center justify-center h-64">

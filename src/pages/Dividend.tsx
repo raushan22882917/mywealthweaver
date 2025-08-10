@@ -59,6 +59,11 @@ interface DividendData {
   debt_to_equity?: string;
   company_name?: string;
   domain?: string;
+  // Frequency fields from div_frequency table
+  frequency?: number;
+  special_dividend?: string;
+  frequency_tx?: string;
+  days?: number;
 }
 
 interface HoveredStockDetails {
@@ -220,16 +225,19 @@ const Dividend: React.FC = () => {
         const [
           { data: dividendData, error: dividendError },
           { data: safetyData, error: safetyError },
-          { data: logoData, error: logoError }
+          { data: logoData, error: logoError },
+          { data: frequencyData, error: frequencyError }
         ] = await Promise.all([
           supabase.from('dividendsymbol').select('*'),
           supabase.from('dividend_safety').select('*'),
-          supabase.from('company_logos').select('*')
+          supabase.from('company_logos').select('*'),
+          supabase.from('div_frequency').select('*')
         ]);
 
         if (dividendError) throw new Error(`Dividend data error: ${dividendError.message}`);
         if (safetyError) throw new Error(`Safety data error: ${safetyError.message}`);
         if (logoError) throw new Error(`Logo data error: ${logoError.message}`);
+        if (frequencyError) throw new Error(`Frequency data error: ${frequencyError.message}`);
 
         const safetyMap = new Map(safetyData?.map(item => [item.symbol, item]) || []);
         // Create a case-insensitive map for logos
@@ -240,11 +248,20 @@ const Dividend: React.FC = () => {
             logoMap.set(item.Symbol.toUpperCase(), item.LogoURL);
           }
         });
+        // Create a map for frequency data
+        const frequencyMap = new Map();
+        frequencyData?.forEach(item => {
+          if (item.symbol) {
+            // Store symbols in uppercase for case-insensitive lookup
+            frequencyMap.set(item.symbol.toUpperCase(), item);
+          }
+        });
 
         const transformedData = (dividendData || []).map((stock: any) => {
           const safetyInfo = safetyMap.get(stock.symbol);
           // Use uppercase for consistent matching with Symbol column
           const logoInfo = logoMap.get(stock.Symbol || stock.symbol);
+          const frequencyInfo = frequencyMap.get((stock.Symbol || stock.symbol)?.toUpperCase());
 
           const newData: DividendData = {
             Symbol: stock.symbol,
@@ -284,7 +301,12 @@ const Dividend: React.FC = () => {
             weekRange: '',
             volume: '',
             yieldRange: '',
-            amount: ''
+            amount: '',
+            // Frequency fields from div_frequency table
+            frequency: frequencyInfo?.frequency,
+            special_dividend: frequencyInfo?.special_dividend,
+            frequency_tx: frequencyInfo?.frequency_tx,
+            days: frequencyInfo?.days
           };
 
           return newData;
@@ -1123,9 +1145,10 @@ const Dividend: React.FC = () => {
                     <p className="text-[15px] text-amber-300 leading-relaxed">{hoveredStockDetails.stock?.insight}</p>
                   </div>
                 )}
+                
                 <div className="relative border border-blue-900 rounded-xl shadow-2xl p-6 pt-8 overflow-hidden mb-3 bg-[#1a2236]">
                   <div className="relative z-10">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-white mb-4">
                       <div className="flex flex-col">
                         <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Ex-Dividend Date:</span>
                         <span className="font-bold text-base text-blue-100">
@@ -1144,9 +1167,15 @@ const Dividend: React.FC = () => {
                           {hoveredStockDetails.stock?.earningsdate ? new Date(hoveredStockDetails.stock.earningsdate).toISOString().split('T')[0] : 'N/A'}
                         </span>
                       </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Frequency:</span>
+                        <span className="font-bold text-base text-blue-100">
+                          {hoveredStockDetails.stock?.frequency_tx || hoveredStockDetails.stock?.frequency || 'N/A'}
+                        </span>
+                      </div>
                     </div>
                     <hr className="my-4 border-blue-800/40" />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-white mb-4">
                       <div className="flex flex-col">
                         <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Quarter Dividend:</span>
                         <span className="font-bold text-base text-emerald-300">
@@ -1167,6 +1196,12 @@ const Dividend: React.FC = () => {
                           {Number.isNaN(Number(hoveredStockDetails.stock?.dividendYield))
                             ? 'N/A'
                             : `${(Number(hoveredStockDetails.stock?.dividendYield)).toFixed(2)}%`}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs text-blue-200 font-semibold uppercase tracking-wider mb-1">Days Between:</span>
+                        <span className="font-bold text-base text-emerald-300">
+                          {hoveredStockDetails.stock?.days ? `${hoveredStockDetails.stock.days} days` : 'N/A'}
                         </span>
                       </div>
                     </div>
