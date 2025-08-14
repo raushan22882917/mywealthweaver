@@ -28,6 +28,12 @@ import { Star, Square, ChevronDown, ChevronUp, Calendar, DollarSign, AlertCircle
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import Papa, { ParseResult } from 'papaparse';
 import { filterDividendData, type DividendHistoryData } from '@/utils/dividend';
 
@@ -1699,19 +1705,89 @@ const StockDetailsDialog = ({ stock, isOpen, setIsOpen }: StockDetailsDialogProp
 
             {/* Tabs in a single row */}
             <div className="flex gap-1 mt-1 overflow-x-auto pb-1">
-              {["Company", "Dividend History", "Dividend Yield", "Payout", "Dividend Data", "Analyst Ratings", "AI Analysis", "News", "Overall"].map((tab) => {
-                return (
-                  <div
-                    key={tab}
-                    className={`flex items-center cursor-pointer px-2 py-1 ${selectedTab === tab ? 'border-b-2 border-blue-500' : ''}`}
-                    onClick={() => setSelectedTab(tab)}
-                  >
-                    <span className={`text-sm ${selectedTab === tab ? 'text-blue-500' : ''}`}>
-                      {tab}
+              {/* Company Tab */}
+              <div
+                className={`flex items-center cursor-pointer px-2 py-1 ${selectedTab === 'Company' ? 'border-b-2 border-blue-500' : ''}`}
+                onClick={() => setSelectedTab('Company')}
+              >
+                <span className={`text-sm ${selectedTab === 'Company' ? 'text-blue-500' : ''}`}>
+                  Company
+                </span>
+              </div>
+
+              {/* Dividend Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className={`flex items-center cursor-pointer px-2 py-1 ${['Dividend History', 'Dividend Yield', 'Payout', 'Dividend Data'].includes(selectedTab) ? 'border-b-2 border-blue-500' : ''}`}>
+                    <span className={`text-sm ${['Dividend History', 'Dividend Yield', 'Payout', 'Dividend Data'].includes(selectedTab) ? 'text-blue-500' : ''}`}>
+                      Dividend
                     </span>
+                    <ChevronDown className="ml-1 h-3 w-3" />
                   </div>
-                );
-              })}
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => setSelectedTab('Dividend History')}>
+                    <span className={`text-sm ${selectedTab === 'Dividend History' ? 'text-blue-500' : ''}`}>
+                      Dividend History
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSelectedTab('Dividend Yield')}>
+                    <span className={`text-sm ${selectedTab === 'Dividend Yield' ? 'text-blue-500' : ''}`}>
+                      Dividend Yield
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSelectedTab('Payout')}>
+                    <span className={`text-sm ${selectedTab === 'Payout' ? 'text-blue-500' : ''}`}>
+                      Payout
+                    </span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSelectedTab('Dividend Data')}>
+                    <span className={`text-sm ${selectedTab === 'Dividend Data' ? 'text-blue-500' : ''}`}>
+                      Dividend Data
+                    </span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Analyst Ratings Tab */}
+              <div
+                className={`flex items-center cursor-pointer px-2 py-1 ${selectedTab === 'Analyst Ratings' ? 'border-b-2 border-blue-500' : ''}`}
+                onClick={() => setSelectedTab('Analyst Ratings')}
+              >
+                <span className={`text-sm ${selectedTab === 'Analyst Ratings' ? 'text-blue-500' : ''}`}>
+                  Analyst Ratings
+                </span>
+              </div>
+
+              {/* AI Analysis Tab */}
+              <div
+                className={`flex items-center cursor-pointer px-2 py-1 ${selectedTab === 'AI Analysis' ? 'border-b-2 border-blue-500' : ''}`}
+                onClick={() => setSelectedTab('AI Analysis')}
+              >
+                <span className={`text-sm ${selectedTab === 'AI Analysis' ? 'text-blue-500' : ''}`}>
+                  AI Analysis
+                </span>
+              </div>
+
+              {/* News Tab */}
+              <div
+                className={`flex items-center cursor-pointer px-2 py-1 ${selectedTab === 'News' ? 'border-b-2 border-blue-500' : ''}`}
+                onClick={() => setSelectedTab('News')}
+              >
+                <span className={`text-sm ${selectedTab === 'News' ? 'text-blue-500' : ''}`}>
+                  News
+                </span>
+              </div>
+
+              {/* Overall Tab */}
+              <div
+                className={`flex items-center cursor-pointer px-2 py-1 ${selectedTab === 'Overall' ? 'border-b-2 border-blue-500' : ''}`}
+                onClick={() => setSelectedTab('Overall')}
+              >
+                <span className={`text-sm ${selectedTab === 'Overall' ? 'text-blue-500' : ''}`}>
+                  Overall
+                </span>
+              </div>
             </div>
             {/* Render tab content, including AI Analysis inline */}
             {selectedTab === 'AI Analysis' ? (
