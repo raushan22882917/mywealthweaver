@@ -1,3 +1,5 @@
+import { GeminiService, GeminiChatMessage } from './geminiService';
+
 export interface PDFInfo {
   name: string;
   size: number;
@@ -66,6 +68,20 @@ export interface ApiInfoResponse {
 
 export class PDFAnalysisApiService {
   private static baseUrl = 'http://127.0.0.1:8000';
+  private static geminiService: GeminiService | null = null;
+
+  // Initialize Gemini service
+  private static getGeminiService(): GeminiService {
+    if (!this.geminiService) {
+      try {
+        this.geminiService = new GeminiService();
+      } catch (error) {
+        console.error('Failed to initialize Gemini service:', error);
+        throw error;
+      }
+    }
+    return this.geminiService;
+  }
 
   // Get API information
   static async getApiInfo(): Promise<ApiInfoResponse> {
@@ -152,7 +168,50 @@ export class PDFAnalysisApiService {
     }
   }
 
-  // Chat with a specific PDF (using the simplified endpoint)
+  // Get PDF content for Gemini processing
+  static async getPDFContent(pdfName: string): Promise<string> {
+    try {
+      const response = await fetch(`${this.baseUrl}/pdfs/${encodeURIComponent(pdfName)}/content`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.content || '';
+    } catch (error) {
+      console.error('Error getting PDF content:', error);
+      throw error;
+    }
+  }
+
+  // Chat with PDF using Gemini (Primary method)
+  static async chatWithPDFGemini(pdfName: string, message: string, chatHistory: ChatMessage[] = []): Promise<ChatResponse> {
+    try {
+      // Get PDF content
+      const pdfContent = await this.getPDFContent(pdfName);
+      
+      // Convert chat history to Gemini format
+      const geminiHistory: GeminiChatMessage[] = chatHistory.map(msg => ({
+        role: msg.role === 'user' ? 'user' : 'model',
+        parts: msg.content
+      }));
+
+      // Get Gemini service and chat
+      const geminiService = this.getGeminiService();
+      const geminiResponse = await geminiService.chatWithPDF(pdfContent, message, geminiHistory);
+
+      return {
+        response: geminiResponse.response,
+        pdf_name: pdfName,
+        timestamp: geminiResponse.timestamp,
+        message: geminiResponse.response
+      };
+    } catch (error) {
+      console.error('Error chatting with PDF using Gemini:', error);
+      throw error;
+    }
+  }
+
+  // Chat with a specific PDF (using the simplified endpoint) - Legacy method
   static async chatWithPDF(pdfName: string, message: string): Promise<ChatResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/pdfs/${encodeURIComponent(pdfName)}/chat-simple`, {
@@ -182,7 +241,7 @@ export class PDFAnalysisApiService {
     }
   }
 
-  // Chat with a specific PDF (using the standard endpoint)
+  // Chat with a specific PDF (using the standard endpoint) - Legacy method
   static async chatWithPDFStandard(pdfName: string, message: string): Promise<ChatResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/pdfs/${encodeURIComponent(pdfName)}/chat`, {
@@ -214,7 +273,7 @@ export class PDFAnalysisApiService {
     }
   }
 
-  // Chat with a specific PDF with highlighted content
+  // Chat with a specific PDF with highlighted content - Legacy method
   static async chatWithPDFHighlighted(pdfName: string, message: string): Promise<ChatResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/pdfs/${encodeURIComponent(pdfName)}/chat-highlighted`, {

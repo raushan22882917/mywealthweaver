@@ -51,6 +51,14 @@ Each stock has a dedicated page including:
 
 ---
 
+### 📄 PDF Analysis & Chat
+- Upload and analyze financial documents
+- AI-powered chat interface using **Google Gemini**
+- Extract key insights from earnings reports, 10-K filings, and other documents
+- Interactive Q&A with document content
+
+---
+
 ### ⭐ Dividend Safety & Quality Scoring
 Custom scoring system based on:
 - Earnings payout ratio
@@ -96,6 +104,10 @@ Score levels:
 - Node.js or FastAPI
 - REST APIs
 - Scheduled cron jobs for dividend updates
+
+### AI Integration
+- **Google Gemini AI** for PDF document analysis and chat
+- Intelligent document processing and Q&A capabilities
 
 ### Database
 - PostgreSQL (core financial data)
@@ -162,6 +174,37 @@ Always consult a certified financial advisor before investing.
 - [ ] Dark mode
 - [ ] Multi-currency income view
 - [ ] Tax estimation (US dividends)
+
+---
+
+## ⚙️ Setup & Configuration
+
+### Gemini AI Integration
+To use the PDF analysis and chat features:
+
+1. **Get a Gemini API Key**
+   - Visit [Google AI Studio](https://makersuite.google.com/app/apikey)
+   - Sign in with your Google account
+   - Create a new API key
+
+2. **Configure Environment Variables**
+   - Create a `.env.local` file in the project root
+   - Add your Gemini API key:
+     ```
+     VITE_GEMINI_API_KEY=your_actual_api_key_here
+     ```
+
+3. **Install Dependencies**
+   ```bash
+   npm install
+   ```
+
+4. **Start Development Server**
+   ```bash
+   npm run dev
+   ```
+
+For detailed setup instructions, see [GEMINI_SETUP.md](./GEMINI_SETUP.md).
 
 ---
 
